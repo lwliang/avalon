@@ -9,7 +9,7 @@ export default defineConfig({
     test: {
         environment: 'jsdom'
     },
-    base: './',
+    base: '/',
     resolve: {
         alias: {
             vue: 'vue/dist/vue.esm-bundler.js'

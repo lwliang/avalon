@@ -6,6 +6,7 @@
 
 import mittBus from "./global/bus/mittBus.ts";
 import {isLogin} from "./util/commonUtils.ts";
+import {goLogin} from "./util/routerUtils.ts";
 
 
 if (isLogin()) {
@@ -15,6 +16,8 @@ if (isLogin()) {
     mittBus.emit("loadField")
     mittBus.emit('loadUserInfo')
     console.log("App vue")
+} else {
+    goLogin()
 }
 
 </script>
