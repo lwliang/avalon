@@ -8,8 +8,8 @@ application:
     host: ${spring.profiles.host}
     port: 5432
     class-type: org.postgresql.Driver
-    username: lwl
-    password: lwl
+    username: avalon
+    password: avalon
     max-pool-size: 200
     min-idle: 10
     connection-timeout: 20000

@@ -48,3 +48,4 @@ dist-ssr
 *.sw?
 
 data
+taget/*

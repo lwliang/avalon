@@ -5,16 +5,3 @@ spring:
 pulsar:
   url: pulsar://${spring.profiles.host}:6650
   enable: false
-
-#商户签名证书,生产请替换商户的生产签名证书***.pfx
-pfxPath: certificate/103881104410001.pfx
-
-#商户验签证书，生产请替换的生产验签证书TrustPay.cer（见下面配置）
-cerPath: certificate/TrustPayTest.cer
-#生产证书
-#cerPath=certificate/TrustPay.cer
-#pfx证书密码，生产请替换商户生产证书密码
-keystore_password: abcd1234
-
-#pfx证书别名（无需改动）
-keystore_alias: alias

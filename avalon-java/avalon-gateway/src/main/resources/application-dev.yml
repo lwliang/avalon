@@ -1,6 +1,6 @@
 spring:
   profiles:
-    host: 192.168.0.103
+    host: localhost
   cloud:
     gateway:
       routes:

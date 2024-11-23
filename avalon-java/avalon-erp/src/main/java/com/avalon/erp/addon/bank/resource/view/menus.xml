@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<avalon>
-    <menuitem id="menu_school_action" name="研学项目" action="bank_school_action"/>
-</avalon>

@@ -8,7 +8,6 @@ package com.avalon.erp.addon.im.service;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.util.DateTimeUtils;
 import com.avalon.core.util.SnowflakeIdWorker4rd;
-import com.avalon.erp.addon.pet.service.user.PetUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

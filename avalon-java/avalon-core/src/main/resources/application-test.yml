@@ -4,11 +4,11 @@ application:
   time-format: HH:mm
   page-size: 80
   dataSource:
-    host: localhost
+    host: ${spring.profiles.host}
     port: 5432
     class-type: org.postgresql.Driver
-    username: postgres
-    password: Lvx.c0m!
+    username: avalon
+    password: avalon
     max-pool-size: 200
     min-idle: 10
     connection-timeout: 20000

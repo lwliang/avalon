@@ -14,7 +14,6 @@
         <module>avalon-file</module>
         <module>avalon-im</module>
         <module>avalon-gateway</module>
-        <module>avalon-shop</module>
     </modules>
 
     <properties>

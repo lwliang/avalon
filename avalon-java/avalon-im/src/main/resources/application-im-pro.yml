@@ -1,8 +1,8 @@
 application:
   dataSource:
     database: im
-    username: lwl
-    password: lwl
+    username: avalon_im
+    password: avalon_im
 spring:
   profiles:
     host: localhost
