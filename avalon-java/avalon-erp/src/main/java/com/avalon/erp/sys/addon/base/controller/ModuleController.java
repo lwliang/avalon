@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -64,23 +65,10 @@ public class ModuleController {
         } else {
             filePath = filePath + "/" + path;
         }
-        URL resource = module.getClass().getClassLoader().getResource(filePath);
-
-
-        File file = new File(resource.toURI());
-        if (!file.exists()) {
-            throw new FileIOException("icon图片不存在");
-        }
 
         try {
-            FileChannel channel = new FileInputStream(file).getChannel();
-
-            long size = channel.size();
-            ByteBuffer byteBuffer = ByteBuffer.allocate((int) size);
-
-            channel.read(byteBuffer);
-            channel.close();
-            byte[] content = byteBuffer.array();
+            InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(filePath);
+            byte[] content = resourceAsStream.readAllBytes();
 
             //设置下载响应头
             response.setContentType("image/png");
@@ -93,31 +81,19 @@ public class ModuleController {
         } catch (FileIOException e) {
             throw e;
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new FileIOException("icon图片读取发生错误");
         }
     }
 
     @GetMapping("icon/default")
     public void downloadModuleDefaultIcon(HttpServletRequest request,
-                             HttpServletResponse response) throws IOException, URISyntaxException {
-        String path = "module/module.png";
-
-        URL resource = this.getClass().getClassLoader().getResource(path);
-
-        File file = new File(resource.toURI());
-        if (!file.exists()) {
-            throw new FileIOException("默认icon图片不存在");
-        }
-
+                                          HttpServletResponse response) throws IOException, URISyntaxException {
         try {
-            FileChannel channel = new FileInputStream(file).getChannel();
+            String path = "module/module.png";
 
-            long size = channel.size();
-            ByteBuffer byteBuffer = ByteBuffer.allocate((int) size);
-
-            channel.read(byteBuffer);
-            channel.close();
-            byte[] content = byteBuffer.array();
+            InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(path);
+            byte[] content = resourceAsStream.readAllBytes();
 
             //设置下载响应头
             response.setContentType("image/png");
@@ -130,6 +106,7 @@ public class ModuleController {
         } catch (FileIOException e) {
             throw e;
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new FileIOException("默认icon图片读取发生错误");
         }
     }
