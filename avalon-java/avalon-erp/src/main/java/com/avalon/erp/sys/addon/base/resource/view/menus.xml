@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_module_parent_action" name="App">
+        <menuitem id="menu_module_action" name="App" action="base_module_action"/>
+        <menuitem id="menu_module_refresh_action" serviceId="base.module" name="更新模块" type="object"
+                  action="refreshModuleFromDisk"/>
+    </menuitem>
+    <menuitem id="menu_user_action" name="用户" action="base_user_action"/>
+    <menuitem id="menu_org_action" name="组织" action="base_org_action"/>
+    <menuitem id="menu_job_action" name="岗位" action="base_job_action"/>
+    <menuitem id="menu_partner_action" name="联系人" action="base_partner_action"/>
+    <menuitem id="menu_staff_action" name="员工" action="base_staff_action"/>
+</avalon>

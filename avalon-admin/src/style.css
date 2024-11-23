@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+path {
+    fill: inherit !important
+}
+
+#app {
+    @apply h-full;
+}
+
+input {
+    outline: none;
+}
+
+* {
+    @apply box-border;
+    @apply m-0;
+    @apply p-0;
+    color: #212529;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, "Noto Sans", Arial, "Odoo Unicode Support Noto", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+
+.bgc {
+    background-color: #F4F4F5;
+}
+
+.form-input-control {
+    border: 1px solid #CED4DA;;
+    @apply px-3 py-1.5;
+    @apply text-sm;
+}
+
+.form-input-control:focus {
+    border-color: #b8a5b3;
+    outline: 0;
+}
+
+.form-input-control-error {
+    border-color: #f56c6c;
+    outline: 0;
+}
+
+.text-danger {
+    @apply text-red-500;
+    @apply text-xs;
+}
+
+.c-pr-4 {
+    @apply pr-4;
+}
+
+.c-pt-4 {
+    @apply pt-4;
+}
+
+html, body {
+    @apply h-full;
+    @apply overflow-y-auto;
+    background-image: url("/background-light.svg");
+}
+
+.data-table {
+    @apply box-border;
+    @apply table-fixed;
+    @apply border-collapse;
+    @apply w-full;
+    @apply relative;
+    border-spacing: 0;
+}
+
+.data-table th, td {
+    @apply box-border;
+    @apply border-t border-b;
+    @apply py-2;
+    @apply px-2;
+    @apply text-left;
+    @apply overflow-hidden;
+}
+
+.data-table thead {
+    @apply border-t border-b;
+}
+
+.data-table thead th {
+    @apply border-t border-b;
+    @apply box-border;
+    @apply sticky;
+    @apply top-0;
+    @apply bg-white;
+    @apply z-10;
+}
+
+.data-table tr:nth-child(even) {
+    background-color: var(--table-striped-bg);
+}
+
+:root {
+    --primary-color: #007bff;
+    --success-color: #28a745;
+    --info-color: #6c757d;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --overlay-color: rgba(0, 0, 0, 0.5);
+
+    --table-striped-bg: rgba(0, 0, 0, 0.01);
+    --table-active-color: #111827;
+    --table-active-bg: rgba(0, 0, 0, 0.05);
+    --table-hover-color: #374151;
+    --table-hover-bg: rgba(0, 0, 0, 0.055);
+}

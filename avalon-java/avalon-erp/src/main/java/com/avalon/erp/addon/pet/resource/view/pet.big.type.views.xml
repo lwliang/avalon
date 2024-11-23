@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_big_type_view_form" service="base.action.view">
+        <field name="name">pet_big_type_view_form</field>
+        <field name="label">宠物类型</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.big.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                            <field name="img"/>
+                        </col>
+                        <col>
+                            <field name="sequence"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="宠物子类型">
+                            <field name="smallTypeIds"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_big_type_view_tree" service="base.action.view">
+        <field name="name">pet_big_type_view_tree</field>
+        <field name="label">宠物类型</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.big.type</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="img"/>
+                <field name="sequence"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pet_big_type_view_search" service="base.action.view">
+        <field name="name">pet_big_type_view_search</field>
+        <field name="label">宠物类型查询</field>
+        <field name="viewMode">search</field>
+        <field name="ref_serviceId">pet.big.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="pet_type_window_action" service="base.action.window">
+        <field name="name">pet.big.type</field>
+        <field name="label">宠物类型</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.big.type</field>
+    </record>
+</avalon>

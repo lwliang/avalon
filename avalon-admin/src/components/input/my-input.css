@@ -1,0 +1,4 @@
+input[type='text'] {
+    @apply w-full;
+    @apply inline-block;
+}

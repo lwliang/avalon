@@ -1,0 +1,8 @@
+application:
+  dataSource:
+    database: im
+    username: lwl
+    password: lwl
+spring:
+  profiles:
+    host: localhost

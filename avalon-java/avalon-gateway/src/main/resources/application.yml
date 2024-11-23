@@ -1,0 +1,13 @@
+server:
+  port: 8100
+spring:
+  profiles:
+    active: dev
+  application:
+    name: avalon-gateway
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: ${spring.profiles.host}¬:8848

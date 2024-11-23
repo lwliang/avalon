@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_user_view_form" service="base.action.view">
+        <field name="name">base_user_view_form</field>
+        <field name="label">用户表单</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">base.user</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                            <field name="account"/>
+                        </col>
+                        <col>
+                            <field name="password"/>
+                        </col>
+                    </row>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="base_user_view_tree" service="base.action.view">
+        <field name="name">base_user_view_tree</field>
+        <field name="label">用户</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.user</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="id"/>
+                <field name="name"/>
+                <field name="account"/>
+                <field name="password"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="base_user_action" service="base.action.window">
+        <field name="name">user</field>
+        <field name="label">用户</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.user</field>
+    </record>
+</avalon>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_pet_vaccination_view_form" service="base.action.view">
+        <field name="name">pet_pet_vaccination_view_form</field>
+        <field name="label">疫苗</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.pet.vaccination</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="vaccinationName"/>
+                        </col>
+                        <col>
+                            <field name="vaccinationDate"/>
+                        </col>
+                    </row>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_pet_vaccination_view_tree" service="base.action.view">
+        <field name="name">pet_pet_vaccination_view_tree</field>
+        <field name="label">疫苗</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.pet.vaccination</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="vaccinationName"/>
+                <field name="vaccinationDate"/>
+            </tree>
+        </field>
+    </record>
+</avalon>

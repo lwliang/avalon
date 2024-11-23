@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_adopt_message_view_form" service="base.action.view">
+        <field name="name">pet_adopt_message_view_form</field>
+        <field name="label">领养留言</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.adopt.message</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="petAdoptId"/>
+                            <field name="message"/>
+                            <field name="createTime"/>
+                        </col>
+                        <col>
+                            <field name="petUserId"/>
+                            <field name="parentId"/>
+                        </col>
+                    </row>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_adopt_message_view_tree" service="base.action.view">
+        <field name="name">pet_adopt_message_view_tree</field>
+        <field name="label">领养留言</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.adopt.message</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="petAdoptId"/>
+                <field name="message"/>
+                <field name="petUserId"/>
+                <field name="parentId"/>
+                <field name="createTime"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pet_adopt_message_window_action" service="base.action.window">
+        <field name="name">pet_adopt_message_window_action</field>
+        <field name="label">领养留言</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.adopt.message</field>
+    </record>
+</avalon>

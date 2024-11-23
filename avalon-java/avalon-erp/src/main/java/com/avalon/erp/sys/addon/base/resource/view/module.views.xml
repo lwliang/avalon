@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_module_view_kanban" service="base.action.view">
+        <field name="name">kanban</field>
+        <field name="label">看板</field>
+        <field name="viewMode">kanban</field>
+        <field name="ref_serviceId">base.module</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="name"/>
+                <field name="label"/>
+                <field name="description"/>
+                <field name="isInstall"/>
+                <field name="icon"/>
+                <field name="createTime"/>
+                <template>
+                    <div class="pr-4 flex justify-center items-center mr-4">
+                        <MyImage width="50" height="50" :src="getModuleIcon(name,icon)"/>
+                    </div>
+                    <div class="pr-4">
+                        <div>
+                            <div class="pb-0.5">{{ label }}</div>
+                            <div class="text-gray-400">{{ description }}</div>
+                        </div>
+                        <div class="pt-4">
+                            <MyButton :rounded="true" type="primary" :action="isInstall ? 'upgrade':'install'"
+                                      action-type="object">{{ isInstall ? '升级' : '安装' }}
+                            </MyButton>
+                            <MyButton :rounded="true" class="ml-2" type="danger" v-if="isInstall" action="uninstall"
+                                      action-type="object">卸载
+                            </MyButton>
+                        </div>
+                    </div>
+                </template>
+            </kanban>
+        </field>
+    </record>
+    <record id="base_module_action" service="base.action.window">
+        <field name="name">module</field>
+        <field name="label">模块</field>
+        <field name="viewMode">kanban</field>
+        <field name="ref_serviceId">base.module</field>
+    </record>
+</avalon>

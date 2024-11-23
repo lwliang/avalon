@@ -1,0 +1,13 @@
+.my-divider {
+    @apply w-full;
+    @apply block;
+    @apply h-[1px];
+    border-top: 1px #dcdfe6 solid;
+}
+
+.my-divider-vertical {
+    @apply inline-block;
+    @apply align-middle;
+    @apply w-[1px];
+    border-left: 1px #dcdfe6 solid;
+}

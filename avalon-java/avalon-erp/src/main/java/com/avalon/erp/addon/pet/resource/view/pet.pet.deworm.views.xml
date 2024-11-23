@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_pet_deworm_view_form" service="base.action.view">
+        <field name="name">pet_pet_deworm_view_form</field>
+        <field name="label">驱虫</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.pet.deworm</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="dewormKind"/>
+                        </col>
+                        <col>
+                            <field name="dewormDate"/>
+                        </col>
+                    </row>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_pet_deworm_view_tree" service="base.action.view">
+        <field name="name">pet_pet_deworm_view_tree</field>
+        <field name="label">驱虫</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.pet.deworm</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="dewormKind"/>
+                <field name="dewormDate"/>
+            </tree>
+        </field>
+    </record>
+</avalon>

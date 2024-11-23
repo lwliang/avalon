@@ -1,0 +1,8 @@
+.tab-panel-default {
+    @apply cursor-pointer px-4 py-1;
+}
+
+.tab-panel-active {
+    @apply bg-white text-blue-500;
+
+}

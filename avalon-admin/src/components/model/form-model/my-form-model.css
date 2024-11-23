@@ -1,0 +1,15 @@
+.absolute-center {
+    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl;
+    @apply p-4 flex flex-col;
+}
+
+.model-head {
+    @apply flex;
+}
+
+.model-content {
+    @apply flex-1;
+}
+.model-footer {
+    @apply flex justify-end px-4 pb-4;
+}

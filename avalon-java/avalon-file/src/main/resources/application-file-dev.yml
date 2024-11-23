@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    host: localhost
+
+application:
+  dataSource:
+    database: resource8
+    username: odoo16
+    password: odoo16
+
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+
+file:
+  dir: ./data/
+  mode: date

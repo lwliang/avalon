@@ -1,0 +1,18 @@
+spring:
+  profiles:
+    host: 192.168.0.103
+  cloud:
+    gateway:
+      routes:
+        - id: erp
+          uri: lb://avalon-server
+          predicates:
+            - Path=/erp/**
+        - id: file
+          uri: lb://avalon-file
+          predicates:
+            - Path=/file/**
+        - id: im
+          uri: lb://avalon-im
+          predicates:
+            - Path=/im/**

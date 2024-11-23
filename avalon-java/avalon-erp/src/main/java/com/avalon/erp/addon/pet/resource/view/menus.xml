@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_pet_type_parent" name="基础数据">
+        <menuitem id="menu_pet_type_action" name="宠物类型" action="pet_type_window_action"/>
+        <menuitem id="menu_pet_vaccination_action" name="疫苗" action="pet_vaccination_window_action"/>
+        <menuitem id="menu_pet_remind_item_action" name="养宠提醒事项" action="pet_remind_item_window_action"/>
+        <menuitem id="menu_pet_account_item_action" name="养宠记账事项" action="pet_account_item_window_action"/>
+    </menuitem>
+    <menuitem id="menu_pet_user_action" name="宠物主" action="pet_user_window_action"/>
+    <menuitem id="menu_pet_friend_action" name="朋友" action="pet_friend_window_action"/>
+    <menuitem id="menu_pet_fan_action" name="粉丝" action="pet_fan_window_action"/>
+    <menuitem id="menu_pet_follow_action" name="关注" action="pet_follow_window_action"/>
+    <menuitem id="menu_pet_share_parent" name="分享">
+        <menuitem id="menu_pet_share_action" name="分享" action="pet_share_window_action"/>
+        <menuitem id="menu_pet_share_comment_action" name="分享评论" action="pet_share_comment_window_action"/>
+    </menuitem>
+    <menuitem id="menu_pet_adopt_parent" name="领养">
+        <menuitem id="menu_pet_adopt_action" name="领养" action="pet_adopt_window_action"/>
+        <menuitem id="menu_pet_adopt_message_action" name="领养留言" action="pet_adopt_message_window_action"/>
+    </menuitem>
+    <menuitem id="menu_pet_remind_parent" name="科学养宠">
+        <menuitem id="menu_pet_remind_action" name="提醒" action="pet_remind_window_action"/>
+        <menuitem id="menu_pet_account_action" name="记账" action="pet_account_window_action"/>
+    </menuitem>
+</avalon>

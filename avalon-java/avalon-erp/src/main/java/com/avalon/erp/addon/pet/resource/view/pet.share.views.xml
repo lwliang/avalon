@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_share_view_form" service="base.action.view">
+        <field name="name">pet_share_view_form</field>
+        <field name="label">分享</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.share</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="userId"/>
+                            <field name="state"/>
+                        </col>
+                        <col>
+                            <field name="shareType"/>
+                            <field name="shareCommentType"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="内容">
+                            <field name="comment"/>
+                        </page>
+                        <page label="图片">
+                            <field name="images"/>
+                        </page>
+                        <page label="关联宠物">
+                            <field name="petIds"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_share_view_tree" service="base.action.view">
+        <field name="name">pet_share_view_tree</field>
+        <field name="label">分享</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.share</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="userId"/>
+                <field name="shareType"/>
+                <field name="comment"/>
+                <field name="sharePrivacyType"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pet_share_window_action" service="base.action.window">
+        <field name="name">pet_share_window_action</field>
+        <field name="label">分享</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.share</field>
+    </record>
+</avalon>

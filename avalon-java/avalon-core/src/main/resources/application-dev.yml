@@ -1,0 +1,42 @@
+application:
+  datetime-format: yyyy-MM-dd HH:mm:ss
+  date-format: yyyy-MM-dd
+  time-format: HH:mm
+  page-size: 5
+  debug: true
+  dataSource:
+    host: ${spring.profiles.host}
+    port: 5432
+    class-type: org.postgresql.Driver
+    username: lwl
+    password: lwl
+    max-pool-size: 200
+    min-idle: 10
+    connection-timeout: 20000
+    idle-timeout: 25000
+    max-lifetime: 30000
+
+redis:
+  config:
+    - key: redis-0
+      hostName: ${spring.profiles.host}
+      port: 6379
+      password:
+      database:
+        - 0
+        - 1
+spring:
+  cloud:
+    nacos:
+      discovery:
+        group: dev
+  jackson:
+    date-format: ${application.datetime-format}
+    time-zone: GMT+8
+
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+
+logging:
+  config: classpath:logback-spring-dev.xml

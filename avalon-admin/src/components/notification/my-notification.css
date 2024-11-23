@@ -1,0 +1,9 @@
+.my-notification {
+    @apply w-[330px];
+    @apply bg-white;
+    @apply p-4;
+    @apply flex;
+    @apply flex-row;
+    @apply rounded-lg;
+    @apply border;
+}

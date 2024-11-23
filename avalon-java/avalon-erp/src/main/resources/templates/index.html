@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <script th:src="@{/static/jquery-3.6.0.min.js}"></script>
+    <title>接口生成</title>
+    <style>
+        .parent {
+            display: flex;
+        }
+
+        .parent .left {
+            min-width: 300px;
+            padding-right: 20px;
+        }
+
+        .parent .right {
+            flex: 1;
+        }
+
+        .text-size {
+            height: 140px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <input list="serviceList" placeholder="服务名" id="service" style="width: 220px">
+    <button id="searchField">查找字段</button>
+    <datalist id="serviceList">
+        <option th:each="service: ${serviceList}" th:value="${service}" th:text="${service}"></option>
+    </datalist>
+</div>
+<div class="parent">
+    <div id="field-container" class="left">
+
+    </div>
+    <div class="right">
+        <div>
+            <button id="add">新增</button>
+            <textarea class="text-size" id="add-json">
+
+        </textarea>
+        </div>
+
+        <div>
+            <button id="update">修改</button>
+            <textarea class="text-size" id="update-json">
+
+        </textarea>
+        </div>
+
+        <div>
+            <button id="delete">删除</button>
+            <textarea class="text-size" id="delete-json">
+
+        </textarea>
+        </div>
+
+        <div>
+            <button id="query">查询</button>
+            <textarea class="text-size" id="query-json">
+
+        </textarea>
+        </div>
+
+        <div>
+            <button id="query-detail">查询详情</button>
+            <textarea class="text-size" id="query-detail-json">
+
+            </textarea>
+        </div>
+        <div>
+            <button id="query-enum">枚举</button>
+            <textarea class="text-size" id="query-enum-json">
+
+            </textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadField() {
+        let serviceName = $("#service").val();
+        $("#field-container").empty();
+        $.ajax(
+            {
+                url: "/design/get/field",
+                type: 'POST',
+                dataType: "json",
+                contentType: "application/json;charset=utf-8",
+                data: JSON.stringify({
+                    "service": serviceName
+                }),
+                success: function (result) {
+                    let $field = $("#field-container");
+                    for (let i = 0; i < result.length; i++) {
+                        let div = $("<div></div>");
+                        let checkBox = $("<input type='checkbox'/>");
+                        checkBox.attr("name", result[i].name);
+                        checkBox.attr("data-name", result[i].name);
+                        checkBox.attr("data-isRequired", result[i].isRequired);
+                        checkBox.attr("data-label", result[i].label);
+                        checkBox.attr("data-type", result[i].type);
+                        if (result[i].length) {
+                            checkBox.attr("data-length", result[i].length);
+                        }
+                        let label = $("<label></label>")
+                        label.append(checkBox);
+                        label.append(result[i].label + "-" + result[i].name);
+
+                        div.append(label);
+                        if (result[i].type === "Many2oneField" ||
+                            result[i].type === "One2manyField" ||
+                            result[i].type === "One2oneField") {
+                            let button = $("<button></button>");
+                            button.attr("data-name", result[i].name);
+                            button.attr("data-relative-service", result[i].relativeServiceName);
+                            button.attr("data-type", result[i].type);
+                            button.click(loadServiceField);
+                            button.text("更多");
+                            div.append(button);
+                        }
+                        $field.append(div);
+                    }
+                },
+            })
+    }
+
+    function loadServiceField(el) {
+        let service = $(el.target).attr("data-relative-service");
+        let level = $(el.target).attr("data-level");
+        let name = $(el.target).attr("data-name");
+        let type = $(el.target).attr("data-type");
+        level = Number.parseInt(level);
+        $.ajax(
+            {
+                url: "/design/get/field",
+                type: 'POST',
+                dataType: "json",
+                contentType: "application/json;charset=utf-8",
+                data: JSON.stringify({
+                    "service": service
+                }),
+                success: function (result) {
+                    let $field = $(el.target).parent();
+                    for (let i = 0; i < result.length; i++) {
+                        let div = $("<div></div>");
+                        div.css("padding-left", 13)
+                        let checkBox = $("<input type='checkbox'/>");
+                        checkBox.attr("name", name + "." + result[i].name);
+                        checkBox.attr("data-name", name + "." + result[i].name);
+                        checkBox.attr("data-isRequired", result[i].isRequired);
+                        checkBox.attr("data-label", result[i].label);
+                        checkBox.attr("data-type", type + "." + result[i].type);
+                        if (result[i].length) {
+                            checkBox.attr("data-length", result[i].length);
+                        }
+                        let label = $("<label></label>")
+                        label.append(checkBox);
+                        label.append(result[i].label + "-" + result[i].name);
+
+                        div.append(label);
+                        if (result[i].type === "Many2oneField" ||
+                            result[i].type === "One2manyField" ||
+                            result[i].type === "One2oneField") {
+                            let button = $("<button></button>");
+                            button.attr("data-name", name + "." + result[i].name);
+                            button.attr("data-relative-service", result[i].relativeServiceName);
+                            button.attr("data-type", type + "." + result[i].type);
+                            button.click(loadServiceField);
+                            button.text("更多");
+                            div.append(button);
+                        }
+                        $field.append(div);
+                    }
+                },
+            })
+    }
+
+    $(document).ready(function () {
+        $("#searchField").click(() => {
+            loadField();
+        })
+
+        $("#add").click(() => {
+            let value = {
+                type: "object",
+                properties: {
+                    serviceName: {
+                        type: "string",
+                        const: $("#service").val()
+                    },
+                    value: {
+                        type: "object",
+                        properties: {},
+                        required: []
+                    }
+                }
+            };
+            let required = value.properties.value.required;
+            let properties = value.properties.value.properties;
+            $('input:checkbox:checked').each(function (index, field) {
+                let $field = $(field);
+                var name = $field.attr("name");
+                var isRequired = $field.attr("data-isRequired");
+                var length = $field.attr("data-length");
+                var label = $field.attr("data-label");
+                var type = $field.attr("data-type");
+
+                var split = name.split(".");
+                var types = type.split(".");
+                let obj = {}
+                if (split.length === 1) {
+                    if (properties[split[0]]) {
+                        obj = properties[split[0]];
+                    }
+                    if (length) {
+                        obj.maxLength = Number.parseInt(length);
+                    }
+
+                    obj.type = getAddType(types[0]);
+                    obj.description = label;
+                    properties[split[0]] = obj;
+                    if (JSON.parse(isRequired)) required.push(split[0]);
+                } else {
+                    let last = properties;
+
+                    for (let i = 0; i < split.length; i++) {
+                        let field = split[i];
+                        if (i !== split.length - 1) {//不是最后一级
+                            if (last[field]) {
+                                let temp = last[field];
+                                if (temp.type === "object") {
+                                    if (!temp.properties) {
+                                        temp.properties = {};
+                                    }
+                                    last = temp.properties;
+                                } else {
+                                    if (!temp.items.properties) {
+                                        temp.items.properties = {};
+                                    }
+                                    last = temp.items.properties;
+                                }
+                            } else {
+                                let x = {};
+                                x.type = getAddType(types[i]);
+                                last[field] = x;
+                                if (x.type === "object") {
+                                    x.properties = {};
+                                    last = x.properties;
+                                } else {
+                                    x.items = {
+                                        type: "object",
+                                        properties: {}
+                                    }
+                                    last = x.items.properties;
+                                }
+                            }
+                        } else {
+                            if (length) {
+                                obj.maxLength = Number.parseInt(length);
+                            }
+
+                            obj.type = getAddType(types[i]);
+                            obj.description = label;
+                        }
+
+                    }
+                    last[split[split.length - 1]] = obj;
+                }
+            })
+            $("#add-json").val(JSON.stringify(value));
+        });
+
+        $("#update").click(() => {
+            updateJson()
+        });
+
+        $("#delete").click(() => {
+            deleteJson();
+        })
+
+        $("#query").click(() => {
+            queryJson();
+        });
+
+        $("#query-detail").click(() => {
+            queryDetailJson();
+        });
+        $('#query-enum').click(() => {
+            queryEnumJson();
+        });
+    });
+
+    function queryEnumJson() {
+        let value = {
+            type: "object",
+            properties: {
+                serviceName: {
+                    type: "string",
+                    const: $("#service").val()
+                },
+                fields: {
+                    type: "string",
+                    description: "",
+                }
+
+            },
+            required: ['serviceName', 'fields']
+        }
+        let fields = value.properties.fields;
+
+        $('input:checkbox:checked').each(function (index, field) {
+            let $field = $(field);
+            var name = $field.attr("name");
+            var isRequired = $field.attr("data-isRequired");
+            var length = $field.attr("data-length");
+            var label = $field.attr("data-label");
+            var type = $field.attr("data-type");
+
+            if (!fields.const) {
+                fields.const = name;
+                fields.description = label;
+            } else {
+                fields.const += "," + name;
+                fields.description += ',' + label;
+            }
+
+
+        })
+        $("#query-enum-json").val(JSON.stringify(value));
+    }
+
+    function queryDetailJson() {
+        let value = {
+            type: "object",
+            properties: {
+                serviceName: {
+                    type: "string",
+                    const: $("#service").val()
+                },
+                fields: {
+                    type: "string",
+                    description: "",
+                },
+                id: {
+                    "type": "integer",
+                    "const": 1
+                }
+            },
+            required: ['serviceName', 'fields', 'id']
+        }
+        let fields = value.properties.fields;
+
+        $('input:checkbox:checked').each(function (index, field) {
+            let $field = $(field);
+            var name = $field.attr("name");
+            var isRequired = $field.attr("data-isRequired");
+            var length = $field.attr("data-length");
+            var label = $field.attr("data-label");
+            var type = $field.attr("data-type");
+
+            if (!fields.const) {
+                fields.const = name;
+                fields.description = label;
+            } else {
+                fields.const += "," + name;
+                fields.description += ',' + label;
+            }
+
+
+        })
+        $("#query-detail-json").val(JSON.stringify(value));
+    }
+
+    function queryJson() {
+        let value = {
+            type: "object",
+            properties: {
+                serviceName: {
+                    type: "string",
+                    const: $("#service").val()
+                },
+                page: {
+                    type: "object",
+                    properties: {
+                        pageNum: {
+                            type: "integer",
+                            const: 1
+                        },
+                        pageSize: {
+                            type: "integer",
+                            const: 10
+                        }
+                    }
+                },
+                fields: {
+                    type: "string"
+                },
+                condition: {
+                    type: "array",
+                    items: []
+                }
+            }
+        };
+        let items = value.properties.condition.items;
+        let fields = value.properties.fields;
+        $('input:checkbox:checked').each(function (index, field) {
+            let $field = $(field);
+            var name = $field.attr("name");
+            var isRequired = $field.attr("data-isRequired");
+            var length = $field.attr("data-length");
+            var label = $field.attr("data-label");
+            var type = $field.attr("data-type");
+
+            if (!fields.const) {
+                fields.const = name;
+            } else {
+                fields.const += "," + name;
+            }
+
+            let obj = {
+                type: "object",
+                properties: {}
+            };
+
+            obj.properties.name = {};
+            obj.properties.name.type = "string";
+            obj.properties.name.const = name;
+
+            obj.properties.value = {};
+            obj.properties.value.type = getQueryType(type);
+
+            obj.properties.op = {};
+            obj.properties.op.type = "string";
+            obj.properties.op.const = "Like";
+            if (obj.properties.value.type === 'integer') {
+                obj.properties.op.const = "Equal";
+            }
+
+            obj.properties.connector = {};
+            obj.properties.connector.type = "string";
+            obj.properties.connector.const = "And";
+            obj.description = label;
+
+            items.push(obj);
+
+        })
+        $("#query-json").val(JSON.stringify(value));
+    }
+
+    function deleteJson() {
+        let value = {
+            type: "object",
+            properties: {
+                serviceName: {
+                    type: "string",
+                    const: $("#service").val()
+                },
+                id: {
+                    type: "integer"
+                }
+            }
+        };
+        $("#delete-json").val(JSON.stringify(value));
+    }
+
+
+    function updateJson() {
+        let value = {
+            type: "object",
+            properties: {
+                serviceName: {
+                    type: "string",
+                    const: $("#service").val()
+                },
+                value: {
+                    type: "object",
+                    properties: {},
+                    required: []
+                }
+            }
+        };
+        let required = value.properties.value.required;
+        let properties = value.properties.value.properties;
+        $('input:checkbox:checked').each(function (index, field) {
+            let $field = $(field);
+            var name = $field.attr("name");
+            var isRequired = $field.attr("data-isRequired");
+            var length = $field.attr("data-length");
+            var label = $field.attr("data-label");
+            var type = $field.attr("data-type");
+
+            var split = name.split(".");
+            var types = type.split(".");
+            let obj = {}
+            if (split.length === 1) {
+                if (properties[split[0]]) {
+                    obj = properties[split[0]];
+                }
+                if (length) {
+                    obj.maxLength = Number.parseInt(length);
+                }
+
+                obj.type = getAddType(types[0]);
+                obj.description = label;
+                properties[split[0]] = obj;
+                if (JSON.parse(isRequired)) required.push(split[0]);
+            } else {
+                let last = properties;
+
+                for (let i = 0; i < split.length; i++) {
+                    let field = split[i];
+                    if (i !== split.length - 1) {//不是最后一级
+                        if (last[field]) {
+                            let temp = last[field];
+                            if (temp.type === "object") {
+                                if (!temp.properties) {
+                                    temp.properties = {};
+                                }
+                                last = temp.properties;
+                            } else {
+                                if (!temp.items.properties) {
+                                    temp.items.properties = {};
+                                }
+                                last = temp.items.properties;
+                            }
+                        } else {
+                            let x = {};
+                            x.type = getAddType(types[i]);
+                            last[field] = x;
+                            if (x.type === "object") {
+                                x.properties = {};
+                                last = x.properties;
+                            } else {
+                                x.items = {
+                                    type: "object",
+                                    properties: {}
+                                }
+                                last = x.items.properties;
+                            }
+                        }
+                    } else {
+                        if (length) {
+                            obj.maxLength = Number.parseInt(length);
+                        }
+
+                        obj.type = getAddType(types[i]);
+                        obj.description = label;
+                    }
+
+                }
+                last[split[split.length - 1]] = obj;
+            }
+        })
+        $("#update-json").val(JSON.stringify(value));
+    }
+
+
+    function getAddType(type) {
+        if (type === "BooleanField") {
+            return "boolean";
+        }
+        if (type === "IntegerField") {
+            return "integer";
+        }
+        if (type === "BigDecimalField" || type === "DoubleField" || type === "FloatField") {
+            return "number";
+        }
+        if (type === "DateTimeField" || type === "DateField" || type === "TimeField" || type === "SelectionField") {
+            return "string";
+        }
+
+        if (type === "StringField" || type === "HtmlField" || type === "TextField" || type === "ImageField") {
+            return "string";
+        }
+
+        if (type === "Many2oneField") {
+            return "integer";
+        }
+        if (type === "One2oneField") {
+            return "object";
+        }
+        if (type === "One2manyField") {
+            return "array";
+        }
+    }
+
+    function getQueryType(type) {
+        if (type === "BooleanField") {
+            return "boolean";
+        }
+        if (type === "IntegerField") {
+            return "integer";
+        }
+        if (type === "BigDecimalField" || type === "DoubleField" || type === "FloatField") {
+            return "number";
+        }
+        if (type === "DateTimeField" || type === "DateField" || type === "TimeField" || type === "SelectionField") {
+            return "string";
+        }
+
+        if (type === "StringField" || type === "HtmlField" || type === "TextField" || type === "ImageField") {
+            return "string";
+        }
+
+        if (type === "Many2oneField") {
+            return "integer";
+        }
+        if (type === "One2oneField") {
+            return "object";
+        }
+        if (type === "One2manyField") {
+            return "array";
+        }
+    }
+</script>
+</body>
+</html>

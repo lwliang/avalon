@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_vaccination_view_form" service="base.action.view">
+        <field name="name">pet_vaccination_view_form</field>
+        <field name="label">疫苗</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.vaccination</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                        </col>
+                        <col>
+                            <field name="petCategoryIds"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="介绍">
+                            <field name="introduce"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_vaccination_view_tree" service="base.action.view">
+        <field name="name">pet_vaccination_view_tree</field>
+        <field name="label">疫苗</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.vaccination</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="introduce"/>
+                <field name="sequence"/>
+                <field name="petCategoryIds"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pet_vaccination_window_action" service="base.action.window">
+        <field name="name">pet_vaccination_window_action</field>
+        <field name="label">疫苗</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.vaccination</field>
+    </record>
+</avalon>

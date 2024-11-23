@@ -1,0 +1,17 @@
+server:
+  port: 8093
+  servlet:
+    context-path: /im
+spring:
+  profiles:
+    active: dev,im-dev
+  application:
+    name: avalon-im
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: ${spring.profiles.host}:8848
+im:
+  wss: false

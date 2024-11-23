@@ -1,0 +1,164 @@
+create table chat_user
+(
+    id            integer default nextval('chat_user_id_seq'::regclass) not null
+        primary key,
+    app           varchar(255),
+    third_user_id varchar(255),
+    creator       integer,
+    create_time   timestamp,
+    name          varchar(255),
+    company       varchar(255),
+    update_time   timestamp,
+    updater       integer
+);
+
+
+create table chat_custom_member
+(
+    id             integer default nextval('chat_custom_member_id_seq'::regclass) not null
+        primary key,
+    creator        integer,
+    custom_user_id integer,
+    create_time    timestamp,
+    name           varchar(255),
+    update_time    timestamp,
+    custom_team_id integer,
+    updater        integer
+);
+
+
+create table chat_custom
+(
+    id             integer default nextval('chat_custom_id_seq'::regclass) not null
+        primary key,
+    creator        integer,
+    custom_user_id integer,
+    create_time    timestamp,
+    name           varchar(255),
+    update_time    timestamp,
+    updater        integer,
+    chat_user_id   integer
+);
+
+
+create table chat_message_custom
+(
+    id               bigint default nextval('chat_message_custom_id_seq'::regclass) not null
+        primary key,
+    creator          integer,
+    msg_type         varchar(255),
+    from_user_id     integer,
+    is_read          boolean,
+    update_time      timestamp,
+    event_type       varchar(255),
+    to_user_id       integer,
+    content          text,
+    updater          integer,
+    create_time      timestamp,
+    state_enum       varchar(255),
+    team_id          integer,
+    name             varchar(255),
+    server_send_time timestamp,
+    chat_type        varchar(255),
+    timestamp        timestamp
+);
+
+
+create table chat_message_custom_team
+(
+    id               bigint default nextval('chat_message_custom_team_id_seq'::regclass) not null
+        primary key,
+    creator          integer,
+    create_time      timestamp,
+    state_enum       varchar(255),
+    is_read          boolean,
+    name             varchar(255),
+    server_send_time timestamp,
+    msg_id           bigint,
+    update_time      timestamp,
+    to_user_id       integer,
+    updater          integer
+);
+
+
+create table chat_team_member
+(
+    id          integer default nextval('chat_team_member_id_seq'::regclass) not null
+        primary key,
+    creator     integer,
+    create_time timestamp,
+    team_id     integer,
+    name        varchar(255),
+    update_time timestamp,
+    user_id     integer,
+    updater     integer
+);
+
+
+create table chat_team
+(
+    id          integer default nextval('chat_team_id_seq'::regclass) not null
+        primary key,
+    creator     integer,
+    create_time timestamp,
+    name        varchar(255),
+    update_time timestamp,
+    updater     integer
+);
+
+
+create table chat_message
+(
+    id               bigint not null
+        primary key,
+    creator          integer,
+    msg_type         varchar(255),
+    from_user_id     integer,
+    is_read          boolean,
+    update_time      timestamp,
+    event_type       varchar(255),
+    to_user_id       integer,
+    content          text,
+    updater          integer,
+    create_time      timestamp,
+    state_enum       varchar(255),
+    team_id          integer,
+    name             varchar(255),
+    server_send_time timestamp,
+    chat_type        varchar(255),
+    timestamp        timestamp
+);
+
+create table chat_message_team
+(
+    id               bigint not null
+        primary key,
+    creator          integer,
+    create_time      timestamp,
+    state_enum       varchar(255),
+    is_read          boolean,
+    name             varchar(255),
+    server_send_time timestamp,
+    msg_id           bigint,
+    update_time      timestamp,
+    to_user_id       integer,
+    updater          integer
+);
+create table chat_chat_list
+(
+    id            integer default nextval('chat_chat_list_id_seq'::regclass) not null
+        primary key,
+    creator       integer,
+    last_msg_id   bigint,
+    un_read_count integer,
+    from_user_id  integer,
+    update_time   timestamp,
+    to_user_id    integer,
+    updater       integer,
+    top           boolean,
+    create_time   timestamp,
+    team_id       integer,
+    name          varchar(255),
+    chat_type     varchar(20)
+);
+

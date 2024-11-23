@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_share_comment_view_form" service="base.action.view">
+        <field name="name">pet_share_comment_view_form</field>
+        <field name="label">分享评论</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.share.comment</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="shareId"/>
+                            <field name="relayShareCommentId"/>
+                            <field name="userId"/>
+                        </col>
+                        <col>
+                            <field name="image"/>
+                            <field name="thumbUp"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="内容">
+                            <field name="comment"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_share_comment_view_tree" service="base.action.view">
+        <field name="name">pet_share_comment_view_tree</field>
+        <field name="label">分享评论</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.share.comment</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="shareId"/>
+                <field name="userId"/>
+                <field name="comment"/>
+                <field name="relayShareCommentId"/>
+                <field name="image"/>
+                <field name="thumbUp"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pet_share_comment_window_action" service="base.action.window">
+        <field name="name">pet_share_comment_window_action</field>
+        <field name="label">分享评论</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.share.comment</field>
+    </record>
+</avalon>

@@ -1,0 +1,7 @@
+.my-menu:hover {
+    @apply bg-gray-200;
+}
+.my-menu {
+    @apply px-2;
+    @apply rounded;
+}

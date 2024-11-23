@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_adopt_view_form" service="base.action.view">
+        <field name="name">pet_adopt_view_form</field>
+        <field name="label">领养</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.adopt</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="petId"/>
+                            <field name="publishId"/>
+                            <field name="selfDescription"/>
+                            <field name="state"/>
+                            <field name="checkState"/>
+                        </col>
+                        <col>
+                            <field name="avatar"/>
+                            <field name="video"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="图片">
+                            <field name="images"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_adopt_view_tree" service="base.action.view">
+        <field name="name">pet_adopt_view_tree</field>
+        <field name="label">领养</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.adopt</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="petId"/>
+                <field name="publishId"/>
+                <field name="selfDescription"/>
+                <field name="avatar"/>
+                <field name="video"/>
+                <field name="state"/>
+                <field name="checkState"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pet_adopt_window_action" service="base.action.window">
+        <field name="name">pet_adopt_window_action</field>
+        <field name="label">领养</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.adopt</field>
+    </record>
+</avalon>

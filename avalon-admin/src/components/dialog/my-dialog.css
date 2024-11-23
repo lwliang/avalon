@@ -1,0 +1,24 @@
+.dialog-overlay {
+    @apply fixed;
+    @apply overflow-y-auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--overlay-color);
+}
+
+.dialog {
+    @apply absolute;
+    @apply w-[500px];
+    @apply bg-white;
+    @apply p-4;
+    @apply rounded;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: calc(50%);
+}
+
+.dialog-content {
+    @apply py-4;
+}

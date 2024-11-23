@@ -1,0 +1,64 @@
+button {
+    @apply inline-block;
+    @apply text-sm;
+}
+
+.btn {
+    @apply text-center;
+    @apply align-middle;
+    @apply px-5;
+    @apply py-1;
+    @apply text-white;
+}
+
+.btn-primary {
+    @apply bg-blue-500;
+}
+
+.btn-rounded {
+    @apply rounded;
+}
+
+.btn-danger {
+    @apply bg-red-500;
+}
+
+.btn-success {
+    @apply bg-green-500;
+}
+
+.btn-info {
+    @apply bg-gray-500;
+}
+
+.btn-warning {
+    @apply bg-amber-500;
+}
+
+.btn-link {
+    background: transparent;
+    @apply px-0;
+    @apply py-0;
+}
+
+
+.btn-primary[link='true'] {
+    @apply text-blue-500;
+}
+
+.btn-info[link='true'] {
+    @apply text-gray-500;
+}
+
+.btn-warning[link='true'] {
+    @apply text-amber-500;
+}
+
+.btn-success[link='true'] {
+    @apply text-green-500;
+}
+
+.btn-danger[link='true'] {
+    @apply text-red-500;
+}
+

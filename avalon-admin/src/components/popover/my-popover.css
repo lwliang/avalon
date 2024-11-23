@@ -1,0 +1,25 @@
+.popover {
+    @apply bg-white;
+    @apply rounded;
+    @apply relative;
+    @apply min-w-[100px];
+    @apply z-[999];
+    @apply shadow-2xl;
+    @apply border;
+}
+
+.popover-p {
+    @apply py-1;
+}
+.popover-full-p {
+    @apply py-1;
+}
+
+.arrow {
+    @apply w-[8px];
+    @apply h-[8px];
+    @apply bg-white;
+    @apply rotate-45;
+    @apply absolute;
+    z-index: -1;
+}

@@ -1,0 +1,11 @@
+spring:
+  profiles:
+    host: localhost
+
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+
+file:
+  dir: ./data/
+  mode: date

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="bank_school_view_form" service="base.action.view">
+        <field name="name">bank_school_view_form</field>
+        <field name="label">研学活动</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">bank.school</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="课程类型">
+                            <field name="courseIds"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bank_school_view_tree" service="base.action.view">
+        <field name="name">bank_school_view_tree</field>
+        <field name="label">研学</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">bank.school</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="bank_school_action" service="base.action.window">
+        <field name="name">school</field>
+        <field name="label">学校</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">bank.school</field>
+    </record>
+</avalon>

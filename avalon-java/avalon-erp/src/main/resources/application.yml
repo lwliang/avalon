@@ -1,0 +1,21 @@
+server:
+  port: 8090
+  servlet:
+    context-path: /erp
+spring:
+  profiles:
+    active: dev,erp-dev
+  application:
+    name: avalon-server
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    encoding: UTF-8
+    suffix: .html
+    mode: HTML
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: ${spring.profiles.host}:8848

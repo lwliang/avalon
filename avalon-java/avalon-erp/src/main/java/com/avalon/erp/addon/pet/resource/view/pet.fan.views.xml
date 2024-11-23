@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_fan_view_form" service="base.action.view">
+        <field name="name">pet_fan_view_form</field>
+        <field name="label">粉丝</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.fan</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="userId"/>
+                        </col>
+                        <col>
+                            <field name="fanId"/>
+                        </col>
+                    </row>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_fan_view_tree" service="base.action.view">
+        <field name="name">pet_fan_view_tree</field>
+        <field name="label">粉丝</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.fan</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="userId"/>
+                <field name="fanId"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pet_fan_window_action" service="base.action.window">
+        <field name="name">pet_fan_window_action</field>
+        <field name="label">粉丝</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.fan</field>
+    </record>
+</avalon>

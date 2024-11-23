@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<avalon>
+    <record id="pet_friend_view_form" service="base.action.view">
+        <field name="name">pet_friend_view_form</field>
+        <field name="label">朋友</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">pet.friend</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="userId"/>
+                        </col>
+                        <col>
+                            <field name="friendId"/>
+                        </col>
+                    </row>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pet_friend_view_tree" service="base.action.view">
+        <field name="name">pet_friend_view_tree</field>
+        <field name="label">朋友</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.friend</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="userId"/>
+                <field name="friendId"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pet_friend_window_action" service="base.action.window">
+        <field name="name">pet_friend_window_action</field>
+        <field name="label">朋友</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">pet.friend</field>
+    </record>
+</avalon>
