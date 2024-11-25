@@ -38,6 +38,8 @@ import MyTime from "./components/time/my-time.vue";
 import MyDatetime from "./components/datetime/my-datetime.vue";
 import MySearch from "./components/search/my-search.vue";
 import MyPagination from "./components/pagination/my-pagination.vue";
+import MyAvatar from "./components/avatar/my-avatar.vue";
+import MyDebug from "./components/debug/my-debug.vue";
 
 
 window.console.log = log.info
@@ -60,6 +62,7 @@ app.use(createPinia())
 app.use(router)
 app.component('MyButton', MyButton)
 app.component('MyImage', MyImage)
+app.component('MyAvatar', MyAvatar)
 app.component('MyLabel', MyLabel)
 app.component('MyInput', MyInput)
 app.component('MyIcon', MyIcon)
@@ -84,6 +87,7 @@ app.component('MyTime', MyTime)
 app.component('MyDatetime', MyDatetime)
 app.component('MySearch', MySearch)
 app.component('MyPagination', MyPagination)
+app.component('MyDebug', MyDebug)
 
 // 全局变量
 app.config.globalProperties.$notify = MyNotification

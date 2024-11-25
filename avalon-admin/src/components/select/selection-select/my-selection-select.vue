@@ -8,9 +8,9 @@ import {ref, watch} from "vue";
 import FormField from "../../../model/FormField.ts";
 import {InputExpose} from "../../../global/input/InputExpose.ts";
 import {getSelectionValueByServiceAndField} from "../../../cache/SelectionValueMemory.ts";
-import MyPopover from "../../popover/my-popover.vue";
 import {onMounted} from "@vue/runtime-dom";
 import MyIcon from "../../icon/my-icon.vue";
+import MyInnerPopover from "../../popover/my-inner-popover.vue";
 
 const props = defineProps({
     htmlId: String,
@@ -82,7 +82,7 @@ defineExpose<InputExpose>({validate})
 
 <template>
     <div class="flex relative">
-        <MyPopover placement="bottom" trigger="click" :option="options" full-width @itemSelect="optionSelectClick">
+        <MyInnerPopover placement="bottom" trigger="click" :option="options" full-width @itemSelect="optionSelectClick">
             <div class="inline-flex w-full relative">
                 <input
                     :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate}]"
@@ -94,7 +94,7 @@ defineExpose<InputExpose>({validate})
                 <MyIcon class="absolute right-[10px] top-[50%]" style="transform: translateY(-50%)" icon="caret-down"
                         type="fas" size="sm"></MyIcon>
             </div>
-        </MyPopover>
+        </MyInnerPopover>
     </div>
 
 

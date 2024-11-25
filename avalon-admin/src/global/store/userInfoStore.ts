@@ -12,7 +12,7 @@ export const useUserInfoStore = defineStore('userInfo', {
     }),
     actions: {
         setUserInfo(user: User) {
-            this.user = user
+            Object.assign(this.user, user)
         }
     },
     getters: {}

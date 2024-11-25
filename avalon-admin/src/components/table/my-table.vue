@@ -17,6 +17,8 @@ import MyMany2manySelect from "../select/many2may-select/my-many2many-select.vue
 import FormField from "../../model/FormField.ts";
 import MyCheck from "../check/my-check.vue";
 import {getDateTime} from "../../util/dateUtils.ts";
+import MyDebug from "../debug/my-debug.vue";
+import {useUserInfoStore} from "../../global/store/userInfoStore.ts";
 
 const emit = defineEmits(['rowClick', 'rowDeleteClick'])
 
@@ -27,6 +29,7 @@ const props = defineProps<{
     height: string
 }>()
 const selectionDynamic = ref<any>({})
+const userInfoStore = useUserInfoStore()
 const serviceStore = useGlobalServiceDataStore()
 
 const loadData = async () => {
@@ -88,7 +91,11 @@ const getFormField = (obj: any, value: any, field: Field) => {
             <thead class="sticky top-0 bg-white" style="left: auto;bottom: auto;right: auto;z-index: 10;">
             <tr class="border-b">
                 <th v-for="field in fields" :key="field.id">
-                    {{ field.label }}
+                    <span>{{ field.label }}</span>
+                    <template v-if="userInfoStore.user.debug">
+                        <span class="px-0.5"></span>
+                        <MyDebug :service="serviceName" :field="field.name"/>
+                    </template>
                 </th>
                 <th class="w-[24px]">
                     <MyIcon icon="sliders" type="fas"/>

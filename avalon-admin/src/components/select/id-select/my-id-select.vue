@@ -7,7 +7,6 @@ import './my-id-select.css'
 import {ref, watch} from "vue";
 import FormField from "../../../model/FormField.ts";
 import {InputExpose} from "../../../global/input/InputExpose.ts";
-import MyPopover from "../../popover/my-popover.vue";
 import {onMounted} from "@vue/runtime-dom";
 import {getModelPageApi} from "../../../api/modelApi.ts";
 import {useGlobalFieldDataStore} from "../../../global/store/fieldStore.ts";
@@ -16,6 +15,7 @@ import Service from "../../../model/Service.ts";
 import {PopperAPI} from "../../popover/my-popover.ts";
 import {useDebounceFn} from '@vueuse/core'
 import MyIcon from "../../icon/my-icon.vue";
+import MyInnerPopover from "../../popover/my-inner-popover.vue";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -134,7 +134,7 @@ defineExpose<InputExpose>({validate})
 
 <template>
     <div class="flex relative">
-        <MyPopover placement="bottom" trigger="click" full-width ref="popperSelect" @popperShow="popperShow">
+        <MyInnerPopover placement="bottom" trigger="click" full-width ref="popperSelect" @popperShow="popperShow">
             <template v-slot:default>
                 <div class="inline-flex w-full relative">
                     <input
@@ -163,7 +163,7 @@ defineExpose<InputExpose>({validate})
                     </div>
                 </div>
             </template>
-        </MyPopover>
+        </MyInnerPopover>
     </div>
 
 

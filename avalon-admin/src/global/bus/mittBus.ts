@@ -33,8 +33,6 @@ const mittBus = mitt<MittEvent>();
 const handleLoginEvent = () => {
     handleLoadMenuEvent();
     handleLoadModuleEvent();
-    handleLoadServiceEvent();
-    handleLoadFieldEvent();
     loadUserInfo();
 }
 mittBus.on('login', handleLoginEvent);

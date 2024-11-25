@@ -82,6 +82,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             IUserService userService = Context.getAvalonApplicationContextInstance().getBean(IUserService.class);
             return userService.getServiceName();
         } catch (Exception ex) {
+            log.error("getUserServiceName:{}", this.getClass().getName());
             log.error(ex.getMessage(), ex);
             return "base.user";
         }

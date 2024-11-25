@@ -6,10 +6,10 @@
 import XMLParserVisitor from "./XMLParserVisitor.ts";
 import {AttributeContext, ChardataContext, ContentContext, DocumentContext, ElementContext} from "./XMLParser.ts";
 import Field from "../../model/Field.ts";
-import Service from "../../model/Service.ts";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
 import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
+import  {useUserInfoStore} from "../../global/store/userInfoStore.ts";
 
 const useService = useGlobalServiceDataStore();
 const useFieldDataStore = useGlobalFieldDataStore()
@@ -175,7 +175,15 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 if (this.viewMode == 'form') {
                     if (this._contain_stack('col')) { // 在col中的字段 增加label组件
                         this.getTemplate().template += `<div class="contents">`
-                        this.getTemplate().template += `<my-label htmlFor="${field.name}">${serviceField?.label}</my-label>`
+
+                        const useInfoStore = useUserInfoStore();
+                        if(useInfoStore.user.debug) {
+                            this.getTemplate().template += `<my-label htmlFor="${field.name}">${serviceField?.label}`
+                            this.getTemplate().template += ` <my-debug service="${this.service}" field="${field.name}"></my-debug>`
+                            this.getTemplate().template += `</my-label>`;
+                        } else {
+                            this.getTemplate().template += `<my-label htmlFor="${field.name}">${serviceField?.label}</my-label>`
+                        }
                     }
 
                     if (serviceField.type == FieldTypeEnum.One2manyField) { // 多对多

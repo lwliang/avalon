@@ -24,19 +24,21 @@ import FormField from "../../../../model/FormField.ts";
 import MyCheck from "../../../../components/check/my-check.vue";
 import {getDateTime} from "../../../../util/dateUtils.ts";
 import MySearch from "../../../../components/search/my-search.vue";
+import {useUserInfoStore} from "../../../../global/store/userInfoStore.ts";
+import MyDebug from "../../../../components/debug/my-debug.vue";
 
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
+const userInfoStore = useUserInfoStore()
+
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 const route = useRoute();
 
 const moduleName = ref<string>(route.params.module as string)
 const serviceName = ref<string>(route.params.service as string)
 const rowClickHandler = inject('rowClick') as (id: number | undefined) => void;
-const serviceId = ref<number>(serviceStore.getServiceIdByName(serviceName.value) as number)
-const serviceFields = serviceFieldStore.getFieldByServiceId(serviceId.value)
-const primaryKeyField = serviceFieldStore.getPrimaryKeyFieldByServiceId(serviceId.value)
+
 
 const view = ref<ActionView | undefined>(undefined)
 getActionTreeView(serviceName.value).then(data => { // 加载xml
@@ -48,9 +50,10 @@ getActionTreeView(serviceName.value).then(data => { // 加载xml
 
 const xmlTemplate = ref<any>(null)
 
-const renderView = () => {
+const renderView = async () => {
     if (view.value) {
-        parserXml(view.value.arch)
+        await parserXml(view.value.arch)
+        loadData()
     }
 }
 
@@ -61,19 +64,21 @@ let services_fields = ref<Field[]>([]);
 let parserResult: XMLParserResult | null = null;
 
 const parserXml = async (str: string) => {
+    const primaryKeyField = await serviceStore.getServiceByNameAsync(serviceName.value)
+    const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
     parserResult = await parserEx(str, serviceName.value)
     xmlTemplate.value = getTemplate(parserResult)
 
     template_fields.value.splice(0, template_fields.value.length)
     template_fields.value.push(...parserResult.fields.map(x => x.name))
-    if (!template_fields.value.includes(primaryKeyField.name)) {
-        template_fields.value.push(primaryKeyField.name)
+    if (!template_fields.value.includes(primaryKeyField.keyField)) {
+        template_fields.value.push(primaryKeyField.keyField)
     }
 
     template_full_fields.value.splice(0, template_full_fields.value.length)
     template_full_fields.value.push(...parserResult.fullFields.map(x => x.name))
-    if (!template_full_fields.value.includes(primaryKeyField.name)) {
-        template_full_fields.value.push(primaryKeyField.name)
+    if (!template_full_fields.value.includes(primaryKeyField.keyField)) {
+        template_full_fields.value.push(primaryKeyField.keyField)
     }
 
     services_fields.value.splice(0, services_fields.value.length)
@@ -120,13 +125,6 @@ const loadData = async () => {
     record.value.push(...recordTemp)
 }
 
-watch(() => [moduleName.value, serviceName.value, template_fields.value.length], ([v1, v2, v3]) => {
-    if (v1 && v2 && v3) {
-        loadData()
-    }
-}, {
-    immediate: true
-})
 
 const rowClick = (id: number) => {
     rowClickHandler(id)
@@ -178,11 +176,15 @@ const handlePageChange = (dir: string) => {
         <div class="flex-1 overflow-y-auto flex flex-col">
             <div class="flex-1 overflow-y-auto">
                 <table class="w-full table-fixed border-collapse data-table">
-                    <thead class="">
+                    <thead class="overflow-visible">
                     <tr>
-                        <th class="text-left"
+                        <th class="text-left relative"
                             v-for="(field) in services_fields" :key="field.id">
-                            {{ field.label }}
+                            <span>{{ field.label }}</span>
+                            <template v-if="userInfoStore.user.debug">
+                                <span class="px-0.5"></span>
+                                <MyDebug :service="serviceName" :field="field.name"/>
+                            </template>
                         </th>
                     </tr>
                     </thead>

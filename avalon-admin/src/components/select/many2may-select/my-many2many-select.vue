@@ -6,7 +6,6 @@
 import {ref, watch} from "vue";
 import FormField from "../../../model/FormField.ts";
 import {InputExpose} from "../../../global/input/InputExpose.ts";
-import MyPopover from "../../popover/my-popover.vue";
 import {onMounted} from "@vue/runtime-dom";
 import {getModelPageApi} from "../../../api/modelApi.ts";
 import {useGlobalFieldDataStore} from "../../../global/store/fieldStore.ts";
@@ -17,6 +16,7 @@ import {useDebounceFn} from '@vueuse/core'
 import MyIcon from "../../icon/my-icon.vue";
 import MyTag from "../../tag/my-tag.vue";
 import Snowflake from "../../../model/Snowflake.ts";
+import MyInnerPopover from "../../popover/my-inner-popover.vue";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -185,7 +185,7 @@ defineExpose<InputExpose>({validate})
                        :label="fieldValue[formField.Field.relativeForeignKeyName][relativeServiceName]"
                        :value="fieldValue" @deleteTag="deleteTagClick" @tagClick="tagClick"/>
             </template>
-            <MyPopover v-if="!readonly" class="min-w-48" style="flex:1" placement="bottom" trigger="click" full-width
+            <MyInnerPopover v-if="!readonly" class="min-w-48" style="flex:1" placement="bottom" trigger="click" full-width
                        ref="popperSelect"
                        @popperShow="popperShow">
                 <template v-slot:default>
@@ -215,7 +215,7 @@ defineExpose<InputExpose>({validate})
                         </div>
                     </div>
                 </template>
-            </MyPopover>
+            </MyInnerPopover>
         </div>
 
     </div>
