@@ -115,7 +115,7 @@ public abstract class AbstractTreeService extends AbstractService implements ITr
 
     @Override
     public PrimaryKey insert(RecordRow recordRow) throws AvalonException {
-        updateParentPath(recordRow);
+        insertParentPath(recordRow);
         return super.insert(recordRow);
     }
 
@@ -125,7 +125,7 @@ public abstract class AbstractTreeService extends AbstractService implements ITr
         return super.update(recordRow);
     }
 
-    private void updateParentPath(RecordRow recordRow) {
+    private void insertParentPath(RecordRow recordRow) {
         Field parentIdTemp = getParentIdField();
         Field levelTemp = getLevelField();
         Field parentPathTemp = getParentPathField();
@@ -134,6 +134,39 @@ public abstract class AbstractTreeService extends AbstractService implements ITr
             recordRow.put(parentPathTemp, ",");
             recordRow.put(levelTemp, 1);
         } else {
+            FieldValue fieldValue = getFieldValue(parentPathTemp.getName(),
+                    getPrimaryKeyField().eq(recordRow.getRawValue(parentIdTemp)));
+            recordRow.put(parentPathTemp, fieldValue.getString() + recordRow.getInteger(parentIdTemp) + ",");
+            fieldValue = getFieldValue(levelTemp.getName(),
+                    getPrimaryKeyField().eq(recordRow.get(parentIdTemp)));
+            recordRow.put(levelTemp, fieldValue.getInteger() + 1);
+        }
+    }
+
+    private void updateParentPath(RecordRow recordRow) {
+        Field parentIdTemp = getParentIdField();
+        Field levelTemp = getLevelField();
+        Field parentPathTemp = getParentPathField();
+
+        if (!recordRow.containsKey(parentIdTemp)) {
+            Record select = select(Condition.equalCondition(this.getPrimaryKeyField(), recordRow.get(this.getPrimaryKeyField())),
+                    getPrimaryKeyName(), parentId.getName());
+            if (!select.isEmpty()) { // 数据库理论上 都是有的
+                RecordRow recordRow1 = select.get(0);
+                if (recordRow1.isNull(parentId)) { // 如何数据库
+                    recordRow.put(parentPathTemp, ",");
+                    recordRow.put(levelTemp, 1);
+                }
+            } else {
+                recordRow.put(parentPathTemp, ",");
+                recordRow.put(levelTemp, 1);
+            }
+        } else { // 修改上级，有可能变成第一级
+            if (recordRow.isNull(parentIdTemp)) {
+                recordRow.put(parentPathTemp, ",");
+                recordRow.put(levelTemp, 1);
+                return;
+            }
             FieldValue fieldValue = getFieldValue(parentPathTemp.getName(),
                     getPrimaryKeyField().eq(recordRow.getRawValue(parentIdTemp)));
             recordRow.put(parentPathTemp, fieldValue.getString() + recordRow.getInteger(parentIdTemp) + ",");

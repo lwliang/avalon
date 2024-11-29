@@ -39,7 +39,7 @@ public class ErpAppConfig extends WebMvcConfigurationSupport {
                 .excludePathPatterns("/validate")
                 .excludePathPatterns("/error")
                 .excludePathPatterns("/wx/**")
-                .excludePathPatterns("/module/**")
+                .excludePathPatterns("/module/icon/**")
                 .excludePathPatterns("/electric/**")
                 .excludePathPatterns("/bank/**")
                 .excludePathPatterns("/school/**")

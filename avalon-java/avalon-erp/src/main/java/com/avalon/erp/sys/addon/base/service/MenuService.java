@@ -35,7 +35,6 @@ public class MenuService extends AbstractTreeService {
     public final Field objectAction = Fields.createString("对象动作");
     public final Field type = Fields.createSelection("类型", ActionTypeEnum.class, ActionTypeEnum.action);
     public final Field icon = Fields.createString("图标");
-    public final Field active = Fields.createBoolean("激活");
     public final Field moduleId = Fields.createMany2one("模块", "base.module");
     public final Field serviceId = Fields.createMany2one("模型", "base.service");
 }

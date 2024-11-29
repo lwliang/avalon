@@ -4,6 +4,7 @@
  */
 
 import {getErpPrefix} from './env.ts'
+import {postErpHttp} from "./http.ts";
 
 
 export function getModuleIcon(module: string,
@@ -15,4 +16,9 @@ export function getModuleIcon(module: string,
         iconPath = "/" + iconPath
     }
     return getErpPrefix() + `/module/icon/down/${module}` + iconPath;
+}
+
+
+export function getPermissionModule() {
+    return postErpHttp('/module/get/permission/module', {})
 }

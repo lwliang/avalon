@@ -1,7 +1,7 @@
 /**
- * @author lwlianghehe@gmail.com
- * @date 2024/11/22
- */
+* @author lwlianghehe@gmail.com
+* @date 2024/11/22
+*/
 
 <script setup lang="ts">
 import {
@@ -144,7 +144,8 @@ const loadDataWithLayout = async () => {
     } else {
         for (let key of template_fields.value) {
             const field = serviceFields.find(f => f.name === key)
-            if (field && field.type == FieldTypeEnum.One2manyField) {
+            if (field && (field.type == FieldTypeEnum.One2manyField ||
+                field.type == FieldTypeEnum.Many2manyField)) {
                 recordRowWithField.value[key] = new FormField([], field)
             } else if (field) {
                 recordRowWithField.value[key] = new FormField(undefined, field)
@@ -203,8 +204,6 @@ const insert = async () => {
         proxy?.$notify.success("新增", "新增成功");
         row_id.value = data.id
         return data
-    }).catch(error => {
-        proxy?.$notify.error("新增", error.msg);
     })
 }
 
@@ -223,8 +222,6 @@ const update = async () => {
 
     return editModelApi(recordRow, serviceName.value).then(data => {
         proxy?.$notify.success("修改", "修改成功");
-    }).catch(error => {
-        proxy?.$notify.error("修改", error.msg);
     })
 }
 </script>

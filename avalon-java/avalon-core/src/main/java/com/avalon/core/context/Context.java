@@ -15,6 +15,7 @@ import com.avalon.core.exception.AvalonException;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.module.AbstractModule;
 import com.avalon.core.module.ModuleHashMap;
+import com.avalon.core.permission.ElevatePermissionEnum;
 import com.avalon.core.redis.IRedisLock;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.AbstractServiceList;
@@ -35,6 +36,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -210,6 +212,64 @@ public class Context {
         if (ObjectUtils.isNotNull(avalonEvaluationContext)) {
             avalonEvaluationContext.setUserId(userId);
         }
+    }
+
+    private final String ElevatePermissionName = "elevatePermission";
+
+    /**
+     * 提示临时权限
+     *
+     * @param elevatePermission 权限类型
+     */
+    public void addTemporaryElevate(ElevatePermissionEnum elevatePermission) {
+        Map<String, Object> map = createThreadMap();
+        List<ElevatePermissionEnum> elevatePermissionEnums = null;
+        if (map.containsKey(ElevatePermissionName)) {
+            elevatePermissionEnums = (List<ElevatePermissionEnum>) map.get(ElevatePermissionName);
+        } else {
+            elevatePermissionEnums = new ArrayList<>();
+            map.put(ElevatePermissionName, elevatePermissionEnums);
+        }
+
+        if (elevatePermissionEnums.contains(elevatePermission)) {
+            return;
+        }
+        elevatePermissionEnums.add(elevatePermission);
+    }
+
+    /**
+     * 具有临时权限
+     *
+     * @param elevatePermission 权限类型
+     */
+    public boolean hasTemporaryElevate(ElevatePermissionEnum elevatePermission) {
+        Map<String, Object> map = createThreadMap();
+        List<ElevatePermissionEnum> elevatePermissionEnums = null;
+        if (!map.containsKey(ElevatePermissionName)) {
+            return false;
+        }
+
+        elevatePermissionEnums = (List<ElevatePermissionEnum>) map.get(ElevatePermissionName);
+
+        return elevatePermissionEnums.contains(elevatePermission);
+    }
+
+    /**
+     * 删除临时权限
+     *
+     * @param elevatePermission 权限类型
+     */
+    public void clearTemporaryElevate(ElevatePermissionEnum elevatePermission) {
+        Map<String, Object> map = createThreadMap();
+
+        if (!map.containsKey(ElevatePermissionName)) {
+            return;
+        }
+
+        List<ElevatePermissionEnum> elevatePermissionEnums = null;
+        elevatePermissionEnums = (List<ElevatePermissionEnum>) map.get(ElevatePermissionName);
+
+        elevatePermissionEnums.remove(elevatePermission);
     }
 
     public Integer getUserId() {

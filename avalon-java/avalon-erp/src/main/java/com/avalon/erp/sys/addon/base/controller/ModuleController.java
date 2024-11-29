@@ -8,11 +8,16 @@ package com.avalon.erp.sys.addon.base.controller;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.condition.EqualCondition;
 import com.avalon.core.context.Context;
+import com.avalon.core.context.SystemConstant;
 import com.avalon.core.exception.FileIOException;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.module.AbstractModule;
 import com.avalon.core.util.ClassUtils;
+import com.avalon.core.util.FieldUtils;
+import com.avalon.core.util.ObjectUtils;
+import com.avalon.core.util.StringUtils;
+import com.avalon.erp.sys.addon.base.service.GroupService;
 import com.avalon.erp.sys.addon.base.service.MenuService;
 import com.avalon.erp.sys.addon.base.service.ModuleService;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +37,7 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -40,17 +46,58 @@ import java.util.Map;
 public class ModuleController {
     private final ModuleService moduleService;
     private final Context context;
+    private final MenuService menuService;
+    private final GroupService groupService;
 
-    public ModuleController(ModuleService moduleService, Context context) {
+    @Autowired
+
+    public ModuleController(ModuleService moduleService,
+                            Context context,
+                            MenuService menuService,
+                            GroupService groupService) {
         this.moduleService = moduleService;
         this.context = context;
+        this.menuService = menuService;
+        this.groupService = groupService;
     }
 
-    @PostMapping("/installed/list")
-    public Record getInstalledModules() {
-        return moduleService.getInstalledModules();
+    @PostMapping("/get/permission/module")
+    public Record getModulePermission() {
+        return moduleService.getDisplayModules();
     }
 
+    @PostMapping("/get/permission/menu")
+    public Record getMenuPermission(@RequestBody RecordRow param) {
+        String module = param.getString("module");
+        String fields = param.getString("field");
+
+        Condition condition = Condition.equalCondition("moduleId.name", module);
+        if (!context.getUserId().equals(SystemConstant.ADMIN)) {
+            List<Integer> menuIds = groupService.getPermissionMenu(groupService.getContext().getUserId());
+            if (!menuIds.isEmpty()) {
+                Condition menuCondition = Condition.inCondition("id", menuIds);
+                Record parentMenus = menuService.select(menuCondition, "parentPath");
+                if (!parentMenus.isEmpty()) { // 获取父menu
+                    for (RecordRow menuId : parentMenus) {
+                        if (menuId.isNull("parentPath")) continue;
+
+                        String parentPath = menuId.getString("parentPath");
+                        for (String s : FieldUtils.getFieldList(parentPath)) {
+                            if (StringUtils.isNotEmpty(s)) {
+                                menuIds.add(Integer.parseInt(s));
+                            }
+                        }
+                    }
+                    menuCondition = Condition.inCondition("id", menuIds);
+                }
+                condition = condition.andCondition(menuCondition);
+            }
+        }
+
+        return menuService.select("sequence asc,id asc",
+                condition,
+                FieldUtils.getFieldArray(fields));
+    }
 
     @GetMapping("icon/down/{module}/**")
     public void downloadFile(@PathVariable("module") String moduleName,

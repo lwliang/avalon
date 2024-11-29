@@ -13,6 +13,7 @@ import mitt from "mitt";
 import {getUserDetail} from "../../api/loginApi.ts";
 import MenuModel from "../../model/MenuModel.ts";
 import {goModelWindow} from "../../util/routerUtils.ts";
+import {getPermissionModule} from "../../api/moduleApi.ts";
 
 type MittEvent = {
     changeModule: { module: string, click?: boolean }
@@ -31,7 +32,6 @@ const mittBus = mitt<MittEvent>();
 * 以下是全局加载默认数据事件
 * */
 const handleLoginEvent = () => {
-    handleLoadMenuEvent();
     handleLoadModuleEvent();
     loadUserInfo();
 }
@@ -71,22 +71,9 @@ mittBus.on('changeModule', async (args) => {
     }
 })
 
-const handleLoadMenuEvent = () => {
-    getModelAllApi("id,label,param,name,sequence,type,icon,objectAction,serviceId.id,serviceId.name" +
-        ",action.id,action.viewMode,action.label,action.serviceId.id," +
-        "action.serviceId.name,action.serviceId.moduleId.id,action.serviceId.moduleId.name",
-        "",
-        "base.menu").then(data => {
-        useGlobalMenuDataStore().setMenuStore(data)
-    })
-}
-
-mittBus.on('loadMenu', handleLoadMenuEvent)
 
 const handleLoadModuleEvent = () => {
-    getModelAllApi("id,label,name,icon,description,display,isInstall",
-        "",
-        "base.module").then(data => {
+    getPermissionModule().then(data => {
         useGlobalModuleDataStore().setModuleStore(data);
     })
 }

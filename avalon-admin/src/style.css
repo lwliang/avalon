@@ -72,7 +72,6 @@ html, body {
 
 .data-table th, td {
     @apply box-border;
-    @apply border-t border-b;
     @apply py-2;
     @apply px-2;
     @apply text-left;
@@ -80,11 +79,9 @@ html, body {
 }
 
 .data-table thead {
-    @apply border-t border-b;
 }
 
 .data-table thead th {
-    @apply border-t border-b;
     @apply box-border;
     @apply sticky;
     @apply top-0;

@@ -6,16 +6,16 @@
 import {getModelAllApi} from "./modelApi.ts";
 import _ from 'lodash'
 import {arrayToTree} from "../util/treeUtils.ts";
-import {useGlobalServiceDataStore} from "../global/store/serviceStore.ts";
 import {postErpHttp} from "./http.ts";
 
 
 export async function getModuleMenu(module: string) {
-    return getModelAllApi("id,label,param,name,parentId,objectAction,serviceId.id,serviceId.name," +
-        "sequence,type,icon,action.id,action.viewMode,action.label,action.serviceId.id," +
-        "action.serviceId.name,action.serviceId.moduleId.id,action.serviceId.moduleId.name",
-        `(=,moduleId.name,${module})`,
-        "base.menu").then(data => {
+    return postErpHttp("/module/get/permission/menu", {
+        module: module,
+        field: "id,label,param,name,parentId,objectAction,serviceId.id,serviceId.name," +
+            "sequence,type,icon,action.id,action.viewMode,action.label,action.serviceId.id," +
+            "action.serviceId.name,action.serviceId.moduleId.id,action.serviceId.moduleId.name"
+    }).then(data => {
         data = _.sortBy(data, ['sequence', 'id'])
         data = arrayToTree(data)
         console.log(data)

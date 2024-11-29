@@ -246,12 +246,12 @@ public abstract class Condition implements ICondition {
         return new OrCondition(this, Condition.notEqualCondition(field, value));
     }
 
-    public Condition andInCondition(String name, List<Object> value) {
-        return new AndCondition(this, Condition.inCondition(name, value));
+    public Condition andInCondition(String name, List<?> value) {
+        return new AndCondition(this, Condition.inCondition(name, (List<?>) value));
     }
 
-    public Condition andInCondition(Field field, List<Object> value) {
-        return new AndCondition(this, Condition.inCondition(field, value));
+    public Condition andInCondition(Field field, List<?> value) {
+        return new AndCondition(this, Condition.inCondition(field, (List<?>) value));
     }
 
     public Condition andInCondition(String name, Object... value) {
@@ -262,11 +262,11 @@ public abstract class Condition implements ICondition {
         return new AndCondition(this, Condition.inCondition(field, value));
     }
 
-    public Condition andNotInCondition(String name, List<Object> value) {
+    public Condition andNotInCondition(String name, List<?> value) {
         return new AndCondition(this, Condition.notInCondition(name, value));
     }
 
-    public Condition andNotInCondition(Field field, List<Object> value) {
+    public Condition andNotInCondition(Field field, List<?> value) {
         return new AndCondition(this, Condition.notInCondition(field, value));
     }
 
@@ -536,19 +536,19 @@ public abstract class Condition implements ICondition {
         return new BetweenCondition(name, begin, end);
     }
 
-    public static Condition inCondition(String name, List<Object> values) {
+    public static Condition inCondition(String name, List<?> values) {
         return new InCondition(name, values);
     }
 
-    public static Condition inCondition(Field field, List<Object> values) {
+    public static Condition inCondition(Field field, List<?> values) {
         return new InCondition(field, values);
     }
 
-    public static Condition notInCondition(String name, List<Object> values) {
+    public static Condition notInCondition(String name, List<?> values) {
         return new NotInCondition(name, values);
     }
 
-    public static Condition notInCondition(Field field, List<Object> values) {
+    public static Condition notInCondition(Field field, List<?> values) {
         return new NotInCondition(field, values);
     }
 

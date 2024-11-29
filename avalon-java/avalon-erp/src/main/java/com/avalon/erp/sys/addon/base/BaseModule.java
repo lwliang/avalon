@@ -54,6 +54,9 @@ public class BaseModule extends AbstractModule {
                 "resource/view/job.views.xml",
                 "resource/view/partner.views.xml",
                 "resource/view/staff.views.xml",
+                "resource/view/base.group.views.xml",
+                "resource/view/base.rule.views.xml",
+                "resource/view/base.service.access.views.xml",
                 "resource/view/menus.xml"
         };
     }

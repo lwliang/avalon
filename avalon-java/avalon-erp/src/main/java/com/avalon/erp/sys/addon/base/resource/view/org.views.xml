@@ -23,9 +23,6 @@
                         <page label="下级组织">
                             <field name="childIds"/>
                         </page>
-                        <page label="第二个">
-                            <h1>Hello,World</h1>
-                        </page>
                     </notebook>
                 </sheet>
             </form>

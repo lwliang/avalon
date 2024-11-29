@@ -23,9 +23,9 @@ import java.util.List;
 @Data
 public class InCondition extends Condition {
 
-    private List<Object> values;
+    private List<?> values;
 
-    public InCondition(String name, List<Object> values) {
+    public InCondition(String name, List<?> values) {
         super();
         setOp(ConditionOperateEnum.In);
         setName(name);
@@ -33,7 +33,7 @@ public class InCondition extends Condition {
         this.values = values;
     }
 
-    public InCondition(Field fieldName, List<Object> values) {
+    public InCondition(Field fieldName, List<?> values) {
         super();
         setOp(ConditionOperateEnum.In);
         setFieldName(fieldName);

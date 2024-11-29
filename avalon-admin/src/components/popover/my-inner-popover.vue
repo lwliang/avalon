@@ -122,7 +122,7 @@ defineExpose({
             <slot></slot>
         </div>
         <div v-if="show"
-             :class="{popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
+             :class="{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
              ref="floating"
              :style="[dynamicStyles,floatingStyles]"
              @mouseenter="showMousePopper"

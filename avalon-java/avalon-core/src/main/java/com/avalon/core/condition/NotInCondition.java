@@ -12,12 +12,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public class NotInCondition extends InCondition {
-    public NotInCondition(String name, List<Object> values) {
+    public NotInCondition(String name, List<?> values) {
         super(name, values);
         setOp(ConditionOperateEnum.NotIn);
     }
 
-    public NotInCondition(Field fieldName, List<Object> values) {
+    public NotInCondition(Field fieldName, List<?> values) {
         super(fieldName, values);
         setOp(ConditionOperateEnum.NotIn);
     }

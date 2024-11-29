@@ -14,6 +14,7 @@ import com.avalon.core.service.AbstractService;
 import com.avalon.core.tree.QueryNode;
 import com.avalon.core.util.FieldUtils;
 import com.avalon.core.util.ObjectUtils;
+import com.avalon.core.util.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -88,7 +89,12 @@ public class SelectBuilder {
         List<String> selects = new ArrayList<>();
         List<String> tables = new ArrayList<>();
         queryNodeTables(queryRoot, tables);
-        selects.add(queryRoot.getSelectField(aliasSupport));
+        String masterField = queryRoot.getSelectField(aliasSupport);
+        if (StringUtils.isEmpty(masterField)) {
+            masterField = queryRoot.getAlias(aliasSupport) + FieldUtils.getJoinDivision()
+                    + queryRoot.getService().getPrimaryKeyName();
+        }
+        selects.add(masterField);
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
         if (ObjectUtils.isNotNull(getDistinct()) && getDistinct()) {

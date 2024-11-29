@@ -6,6 +6,8 @@
 package com.avalon.erp.sys.addon.base.service;
 
 import com.avalon.core.condition.Condition;
+import com.avalon.core.context.Context;
+import com.avalon.core.context.SystemConstant;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
@@ -40,6 +42,27 @@ public class ModuleService extends AbstractService {
     protected final Field icon = Fields.createString("图标");
     public final Field isInstall = Fields.createBoolean("已安装");
 
+    /**
+     * 获取已安装且可显示的模块，同时需要满足权限
+     *
+     * @return
+     */
+    public Record getDisplayModules() {
+        Condition condition = isInstall.eq(true);
+        condition = condition.andCondition(display.eq(true));
+        List<Integer> getPermissionModule = (List<Integer>) invokeMethod("base.group",
+                "getPermissionModule", getContext().getUserId());
+        if (!getContext().getUserId().equals(SystemConstant.ADMIN)) {
+            if (!getPermissionModule.isEmpty()) {
+                condition = condition.andCondition(Condition.inCondition("id", getPermissionModule));
+            } else { // 没有权限，则返回空
+                condition = condition.andCondition(Condition.equalCondition("id", 0));
+            }
+        }
+
+        return select("id desc", condition,
+                "id", "label", "name", "icon", "description", "display", "isInstall");
+    }
 
     public Record getInstalledModules() {
         Condition condition = isInstall.eq(true);
@@ -49,7 +72,6 @@ public class ModuleService extends AbstractService {
     @Override
     public PageInfo selectPage(PageParam pageParam, String order, Condition condition, String... fields) throws AvalonException {
         PageInfo pageInfo = super.selectPage(pageParam, order, condition, fields);
-
 
         return pageInfo;
     }

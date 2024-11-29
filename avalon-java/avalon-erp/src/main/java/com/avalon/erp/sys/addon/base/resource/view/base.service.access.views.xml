@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_service_access_view_form" service="base.action.view">
+        <field name="name">base_service_access_view_form</field>
+        <field name="label">模型权限</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">base.service.access</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="serviceId"/>
+                        </col>
+                        <col>
+                            <field name="permRead"/>
+                            <field name="permWrite"/>
+                            <field name="permCreate"/>
+                            <field name="permUnlink"/>
+                        </col>
+                    </row>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="base_service_access_view_tree" service="base.action.view">
+        <field name="name">base_service_access_view_tree</field>
+        <field name="label">模型权限</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.service.access</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="serviceId"/>
+                <field name="permRead"/>
+                <field name="permWrite"/>
+                <field name="permCreate"/>
+                <field name="permUnlink"/>
+            </tree>
+        </field>
+    </record>
+</avalon>

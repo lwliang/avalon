@@ -14,6 +14,7 @@ import com.avalon.core.db.DynamicJdbcTemplate;
 import com.avalon.core.enums.ServiceOperateEnum;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.exception.FieldCheckException;
+import com.avalon.core.exception.PermissionException;
 import com.avalon.core.field.*;
 import com.avalon.core.log.IAvalonServiceLog;
 import com.avalon.core.log.ServiceLog;
@@ -22,6 +23,8 @@ import com.avalon.core.model.*;
 import com.avalon.core.alias.DefaultAliasSupport;
 import com.avalon.core.alias.IAliasRequire;
 import com.avalon.core.module.AbstractModule;
+import com.avalon.core.permission.ElevatePermissionEnum;
+import com.avalon.core.permission.PermissionEnum;
 import com.avalon.core.select.builder.QueryStatement;
 import com.avalon.core.select.builder.SelectBuilder;
 import com.avalon.core.select.builder.SelectPageBuilder;
@@ -364,9 +367,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
 
     @PostConstruct
     public void postConstruct() { // post中不能执行getService方法
-        if (!isLazyLoadField()) {
-            loadField();
-        }
+//        if (!isLazyLoadField()) {
+//            loadField();
+//        }
         if (log.isDebugEnabled()) {
             log.debug("service init->" + getServiceName() + ",class->" + this.getClass().getName());
         }
@@ -849,6 +852,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     public Integer delete(Condition condition, String serviceName) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.unlink)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的删除权限,请联系管理员");
+        }
         AbstractService serviceBean = getServiceBean(serviceName);
 
         Record record = serviceBean.select("", condition,
@@ -882,6 +888,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     public Integer delete(RecordRow row) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.unlink)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的删除权限,请联系管理员");
+        }
         Integer id = (Integer) getPrimaryKeyValue(row);
         checkDelete(row);
 
@@ -921,8 +930,15 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
     }
 
     protected void checkDelete(RecordRow recordRow) throws AvalonException {
-
+        Condition condition = getRecordRule(Condition.equalCondition(getPrimaryKeyName(),
+                        recordRow.getRawValue(getPrimaryKeyField())),
+                PermissionEnum.unlink);
+        Integer idCount = selectCount(condition);
+        if (!idCount.equals(1)) {
+            throw new PermissionException("不满足记录规则,无法删除");
+        }
     }
+
 
     public Integer deleteMulti(List<Integer> ids) throws AvalonException {
         Integer count = 0;
@@ -940,7 +956,12 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         return count;
     }
 
+
     public PrimaryKey insert(RecordRow recordRow) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.create)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的创建权限,请联系管理员");
+        }
+
         if (getNeedDefaultField()) {
             if (!recordRow.containsKey(CREATE_TIME)) {
                 recordRow.put(CREATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
@@ -998,10 +1019,8 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         }
 
         recordRow.put(getPrimaryKeyName(), masterId);
-        insertLog(recordRow);
-        checkAfterInsert(recordRow);
-        FieldHashMap relationFieldMap = getRelationFieldMap();
 
+        FieldHashMap relationFieldMap = getRelationFieldMap();
         for (Map.Entry<String, Field> fieldEntry : relationFieldMap.entrySet()) {//处理子表
             String key = fieldEntry.getKey();
             RelationField field = (RelationField) fieldEntry.getValue();
@@ -1035,6 +1054,8 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             }
         }
 
+        insertLog(recordRow);
+        checkAfterInsert(recordRow);
         return PrimaryKey.build(masterId);
     }
 
@@ -1068,7 +1089,13 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     protected void checkAfterInsert(RecordRow recordRow) throws AvalonException {
-
+        Condition condition = getRecordRule(Condition.equalCondition(getPrimaryKeyName(),
+                        recordRow.getRawValue(getPrimaryKeyField())),
+                PermissionEnum.create);
+        Integer idCount = selectCount(condition);
+        if (!idCount.equals(1)) {
+            throw new PermissionException("不满足记录规则,无法创建");
+        }
     }
 
     private void checkUniqueField(RecordRow recordRow) throws AvalonException {
@@ -1133,7 +1160,13 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     protected void checkAfterUpdate(RecordRow recordRow) throws AvalonException {
-
+        Condition condition = getRecordRule(Condition.equalCondition(getPrimaryKeyName(),
+                        recordRow.getRawValue(getPrimaryKeyField())),
+                PermissionEnum.write);
+        Integer idCount = selectCount(condition);
+        if (!idCount.equals(1)) {
+            throw new PermissionException("不满足记录规则,无法更新");
+        }
     }
 
     /**
@@ -1146,6 +1179,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
     protected void checkUpdate(RecordRow recordRow) throws AvalonException {
         checkUniqueField(recordRow);
     }
+
 
     public List<Object> insertMulti(Record record) throws AvalonException {
         ArrayList<Object> ids = new ArrayList<>();
@@ -1164,6 +1198,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     public Integer update(RecordRow recordRow, Condition condition) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.write)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的写入权限,请联系管理员");
+        }
         if (getNeedDefaultField()) {
             recordRow.put(UPDATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
             recordRow.put(UPDATER, new RecordColumn(context.getUserId()));
@@ -1177,7 +1214,11 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         return jdbcTemplate.update(avalonPreparedStatement);
     }
 
+
     public Integer update(RecordRow recordRow) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.write)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的修改权限,请联系管理员");
+        }
         if (getNeedDefaultField()) {
             recordRow.put(UPDATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
             recordRow.put(UPDATER, new RecordColumn(context.getUserId()));
@@ -1191,7 +1232,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         AvalonPreparedStatement avalonPreparedStatement =
                 new AutoKeyPreparedStatement(getService(), sql, fieldValueStatement);
         Integer count = jdbcTemplate.update(avalonPreparedStatement);
-        updateLog(recordRow);//记录日志
+
         FieldHashMap relationFieldMap = getRelationFieldMap();
         for (Map.Entry<String, Field> fieldEntry : relationFieldMap.entrySet()) {//处理子表
             String key = fieldEntry.getKey();
@@ -1245,6 +1286,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             }
         }
 
+        updateLog(recordRow);//记录日志
         checkAfterUpdate(recordRow);
         return count;
     }
@@ -1749,32 +1791,110 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         return select("", condition, fields);
     }
 
+    protected Condition getRecordRule(Condition originCondition, PermissionEnum permissionEnum) {
+        if (getContext().hasTemporaryElevate(ElevatePermissionEnum.recordRule)) { // 临时提升记录权限
+            return originCondition;
+        }
+        try {
+            String methodName = "getReadRecordRule";
+            if (permissionEnum == PermissionEnum.create) {
+                methodName = "getCreateRecordRule";
+            } else if (permissionEnum == PermissionEnum.write) {
+                methodName = "getWriteRecordRule";
+            } else if (permissionEnum == PermissionEnum.unlink) {
+                methodName = "getUnlinkRecordRule";
+            }
+            Object ruleCondition = this.invokeMethod("base.group", methodName,
+                    context.getUserId(), getServiceName());
+            if (ObjectUtils.isNull(ruleCondition)) {
+                return originCondition;
+            }
+
+            if (ObjectUtils.isNotNull(originCondition)) {
+                return originCondition.andCondition((Condition) ruleCondition);
+            }
+
+            return (Condition) ruleCondition;
+        } catch (Exception e) {
+            log.error("Error occurred while getting read record rule", e);
+            return originCondition;
+        }
+    }
+
+    /**
+     * 判断服务是否有对应的权限
+     *
+     * @param service        服务
+     * @param permissionEnum 权限
+     * @return
+     */
+    public boolean checkPermission(Integer userId, String service, PermissionEnum permissionEnum) {
+        return switch (permissionEnum) {
+            case read -> hasReadPermission(userId, service);
+            case write -> hasWritePermission(userId, service);
+            case create -> hasCreatePermission(userId, service);
+            case unlink -> hasUnlinkPermission(userId, service);
+        };
+    }
+
+    private boolean hasReadPermission(Integer userId, String serviceName) {
+        try {
+            return (boolean) invokeMethod("base.group", "hasReadPermission", userId, serviceName);
+        } catch (Exception e) {
+            log.error("hasReadPermission", e);
+            return false;
+        }
+    }
+
+    private boolean hasWritePermission(Integer userId, String serviceName) {
+        try {
+            return (boolean) invokeMethod("base.group", "hasWritePermission", userId, serviceName);
+        } catch (Exception e) {
+            log.error("hasWritePermission", e);
+            return false;
+        }
+    }
+
+    private boolean hasCreatePermission(Integer userId, String serviceName) {
+        try {
+            return (boolean) invokeMethod("base.group", "hasCreatePermission", userId, serviceName);
+        } catch (Exception e) {
+            log.error("hasCreatePermission", e);
+            return false;
+        }
+    }
+
+    private boolean hasUnlinkPermission(Integer userId, String serviceName) {
+        try {
+            return (boolean) invokeMethod("base.group", "hasUnlinkPermission", userId, serviceName);
+        } catch (Exception e) {
+            log.error("hasUnlinkPermission", e);
+            return false;
+        }
+    }
+
     @Override
     public Record select(String order, Condition condition, String... fields) throws AvalonException {
-        SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
-                fields,
-                condition,
-                order);
-        QueryStatement masterSql = selectBuilder.getMasterSql();
-        AvalonPreparedStatement avalonPrepareStatement = createAvalonPrepareStatement(masterSql.getSql(),
-                masterSql.getValueStatement());
-        Record record = jdbcTemplate.select(avalonPrepareStatement, selectBuilder);
-        List<Object> ids = record.getValues(getPrimaryKeyName());
-        for (QueryNode node : selectBuilder.getQueryRoot().getQueryNodeList()) {
-            if (ObjectUtils.isNotEmpty(node.getFields()) || !node.getQueryNodeList().isEmpty()) {
-                doQueryNode(node, ids, record);
-            }
-        }
-        return record;
+        return select(null, order, condition, fields);
     }
 
     @Override
     public Record select(Integer limit, String order, Condition condition, String... fields) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.read)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的读权限,请联系管理员");
+        }
+        condition = getRecordRule(condition, PermissionEnum.read);
         SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
                 fields,
                 condition,
                 order);
-        QueryStatement masterSql = selectBuilder.getMasterSql(limit);
+        QueryStatement masterSql = null;
+        if (ObjectUtils.isNotNull(limit)) {
+            masterSql = selectBuilder.getMasterSql(limit);
+        } else {
+            masterSql = selectBuilder.getMasterSql();
+        }
+
         AvalonPreparedStatement avalonPrepareStatement = createAvalonPrepareStatement(masterSql.getSql(),
                 masterSql.getValueStatement());
         Record record = jdbcTemplate.select(avalonPrepareStatement, selectBuilder);
@@ -1792,7 +1912,10 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
                                String order,
                                Condition condition,
                                String... fields) throws AvalonException {
-
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.read)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的读权限,请联系管理员");
+        }
+        condition = getRecordRule(condition, PermissionEnum.read);
         Integer size = context.getApplicationConfig().getPageSize();
         if (ObjectUtils.isNotNull(pageParam.getPageSize())) {
             size = pageParam.getPageSize();
@@ -1835,6 +1958,28 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         try {
             Method method = this.getClass().getMethod(methodName, List.class, RecordRow.class);
             return method.invoke(this, ids, row);
+        } catch (NoSuchMethodException e) {
+            throw new AvalonException(methodName + "不存在方法");
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            String message = e.getMessage();
+            if (e instanceof InvocationTargetException) {
+                message = ((InvocationTargetException) e).getTargetException().getMessage();
+            }
+            throw new AvalonException(message, e);
+        }
+    }
+
+    public Object invokeMethod(String service, String methodName, Object... args) {
+        try {
+            AbstractService serviceBean = context.getServiceBean(service);
+            if (args.length != 0) {
+                Class<?>[] array = Arrays.stream(args).map(Object::getClass).toArray(Class[]::new);
+                Method method = serviceBean.getClass().getMethod(methodName, array);
+                return method.invoke(serviceBean, args);
+            } else {
+                Method method = serviceBean.getClass().getMethod(methodName);
+                return method.invoke(serviceBean);
+            }
         } catch (NoSuchMethodException e) {
             throw new AvalonException(methodName + "不存在方法");
         } catch (InvocationTargetException | IllegalAccessException e) {
