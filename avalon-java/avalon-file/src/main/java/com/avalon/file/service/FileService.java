@@ -5,6 +5,8 @@
 
 package com.avalon.file.service;
 
+import com.avalon.core.condition.Condition;
+import com.avalon.core.model.Record;
 import com.avalon.file.config.FileConfig;
 import com.avalon.file.util.PathUtil;
 import com.avalon.core.field.Field;
@@ -27,6 +29,21 @@ import java.nio.channels.FileChannel;
 @Service
 @Slf4j
 public class FileService extends AbstractService {
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public Boolean getNeedDefaultField() {
+        return false;
+    }
+
     @Autowired
     private FileConfig fileConfig;
 
@@ -58,7 +75,6 @@ public class FileService extends AbstractService {
      */
     public RecordRow saveFile(String fileName, String mime, byte[] content) throws FileIOException {
         try {
-
             RecordRow recordRow = new RecordRow();
             recordRow.put("originName", fileName);
             recordRow.put("mime", mime);

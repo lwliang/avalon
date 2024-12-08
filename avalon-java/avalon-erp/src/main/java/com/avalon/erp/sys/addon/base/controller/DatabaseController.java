@@ -8,12 +8,16 @@ package com.avalon.erp.sys.addon.base.controller;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.context.Context;
 import com.avalon.core.context.SystemConstant;
+import com.avalon.core.enums.SystemStateEnum;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.module.AbstractModule;
+import com.avalon.core.permission.ElevatePermissionEnum;
+import com.avalon.core.permission.TemporaryElevate;
 import com.avalon.core.service.AbstractService;
 import com.avalon.erp.sys.addon.base.service.DBService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +25,7 @@ import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/db")
+@Slf4j
 public class DatabaseController {
     private final Context context;
 
@@ -56,7 +61,7 @@ public class DatabaseController {
 
     @GetMapping("update/module/{moduleName}")
     public String updateModule(@PathVariable("moduleName") String moduleName) {
-        AbstractModule base = context.getModuleMap().getModule(moduleName);
+        AbstractModule base = context.getModule(moduleName);
         base.upgradeModule();
         return "OK";
     }
@@ -64,7 +69,7 @@ public class DatabaseController {
     @GetMapping("create/module/{moduleName}")
     public String createModule(@PathVariable("moduleName") String moduleName) {
         context.setUserId(SystemConstant.ADMIN);
-        AbstractModule base = context.getModuleMap().getModule(moduleName);
+        AbstractModule base = context.getModule(moduleName);
         base.createModule();
         return "OK";
     }
@@ -72,7 +77,7 @@ public class DatabaseController {
     @GetMapping("drop/module/{moduleName}")
     public String dropModule(@PathVariable("moduleName") String moduleName) {
 
-        AbstractModule base = context.getModuleMap().getModule(moduleName);
+        AbstractModule base = context.getModule(moduleName);
         base.dropModule();
         return "OK";
     }
@@ -99,17 +104,35 @@ public class DatabaseController {
     }
 
     @GetMapping("create/database/{database}")
+    @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
     public void createDatabase(@PathVariable("database") String database) throws AvalonException {
         context.getJdbcTemplate().execute(String.format("CREATE DATABASE %s", database));
-        context.init(database);
-        dbService.createDataBase();
-        context.invokeServiceMethod("base.module", "refreshModuleFromDisk", new ArrayList<>(), RecordRow.build());
+
+        try {
+            context.addSystemState(SystemStateEnum.createDB);
+            context.init(database);
+            dbService.createDataBase();
+            context.invokeServiceMethod("base.module", "refreshModuleFromDisk", new ArrayList<>(), RecordRow.build());
+        } catch (Exception e) {
+            log.error("createDatabase:" + e.getMessage(), e);
+            doDropDatabase(database);
+            throw e;
+        } finally {
+            context.clearSystemState(SystemStateEnum.createDB);
+        }
+    }
+
+    private void doDropDatabase(String database) {
+        context.dropDB(database);
+        context.closeDB(database);
+        context.init(context.getDefaultDatabase());
+        context.getJdbcTemplate().execute(String.format("drop DATABASE %s", database));
     }
 
     @GetMapping("drop/database/{database}")
     public void dropDatabase(@PathVariable("database") String database) throws AvalonException {
-        context.closeDB(database);
-        context.init(context.getDefaultDatabase());
-        context.getJdbcTemplate().execute(String.format("drop DATABASE %s", database));
+        context.addSystemState(SystemStateEnum.dropDB);
+        doDropDatabase(database);
+        context.clearSystemState(SystemStateEnum.dropDB);
     }
 }

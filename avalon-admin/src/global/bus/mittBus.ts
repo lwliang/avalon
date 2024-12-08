@@ -87,18 +87,8 @@ const handleLoadServiceEvent = () => {
         useGlobalServiceDataStore().setServiceStore(data);
     })
 }
-const handleLoadFieldEvent = () => {
-    getModelAllApi("id,label,name,isPrimaryKey,isAutoIncrement,isRequired,isReadonly,defaultValue," +
-        "type,serviceId,isUnique,allowNull,minValue,maxValue,masterForeignKeyName,relativeForeignKeyName," +
-        "relativeServiceName,manyServiceTable,relativeFieldName",
-        "",
-        "base.field").then(data => {
-        useGlobalFieldDataStore().setFieldStore(data);
-    })
-}
-mittBus.on('loadService', handleLoadServiceEvent)
-mittBus.on('loadField', handleLoadFieldEvent)
 
+mittBus.on('loadService', handleLoadServiceEvent)
 
 export const emitLogin = () => {
     mittBus.emit('login')

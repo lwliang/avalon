@@ -12,4 +12,5 @@ public class SystemConstant {
     public final static String USER_ADMIN = "admin";
     public static final String TOKEN = "token";
     public static final String TOKEN_PREFIX = "token:";
+    public static final String SYSTEM_STATE_NAME = "systemStateName";
 }

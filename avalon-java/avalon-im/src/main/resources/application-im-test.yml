@@ -1,4 +1,5 @@
 application:
+  multiDb: false
   dataSource:
     database: im
     username: avalon_im

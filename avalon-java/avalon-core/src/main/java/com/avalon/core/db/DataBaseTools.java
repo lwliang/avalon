@@ -378,6 +378,16 @@ public class DataBaseTools {
         return stringBuilder;
     }
 
+    public static StringBuilder dropTableFieldSql(AbstractService service, String fieldName) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("ALTER TABLE ");
+        stringBuilder.append(service.getServiceTableName());
+        stringBuilder.append(" DROP ");
+        stringBuilder.append(FieldUtils.underscoreName(fieldName));
+        stringBuilder.append(";");
+        return stringBuilder;
+    }
+
     public static StringBuilder existTable(AbstractService service) {
         StringBuilder stringBuilder = new StringBuilder();
         if (service.getContext().isMysql()) {

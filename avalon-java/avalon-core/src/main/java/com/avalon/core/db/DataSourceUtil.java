@@ -20,11 +20,11 @@ public class DataSourceUtil {
      * 创建新的数据源，注意：此处只针对 MySQL 数据库
      */
     // jdbc:mysql://rm-bp12orvj2495xci82yo.mysql.rds.aliyuncs.com:3306/fastdb?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=CTT
-    public static DataSource makeNewDataSource(DataSourceConfig dataSourceConfig) {
+    public static DataSource makeNewDataSource(String db, DataSourceConfig dataSourceConfig) {
         String url = "jdbc:mysql://" + dataSourceConfig.getHost() + ":" +
                 dataSourceConfig.getPort();
-        if (ObjectUtils.isNotEmpty(dataSourceConfig.getDatabase())) {
-            url += "/" + dataSourceConfig.getDatabase();
+        if (ObjectUtils.isNotEmpty(db)) {
+            url += "/" + db;
         }
         url += "?useSSL=false&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
         if (ObjectUtils.isNotEmpty(dataSourceConfig.getTimezone())) {
@@ -58,11 +58,11 @@ public class DataSourceUtil {
      * @param dataSourceConfig
      * @return
      */
-    public static DataSource makePostgresDataSource(DataSourceConfig dataSourceConfig) {
+    public static DataSource makePostgresDataSource(String db, DataSourceConfig dataSourceConfig) {
         String url = "jdbc:postgresql://" + dataSourceConfig.getHost() + ":" +
                 dataSourceConfig.getPort() + "/";
-        if (ObjectUtils.isNotEmpty(dataSourceConfig.getDatabase())) {
-            url += dataSourceConfig.getDatabase();
+        if (ObjectUtils.isNotEmpty(db)) {
+            url += db;
         }
         String driveClassName = StringUtils.isEmpty(dataSourceConfig.getClassType()) ?
                 "org.postgresql.Driver"
@@ -88,26 +88,26 @@ public class DataSourceUtil {
     /**
      * 添加数据源到动态源中
      */
-    public static void addDataSourceToDynamic(String key, DataSource dataSource) {
+    public static void addDataSourceToDynamic(String db, DataSource dataSource) {
         DynamicDataSource dynamicDataSource = SpringContextHolder.getContext().getBean(DynamicDataSource.class);
-        dynamicDataSource.addDataSource(key, dataSource);
+        dynamicDataSource.addDataSource(db, dataSource);
     }
 
     /**
      * 根据数据库连接信息添加数据源到动态源中
      *
-     * @param key
+     * @param db
      * @param dataSourceConfig
      */
-    public static void addDataSourceToDynamic(String key, DataSourceConfig dataSourceConfig) {
+    public static void addDataSourceToDynamic(String db, DataSourceConfig dataSourceConfig) {
         DataSource dataSource;
         if (ObjectUtils.isNotEmpty(dataSourceConfig.getClassType())
                 && dataSourceConfig.getClassType().contains("mysql")) {
-            dataSource = makeNewDataSource(dataSourceConfig);
+            dataSource = makeNewDataSource(db, dataSourceConfig);
         } else {
-            dataSource = makePostgresDataSource(dataSourceConfig);
+            dataSource = makePostgresDataSource(db, dataSourceConfig);
         }
 
-        addDataSourceToDynamic(key, dataSource);
+        addDataSourceToDynamic(db, dataSource);
     }
 }

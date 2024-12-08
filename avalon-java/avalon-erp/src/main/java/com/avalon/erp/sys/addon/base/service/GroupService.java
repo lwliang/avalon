@@ -50,8 +50,11 @@ public class GroupService extends AbstractTreeService {
             "base.user"
     };
 
-    private final ServiceService serviceService;
-    private final MenuService menuService;
+    private ServiceService serviceService;
+    private MenuService menuService;
+
+    public GroupService() {
+    }
 
     public GroupService(ServiceService serviceService,
                         MenuService menuService) {
@@ -98,7 +101,7 @@ public class GroupService extends AbstractTreeService {
                 .collect(Collectors.toList());
 
         Condition menuCondition = Condition.equalCondition("type", ActionTypeEnum.action);
-        if(!serviceIdList.isEmpty()) {
+        if (!serviceIdList.isEmpty()) {
             menuCondition = menuCondition.andInCondition("action.serviceId", (List<?>) serviceIdList);
         }
         Record menuIds = menuService.select(menuCondition, "id"); // 获取模型对应的菜单id
@@ -120,6 +123,7 @@ public class GroupService extends AbstractTreeService {
      * @param serviceName
      * @return
      */
+    @TemporaryElevate(ElevatePermissionEnum.permission)
     public Boolean hasReadPermission(Integer userId, String serviceName) {
         if (userId.equals(SystemConstant.ADMIN)) {
             return true;
@@ -149,6 +153,7 @@ public class GroupService extends AbstractTreeService {
      * @param serviceName
      * @return
      */
+    @TemporaryElevate(ElevatePermissionEnum.permission)
     public Boolean hasWritePermission(Integer userId, String serviceName) {
         if (userId.equals(SystemConstant.ADMIN)) {
             return true;
@@ -171,6 +176,7 @@ public class GroupService extends AbstractTreeService {
      * @param serviceName
      * @return
      */
+    @TemporaryElevate(ElevatePermissionEnum.permission)
     public Boolean hasUnlinkPermission(Integer userId, String serviceName) {
         if (userId.equals(SystemConstant.ADMIN)) {
             return true;
@@ -193,6 +199,7 @@ public class GroupService extends AbstractTreeService {
      * @param serviceName
      * @return
      */
+    @TemporaryElevate(ElevatePermissionEnum.permission)
     public Boolean hasCreatePermission(Integer userId, String serviceName) {
         if (userId.equals(SystemConstant.ADMIN)) {
             return true;

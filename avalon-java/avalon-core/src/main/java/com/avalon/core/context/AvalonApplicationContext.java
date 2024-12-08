@@ -5,6 +5,8 @@
 
 package com.avalon.core.context;
 
+import com.avalon.core.orm.DefaultORMMapper;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -14,12 +16,10 @@ import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebSe
  * 自定义的ApplicationContext实现类
  */
 public class AvalonApplicationContext extends AnnotationConfigServletWebServerApplicationContext {
-
+    @Getter
+    private final DefaultORMMapper defaultORM = new DefaultORMMapper(); // 默认所有模块代码
+    @Getter
     private static AvalonApplicationContext instance = new AvalonApplicationContext();
-
-    public static AvalonApplicationContext getInstance() {
-        return instance;
-    }
 
     protected AvalonApplicationContext() {
 //        log.debug("application context constructor");

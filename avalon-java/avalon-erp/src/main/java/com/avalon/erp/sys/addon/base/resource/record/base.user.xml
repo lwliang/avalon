@@ -4,5 +4,6 @@
         <field name="name">管理员</field>
         <field name="account">admin</field>
         <field name="password">123456</field>
+        <field name="avatar">/user/default/avatar</field>
     </record>
 </avalon>

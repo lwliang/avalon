@@ -22,7 +22,9 @@ public class FileAppConfig extends WebMvcConfigurationSupport {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(avalonHandlerInterceptor).addPathPatterns("/**")
                 .excludePathPatterns("/file/down/**")
+                .excludePathPatterns("/user/default/avatar")
                 .excludePathPatterns("/service/file/down")
+                .excludePathPatterns("/file/upload/database")
                 .excludePathPatterns("/test");
     }
 }

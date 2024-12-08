@@ -11,6 +11,7 @@ import com.avalon.core.context.Context;
 import com.avalon.core.db.AvalonPreparedStatement;
 import com.avalon.core.enums.ServiceOperateEnum;
 import com.avalon.core.field.Field;
+import com.avalon.core.field.FieldList;
 import com.avalon.core.lock.ILockSupport;
 import com.avalon.core.model.*;
 import com.avalon.core.util.FieldValue;
@@ -25,7 +26,6 @@ public interface IAvalonService extends ILockSupport,
         IInsertService,
         IDeleteService,
         IUpdateService,
-        IModuleSupport,
         IInvokeMethod,
         IInheritTable {
     String getLabel(); // 服务标签 比如用户
@@ -78,7 +78,7 @@ public interface IAvalonService extends ILockSupport,
 
     Field getPrimaryKeyField();//获取主键字段
 
-    List<Field> getFields();//获取所有字段
+    FieldList getFields();//获取所有字段
 
     Field getField(String name);//获取字段
 

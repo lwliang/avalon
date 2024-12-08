@@ -10,6 +10,8 @@ import com.avalon.core.field.Fields;
 import com.avalon.core.log.IAvalonServiceLog;
 import com.avalon.core.log.ServiceLog;
 import com.avalon.core.model.RecordRow;
+import com.avalon.core.permission.ElevatePermissionEnum;
+import com.avalon.core.permission.TemporaryElevate;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.JacksonUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +48,7 @@ public class ServiceLogService extends AbstractService implements IAvalonService
     protected final Field op = Fields.createString("操作类型", 20);
 
     @Override
+    @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
     public void insert(ServiceLog log) {
         if (!enableLog()) return;
         String s = JacksonUtil.object2String(log);
@@ -54,6 +57,7 @@ public class ServiceLogService extends AbstractService implements IAvalonService
     }
 
     @Override
+    @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
     public void update(ServiceLog log) {
         if (!enableLog()) return;
         String s = JacksonUtil.object2String(log);
@@ -62,6 +66,7 @@ public class ServiceLogService extends AbstractService implements IAvalonService
     }
 
     @Override
+    @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
     public void delete(ServiceLog log) {
         if (!enableLog()) return;
         String s = JacksonUtil.object2String(log);

@@ -13,6 +13,7 @@ import com.avalon.core.enums.ServiceOperateEnum;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.exception.FieldCheckException;
 import com.avalon.core.field.Field;
+import com.avalon.core.field.FieldList;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.*;
 import com.avalon.core.service.AbstractService;
@@ -287,7 +288,7 @@ public abstract class AbstractTableManageService implements ITableManage, Applic
     }
 
     @Override
-    public List<Field> getFields() {
+    public FieldList getFields() {
         ITableService firstTableService = getFirstTableService();
         return firstTableService.getFields();
     }

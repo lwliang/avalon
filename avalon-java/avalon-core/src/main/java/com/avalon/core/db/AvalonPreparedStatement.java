@@ -81,17 +81,12 @@ public class AvalonPreparedStatement implements PreparedStatementCreator {
             } else if (field instanceof TimestampField) {
                 ps.setTimestamp(index, value.getTimestamp());
             } else if (field instanceof Many2oneField || field instanceof One2oneField) {
-                try {
-                    AbstractService realService = ((RelationField) field).getRealService();
-                    Field primaryKeyField = realService.getPrimaryKeyField();
-                    if (primaryKeyField instanceof IntegerField) {
-                        ps.setInt(index, value.getInteger());
-                    } else {
-                        ps.setLong(index, value.getLong());
-                    }
-                }catch (Exception ex) {
-                    log.error(ex.getMessage(), ex);
+                AbstractService realService = ((RelationField) field).getRealService();
+                Field primaryKeyField = realService.getPrimaryKeyField();
+                if (primaryKeyField instanceof IntegerField) {
                     ps.setInt(index, value.getInteger());
+                } else {
+                    ps.setLong(index, value.getLong());
                 }
             }
             index++;

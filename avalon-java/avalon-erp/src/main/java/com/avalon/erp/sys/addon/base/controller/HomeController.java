@@ -18,6 +18,7 @@ import com.avalon.core.util.ObjectUtils;
 import com.avalon.core.redis.RedisCommon;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -27,14 +28,11 @@ import java.util.Map;
 @Slf4j
 public class HomeController {
     private final RedisCommon redisCommon;
-    private final UserService userService;
     private final Context context;
 
     public HomeController(RedisCommon redisCommon,
-                          UserService userService,
                           Context context) {
         this.redisCommon = redisCommon;
-        this.userService = userService;
         this.context = context;
     }
 
@@ -47,7 +45,9 @@ public class HomeController {
         }
         context.init(db);
         String password = param.get("password").toString();
+        UserService userService = (UserService) context.getServiceBean("base.user");
         Record login = userService.login(name, password);
+
 
         if (login.isEmpty()) {
             throw new FieldCheckException("账号或密码错误");
@@ -66,6 +66,7 @@ public class HomeController {
         String account = param.get("username").toString();
         String name = param.get("name").toString();
         String password = param.get("password").toString();
+        UserService userService = (UserService) context.getServiceBean("base.user");
         userService.register(name, account, password);
     }
 

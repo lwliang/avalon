@@ -9,6 +9,4 @@ public interface IStringFieldBuilder<R> extends IFieldBuilder<R> {
     R setMaxLength(Integer maxLength);
 
     R setMinLength(Integer minLength);
-
-    R setSize(Integer size);
 }

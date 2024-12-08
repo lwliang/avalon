@@ -19,6 +19,8 @@ public class ApplicationConfig {
     private String dateFormat = "yyyy-MM-dd";//日期格式化
     private String timeFormat = "HH:mm";//时间格式化
 
+    private Boolean multiDb = true; // 支持多数据库
+
     private DataSourceConfig dataSource;
 
     private Integer pageSize = 80;

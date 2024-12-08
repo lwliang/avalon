@@ -17,6 +17,7 @@ import FormField from "../../../../model/FormField.ts";
 import Snowflake from "../../../../model/Snowflake.ts";
 import {getActionTreeView} from "../../../../api/commonApi.ts";
 import {getCurrentInstance} from "vue";
+import Service from "../../../../model/Service.ts";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -53,9 +54,14 @@ const props = defineProps<{
 
 const view = ref<ActionView | undefined>(undefined)
 const serviceName = ref<string>(props.service as string)
-const serviceId = ref<number>(serviceStore.getServiceIdByName(serviceName.value) as number)
-const serviceFields = serviceFieldStore.getFieldByServiceId(serviceId.value)
-const primaryKeyField = serviceFieldStore.getPrimaryKeyFieldByServiceId(serviceId.value)
+const serviceFields: Field[] = []
+serviceFieldStore.getFieldByServiceNameAsync(serviceName.value).then(data => {
+    serviceFields.push(...data)
+})
+const primaryService = ref<Service>()
+serviceStore.getServiceByNameAsync(serviceName.value).then(data => {
+    primaryService.value = data;
+})
 
 if (!props.fields || props.fields.length == 0) {
     getActionTreeView(props.service).then(data => {
@@ -83,20 +89,21 @@ let parserResult: XMLParserResult | null = null;
 const parserXml = async (str: string) => {
     parserResult = await parserEx(str, props.service)
     xmlTemplate.value = getTemplate(parserResult);
-
+    const keyService = await serviceStore.getServiceByNameAsync(serviceName.value)
     template_fields.value.splice(0, template_fields.value.length)
     template_fields.value.push(...parserResult.fields.map(x => x.name))
-    if (!template_fields.value.includes(primaryKeyField.name)) {
-        template_fields.value.push(primaryKeyField.name)
+    if (!template_fields.value.includes(keyService.keyField)) {
+        template_fields.value.push(keyService.keyField)
     }
 
     template_full_fields.value.splice(0, template_full_fields.value.length)
     template_full_fields.value.push(...parserResult.fullFields.map(x => x.name))
-    if (!template_full_fields.value.includes(primaryKeyField.name)) {
-        template_full_fields.value.push(primaryKeyField.name)
+    if (!template_full_fields.value.includes(keyService.keyField)) {
+        template_full_fields.value.push(keyService.keyField)
     }
 
     services_fields.value.splice(0, services_fields.value.length)
+    const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
     for (const key of template_full_fields.value) {
         const field = serviceFields.find(f => f.name === key)
         if (field) {
@@ -131,7 +138,9 @@ const subRowSureClick = (row: any) => {
             props.record.value = []
         }
         if (!subRowId.value) {
-            row[primaryKeyField.name] = Symbol(Snowflake.getNextId())
+            if (primaryService.value) {
+                row[primaryService.value.keyField] = Symbol(Snowflake.getNextId())
+            }
         }
         props.record.value.push(row)
     }
@@ -139,17 +148,22 @@ const subRowSureClick = (row: any) => {
 
 const rowDeleteClick = (row: any) => {
     if (props.record.value) {
-        const i = props.record.value.findIndex((item: any) => item[primaryKeyField.name] == row[primaryKeyField.name])
-        if (i >= 0) {
-            props.record.value.splice(i, 1)
+        if (primaryService.value) {
+            const keyField = primaryService.value.keyField;
+            const i = props.record.value.findIndex((item: any) => item[keyField] == row[keyField])
+            if (i >= 0) {
+                props.record.value.splice(i, 1)
+            }
         }
     }
 }
 
 const rowClick = (row: any) => {
-    subRowId.value = row[primaryKeyField.name]
-    selectRow.value = row
-    subShow.value = true
+    if (primaryService.value) {
+        subRowId.value = row[primaryService.value.keyField]
+        selectRow.value = row
+        subShow.value = true
+    }
 }
 
 

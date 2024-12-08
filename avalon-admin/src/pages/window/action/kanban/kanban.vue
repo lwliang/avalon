@@ -24,9 +24,6 @@ const serviceStore = useGlobalServiceDataStore()
 
 const moduleName = ref<string>(route.params.module as string)
 const serviceName = ref<string>(route.params.service as string)
-const serviceId = ref<number>(serviceStore.getServiceIdByName(serviceName.value) as number)
-const serviceFields = serviceFieldStore.getFieldByServiceId(serviceId.value)
-const primaryKeyField = serviceFieldStore.getPrimaryKeyFieldByServiceId(serviceId.value)
 
 const view = ref<ActionView | undefined>(undefined)
 getActionKanbanView(serviceName.value).then(data => {

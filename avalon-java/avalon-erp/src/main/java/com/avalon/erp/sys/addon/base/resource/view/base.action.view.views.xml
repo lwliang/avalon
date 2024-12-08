@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_action_view_view_form" service="base.action.view">
+        <field name="name">base_action_view_view_form</field>
+        <field name="label">视图</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">base.action.view</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                            <field name="label"/>
+                            <field name="priority"/>
+                        </col>
+                        <col>
+                            <field name="serviceId"/>
+                            <field name="viewMode"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="视图">
+                            <field name="arch"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="base_action_view_view_tree" service="base.action.view">
+        <field name="name">base_action_view_view_tree</field>
+        <field name="label">视图</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.action.view</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="label"/>
+                <field name="serviceId"/>
+                <field name="viewMode"/>
+                <field name="priority"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="base_action_view_action" service="base.action.window">
+        <field name="name">base.action.view</field>
+        <field name="label">视图</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.action.view</field>
+    </record>
+</avalon>

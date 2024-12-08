@@ -19,6 +19,7 @@ import {FieldTypeEnum} from "../../../model/enum-type/FieldTypeEnum.ts";
 import FormField from "../../../model/FormField.ts";
 import {cloneDeep} from "lodash";
 import {getActionFormView, getActionTreeView} from "../../../api/commonApi.ts";
+import Service from "../../../model/Service.ts";
 
 const emit = defineEmits(['close', 'sure'])
 defineOptions({
@@ -35,9 +36,11 @@ const props = defineProps<{
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
-const serviceFields = serviceFieldStore.getFieldByServiceName(props.service)
-const primaryKeyField = serviceFieldStore.getPrimaryKeyFieldByServiceName(props.service)
 
+const primaryService = ref<Service>()
+serviceStore.getServiceByNameAsync(props.service).then(data => {
+    primaryService.value = data
+})
 const view = ref<ActionView | undefined>(undefined)
 
 const loadView = async (service: string) => {
@@ -59,10 +62,11 @@ loadView(props.service).then((dataView: any) => {
 
 const recordRow = ref<any>({})
 const recordRowWithField = ref<Record<string, FormField>>({})
-const loadDataWithLayout = () => {
+const loadDataWithLayout = async () => {
     if (!(props.service && template_fields.value.length)) {
         return;
     }
+    const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(props.service)
     if (props.rowId && !(typeof props.rowId == 'symbol')) {
         getModelDetailApi(props.rowId as number, template_fields.value.join(","),
             props.service,).then(data => {
@@ -134,6 +138,8 @@ const renderView = async (arch: string) => {
 
 const parserXml = async (str: string) => {
     parserResult = await parserEx(str, props.service)
+    const tempService = await serviceStore.getServiceByNameAsync(props.service)
+    const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(props.service)
     xmlTemplate.value = getTemplate(parserResult);
     template_fields.value.splice(0, template_fields.value.length)
     template_fields.value.push(...parserResult.fullFields.map(x => x.name))
@@ -142,18 +148,18 @@ const parserXml = async (str: string) => {
             const find = serviceFields.find(x => x.name == manyField) as Field;
             const viewData = await loadTreeView(find.relativeServiceName);
             const tempFields = serviceFieldStore.getFieldByServiceName(find.relativeServiceName)
-            const tempKeyField = serviceFieldStore.getPrimaryKeyFieldByServiceName(find.relativeServiceName)
+            const relativeService = await serviceStore.getServiceByNameAsync(find.relativeServiceName)
             const parserResult2 = await parserEx(viewData.arch, find.relativeServiceName)
             for (let tempField of parserResult2.fullFields) {
                 template_fields.value.push(`${manyField}.${tempField.name}`)
             }
-            if (!template_fields.value.includes(`${manyField}.${tempKeyField.name}`)) {
-                template_fields.value.push(`${manyField}.${tempKeyField.name}`)
+            if (!template_fields.value.includes(`${manyField}.${relativeService.keyField}`)) {
+                template_fields.value.push(`${manyField}.${relativeService.keyField}`)
             }
         }
     }
-    if (!template_fields.value.includes(primaryKeyField.name)) {
-        template_fields.value.push(primaryKeyField.name)
+    if (!template_fields.value.includes(tempService.keyField)) {
+        template_fields.value.push(tempService.keyField)
     }
 }
 
@@ -179,7 +185,9 @@ const sureClick = async () => {
         }
     }
     if (props.rowId) {
-        row[primaryKeyField.name] = props.rowId
+        if (primaryService.value) {
+            row[primaryService.value.keyField] = props.rowId
+        }
     }
     emit('sure', row)
 }

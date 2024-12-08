@@ -39,15 +39,6 @@ export const useGlobalFieldDataStore = createGlobalState(() => {
         return field.value.filter((item) => item.serviceId === serviceId);
     }
 
-    function getPrimaryKeyFieldByServiceId(serviceId: number): Field {
-        return field.value.find((item) => item.serviceId === serviceId && item.isPrimaryKey) as Field;
-    }
-
-    function getPrimaryKeyFieldByServiceName(service: string): Field {
-        const serviceId = useServiceDataStore.getServiceIdByName(service) as number
-        return field.value.find((item) => item.serviceId === serviceId && item.isPrimaryKey) as Field;
-    }
-
     async function getFieldByServiceNameAsync(service: string): Promise<Field[]> {
         if (fields.value[service]) return fields.value[service]
         return await getFieldsByServiceName(service).then(data => {
@@ -61,9 +52,7 @@ export const useGlobalFieldDataStore = createGlobalState(() => {
         setFieldStore,
         addField,
         getFieldByServiceId,
-        getPrimaryKeyFieldByServiceId,
         getFieldByServiceName,
-        getFieldByServiceNameAsync,
-        getPrimaryKeyFieldByServiceName
+        getFieldByServiceNameAsync
     }
 })

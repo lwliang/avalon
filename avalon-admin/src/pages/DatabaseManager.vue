@@ -60,8 +60,6 @@ const sureClick = () => {
         proxy?.$notify.success('成功', '创建数据库完成');
         show.value = false
         loadDB();
-    }).catch(error => {
-        proxy?.$notify.error('失败', error.msg);
     })
 }
 
@@ -69,8 +67,6 @@ const dropDBClick = (db: string) => {
     dropDB(db).then(() => {
         proxy?.$notify.success('成功', `删除${db}数据库完成`);
         loadDB();
-    }).catch(error => {
-        proxy?.$notify.error('失败', error.msg);
     })
 }
 
@@ -86,7 +82,7 @@ const selectDBClick = (db: string) => {
             <div>
                 <my-image class="mx-auto" src="/avalon.png" width="300"></my-image>
             </div>
-            <div class="pt-8 rounded">
+            <div class="mt-8 rounded max-h-[600px] overflow-y-auto">
                 <div class="p-2 bg-white" v-for="(db,index) in databases" :key="index">
                     <div class="flex justify-between">
                         <my-button type="primary" is-link @click="selectDBClick(db.dataName)">{{
@@ -110,7 +106,7 @@ const selectDBClick = (db: string) => {
                 </div>
 
             </div>
-            <div class="pt-4">
+            <div class="pt-4 pb-4">
                 <my-button icon-style="fas" type="success" icon="plus" @click="createDBClick">创建数据库</my-button>
                 <div class="inline-block w-5"></div>
                 <my-button icon-style="fas" type="danger" icon="lock" @click="developerClick">设置主密码</my-button>

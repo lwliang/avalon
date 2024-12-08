@@ -132,4 +132,9 @@ public class ClassUtils {
     public static String getModulePackagePath(AbstractModule module) {
         return module.getClass().getPackage().getName().replaceAll("\\.", "/");
     }
+
+    public static boolean isServiceOfModule(AbstractModule module, Class<?> serviceClass) {
+        return serviceClass.getName().startsWith(module.getClass().getPackageName());
+    }
 }
+

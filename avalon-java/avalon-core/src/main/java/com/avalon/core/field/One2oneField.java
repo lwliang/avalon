@@ -103,7 +103,7 @@ public class One2oneField extends RelationField {
         if (ObjectUtils.isNotNull(abstractService)) return abstractService;
         synchronized (this) {
             if (ObjectUtils.isNotNull(abstractService)) return abstractService;
-            abstractService = Context.getServiceBeanInstance(getRelativeServiceName());
+            abstractService = getService().getServiceBean(getRelativeServiceName());
             return abstractService;
         }
     }

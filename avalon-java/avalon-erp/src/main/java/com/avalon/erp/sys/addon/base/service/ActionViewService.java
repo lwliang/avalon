@@ -33,7 +33,7 @@ public class ActionViewService extends AbstractService {
     public final Field label = Fields.createString("名称");
     public final Field priority = Fields.createInteger("优先级", 16);
 
-    public final Field arch = Fields.createHtml("视图定义");
+    public final Field arch = Fields.createText("视图定义");
 
     @Override
     public Integer update(RecordRow recordRow) throws AvalonException {

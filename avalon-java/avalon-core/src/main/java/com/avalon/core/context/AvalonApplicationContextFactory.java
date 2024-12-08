@@ -5,17 +5,15 @@
 
 package com.avalon.core.context;
 
+import lombok.Getter;
 import org.springframework.boot.ApplicationContextFactory;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.web.reactive.context.AnnotationConfigReactiveWebServerApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
 public class AvalonApplicationContextFactory implements ApplicationContextFactory {
+    @Getter
     private static final AvalonApplicationContextFactory instance = new AvalonApplicationContextFactory();
-
-    public static AvalonApplicationContextFactory getInstance() {
-        return instance;
-    }
 
     @Override
     public ConfigurableApplicationContext create(WebApplicationType webApplicationType) {

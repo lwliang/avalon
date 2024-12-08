@@ -144,7 +144,7 @@ public class RecordRow extends HashMap<String, RecordColumn> implements Serializ
      * @param fieldName
      * @return
      */
-    public Object getRawValue(String fieldName) {
+    public <T> T getRawValue(String fieldName) {
         if (!containsKey(fieldName)) {
             return null;
         }
@@ -152,7 +152,7 @@ public class RecordRow extends HashMap<String, RecordColumn> implements Serializ
         if (ObjectUtils.isNull(recordColumn)) {
             return null;
         }
-        return get(fieldName).getValue();
+        return (T) (get(fieldName).getValue());
     }
 
     public Object getRawValue(Field field) {

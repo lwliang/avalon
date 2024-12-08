@@ -3,10 +3,11 @@ spring:
     host: localhost
 
 application:
+  multiDb: false
   dataSource:
-    database: resource8
-    username: odoo16
-    password: odoo16
+  database: resource8
+  username: odoo16
+  password: odoo16
 
 pulsar:
   url: pulsar://${spring.profiles.host}:6650

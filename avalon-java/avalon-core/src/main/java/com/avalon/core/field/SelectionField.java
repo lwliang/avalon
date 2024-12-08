@@ -126,7 +126,7 @@ public class SelectionField extends Field implements IFieldFormat {
     }
 
     @Override
-    protected void setName(String propertyName) {
+    public void setName(String propertyName) {
         super.setName(propertyName);
     }
 

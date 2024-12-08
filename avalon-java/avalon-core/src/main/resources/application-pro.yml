@@ -3,6 +3,7 @@ application:
   date-format: yyyy-MM-dd
   time-format: HH:mm
   page-size: 80
+  multiDb: true
   dataSource:
     host: ${spring.profiles.host}
     port: 5432

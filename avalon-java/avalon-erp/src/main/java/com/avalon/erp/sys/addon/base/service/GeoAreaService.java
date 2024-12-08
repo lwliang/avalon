@@ -32,8 +32,11 @@ public class GeoAreaService extends AbstractService {
         return Fields.createString("名称");
     }
 
-    protected final Field code = Fields.createBigIntegerField("区划代码",
-            true, false, true);
+    @Override
+    protected Field createPrimaryKeyField() {
+        return Fields.createBigIntegerField("区划代码",
+                true, false, true);
+    }
 
     @Override
     public Boolean getNeedDefaultKeyField() {

@@ -99,13 +99,13 @@ const parserXml = async (str: string) => {
         for (let manyField of parserResult.one2ManyFields) {
             const find = serviceFields.find(x => x.name == manyField) as Field;
             const viewData = await loadTreeView(find.relativeServiceName);
-            const tempKeyField = serviceFieldStore.getPrimaryKeyFieldByServiceName(find.relativeServiceName)
+            const relativeService = await serviceStore.getServiceByNameAsync(find.relativeServiceName)
             const parserResult2 = await parserEx(viewData.arch, find.relativeServiceName)
             for (let tempField of parserResult2.fullFields) {
                 template_fields.value.push(`${manyField}.${tempField.name}`)
             }
-            if (!template_fields.value.includes(`${manyField}.${tempKeyField.name}`)) {
-                template_fields.value.push(`${manyField}.${tempKeyField.name}`)
+            if (!template_fields.value.includes(`${manyField}.${relativeService.keyField}`)) {
+                template_fields.value.push(`${manyField}.${relativeService.keyField}`)
             }
         }
     }

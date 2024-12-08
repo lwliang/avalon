@@ -14,4 +14,11 @@
         <menuitem id="menu_base_group_action" name="权限组" action="base_group_action"/>
         <menuitem id="menu_base_rule_action" name="记录规则" action="base_rule_action"/>
     </menuitem>
+    <menuitem id="menu_base_service_field_parent" name="开发者工具">
+        <menuitem id="menu_base_service_action" name="模型" action="base_service_action"/>
+        <menuitem id="menu_base_field_action" name="字段" action="base_field_action"/>
+        <menuitem id="menu_base_action_window_action" name="模型窗口" action="base_action_window_action"/>
+        <menuitem id="menu_base_action_view_action" name="视图" action="base_action_view_action"/>
+        <menuitem id="menu_base_action_window_view_action" name="窗口默认视图" action="base_action_window_view_action"/>
+    </menuitem>
 </avalon>

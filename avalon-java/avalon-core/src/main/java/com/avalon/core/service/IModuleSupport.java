@@ -5,10 +5,8 @@
 
 package com.avalon.core.service;
 
-import com.avalon.core.module.AbstractModule;
+import java.util.List;
 
 public interface IModuleSupport {
-    AbstractModule getModule();
-
-    void setModule(AbstractModule module);
+    List<String> getInstalledModule();
 }

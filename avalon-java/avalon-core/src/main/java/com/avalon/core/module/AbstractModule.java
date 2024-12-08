@@ -84,8 +84,26 @@ public abstract class AbstractModule {
         return null;
     }
 
+    private final AbstractServiceList moduleServiceList = new AbstractServiceList();
+
     public AbstractServiceList getServiceList() {
-        return context.getModuleMap().getModuleServiceList(getModuleName());
+        if (ObjectUtils.isNotEmpty(moduleServiceList)) {
+            return moduleServiceList;
+        }
+
+        synchronized (this) {
+            if (ObjectUtils.isNotEmpty(moduleServiceList)) {
+                return moduleServiceList;
+            }
+            AbstractServiceList serviceList = context.getServiceList();
+
+            for (AbstractService abstractService : serviceList) {
+                if (abstractService.getClass().getName().startsWith(getClass().getPackageName())) {
+                    moduleServiceList.add(abstractService);
+                }
+            }
+        }
+        return moduleServiceList;
     }
 
 
@@ -425,18 +443,26 @@ public abstract class AbstractModule {
     }
 
     protected Integer getModelDataSourceId(String moduleName, String id) {
-        IServiceDataService serviceBean = getContext().getServiceBean(IServiceDataService.class);
+        IServiceDataService serviceBean = getServiceDataService();
         return serviceBean.refId(moduleName, id);
+    }
+
+    private IServiceDataService getServiceDataService() {
+        try {
+            return (IServiceDataService) getContext().getServiceBean("base.service.data");
+        } catch (Exception e) {
+            log.error("getServiceDataService", e);
+            return null;
+        }
+
     }
 
     protected void insertRecord(String moduleName, Integer dstServiceId,
                                 String id, String serviceName, RecordRow row) {
         IServiceDataService serviceBean = null;
-        try {
-            serviceBean = getContext().getServiceBean(IServiceDataService.class);
-        } finally {
 
-        }
+        serviceBean = getServiceDataService();
+
         if (ObjectUtils.isNull(serviceBean)) return;
 
         serviceBean.insert(moduleName, dstServiceId, id, serviceName, row);
@@ -444,38 +470,30 @@ public abstract class AbstractModule {
 
     protected Integer refId(String id) {
         IServiceDataService serviceBean = null;
-        try {
-            serviceBean = getContext().getServiceBean(IServiceDataService.class);
-            return serviceBean.refId(getModuleName(), id);
-        } finally {
 
-        }
+        serviceBean = getServiceDataService();
+        return serviceBean.refId(getModuleName(), id);
     }
 
 
     protected void upgradeRecord(Integer dstServiceId, String id, String serviceName, RecordRow row) {
         IServiceDataService serviceBean = null;
-        try {
-            serviceBean = getContext().getServiceBean(IServiceDataService.class);
-            Integer refId = serviceBean.refId(getModuleName(), id);
-            if (ObjectUtils.isNull(refId)) {
-                insertRecord(getModuleName(), dstServiceId, id, serviceName, row);
-            } else {
-                row.put(getContext().getServiceBean(serviceName).getPrimaryKeyName(), refId);
-                updateRecord(serviceName, row);
-            }
-        } finally {
 
+        serviceBean = getServiceDataService();
+        Integer refId = serviceBean.refId(getModuleName(), id);
+        if (ObjectUtils.isNull(refId)) {
+            insertRecord(getModuleName(), dstServiceId, id, serviceName, row);
+        } else {
+            row.put(getContext().getServiceBean(serviceName).getPrimaryKeyName(), refId);
+            updateRecord(serviceName, row);
         }
     }
 
     protected void updateRecord(String serviceName, RecordRow row) {
         IServiceDataService serviceBean = null;
-        try {
-            serviceBean = getContext().getServiceBean(IServiceDataService.class);
-        } finally {
 
-        }
+        serviceBean = getServiceDataService();
+
         if (ObjectUtils.isNull(serviceBean)) return;
 
         serviceBean.update(serviceName, row);

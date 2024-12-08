@@ -48,6 +48,8 @@ public class BaseModule extends AbstractModule {
     public String[] getResource() {
         return new String[]{
                 "resource/record/base.user.xml",
+                "resource/view/base.field.views.xml",
+                "resource/view/base.service.views.xml",
                 "resource/view/module.views.xml",
                 "resource/view/user.views.xml",
                 "resource/view/org.views.xml",
@@ -57,6 +59,9 @@ public class BaseModule extends AbstractModule {
                 "resource/view/base.group.views.xml",
                 "resource/view/base.rule.views.xml",
                 "resource/view/base.service.access.views.xml",
+                "resource/view/base.action.window.views.xml",
+                "resource/view/base.action.window.view.views.xml",
+                "resource/view/base.action.view.views.xml",
                 "resource/view/menus.xml"
         };
     }
@@ -99,10 +104,10 @@ public class BaseModule extends AbstractModule {
         AbstractService serviceBean = getContext().getServiceBean("base.service");
 
         for (AbstractService service : getServiceList()) {
-            if (noUpgrade.contains(service.getServiceName())) {
-                continue;
+            if (!noUpgrade.contains(service.getServiceName())) {
+                service.upgradeTable();
             }
-            service.upgradeTable();
+
             if (ObjectUtils.isNotNull(serviceBean)) {
                 FieldValue fieldValue = serviceBean.getFieldValue("id",
                         Condition.equalCondition("name", service.getServiceName()));
