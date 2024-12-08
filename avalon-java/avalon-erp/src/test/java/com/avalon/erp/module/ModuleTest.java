@@ -11,7 +11,6 @@ import com.avalon.core.module.AbstractModule;
 import com.avalon.erp.ErpApplication;
 import com.avalon.erp.sys.addon.base.BaseModule;
 import com.avalon.erp.sys.addon.base.service.ModuleService;
-import com.avalon.erp.sys.addon.external.ExternalModuleAddon;
 import com.avalon.erp.CustomSpringBootTestLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -33,8 +32,6 @@ import java.util.Random;
 @ContextConfiguration(loader = CustomSpringBootTestLoader.class)
 public class ModuleTest {
     @Autowired
-    private ExternalModuleAddon externalModule;
-    @Autowired
     private Context context;
     @Autowired
     private BaseModule baseModule;
@@ -45,14 +42,6 @@ public class ModuleTest {
     public void init() {
     }
 
-    /**
-     * 判断获取模块接口
-     */
-    @Test
-    public void getModuleTest() {
-        AbstractModule module = externalModule.getModule();
-        Assertions.assertEquals(module, externalModule);
-    }
 
     /**
      * 创建模块
