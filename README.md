@@ -8,8 +8,13 @@ demo: http://120.79.92.127/  账号 admin/123456
 
 后端erp快速开发框架,支持springcloud,自动创建数据库，自动关联表等功能
 
-> 有需要帮助的地方，可以私加我微信liwenliang3623
->
+
+
+社区群：
+
+![wechat_group](.\img\wechat_group.png)
+
+
 
 ## 安装教程
 
