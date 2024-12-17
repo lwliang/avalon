@@ -57,4 +57,19 @@ public class ExternalService extends AbstractService implements IExternalService
     public String getLabel() {
         return label;
     }
+
+    @Override
+    public Boolean getNeedDefaultField() { // 默认不需要
+        return needDefaultField;
+    }
+
+    @Setter
+    private boolean needDefaultField = true;
+    @Setter
+    private boolean needDefaultName = true;
+
+    @Override
+    public Boolean needDefaultNameField() {
+        return needDefaultName;
+    }
 }

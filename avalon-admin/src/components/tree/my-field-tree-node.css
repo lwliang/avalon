@@ -1,0 +1,16 @@
+/**
+ * @author lwlianghehe@gmail.com
+ * @date 2024/12/12 23:47
+ */
+
+.node-item {
+    @apply cursor-pointer;
+}
+
+.node-item:hover {
+    @apply bg-primary text-white;
+}
+
+.node-item:hover div {
+    @apply text-white;
+}

@@ -40,6 +40,7 @@ import MySearch from "./components/search/my-search.vue";
 import MyPagination from "./components/pagination/my-pagination.vue";
 import MyAvatar from "./components/avatar/my-avatar.vue";
 import MyDebug from "./components/debug/my-debug.vue";
+import MyXmlViewer from "./components/xml-viewer/my-xml-viewer.vue";
 
 
 window.console.log = log.info
@@ -88,6 +89,7 @@ app.component('MyDatetime', MyDatetime)
 app.component('MySearch', MySearch)
 app.component('MyPagination', MyPagination)
 app.component('MyDebug', MyDebug)
+app.component('MyXmlViewer', MyXmlViewer)
 
 // 全局变量
 app.config.globalProperties.$notify = MyNotification

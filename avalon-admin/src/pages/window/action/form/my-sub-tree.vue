@@ -18,6 +18,9 @@ import Snowflake from "../../../../model/Snowflake.ts";
 import {getActionTreeView} from "../../../../api/commonApi.ts";
 import {getCurrentInstance} from "vue";
 import Service from "../../../../model/Service.ts";
+import {FieldTypeEnum} from "../../../../model/enum-type/FieldTypeEnum.ts";
+import ServiceSearchModel from "../../../../components/model/service-search-model/service-search-model.vue";
+import {getModelAllApi} from "../../../../api/modelApi.ts";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -46,9 +49,9 @@ if (findParent('MyFormModel')) {
 
 const props = defineProps<{
     record: FormField,
-    fields?: Field[],
+    fields?: String, // 显示的字段，如果为空，则从service获取
     service: string,
-    field: string,
+    field: string,// 关系字段
     title: string
 }>()
 
@@ -63,14 +66,34 @@ serviceStore.getServiceByNameAsync(serviceName.value).then(data => {
     primaryService.value = data;
 })
 
-if (!props.fields || props.fields.length == 0) {
+let template_fields = ref<string[]>([]);
+let template_full_fields = ref<string[]>([]);
+let services_fields = ref<Field[]>([]);
+const fieldsParser = async () => {
+    if (!props.fields) return;
+    const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
+
+    for (let fieldStr of props.fields.split(",")) {
+        template_fields.value.push(fieldStr);
+        template_full_fields.value.push(fieldStr);
+        const field = serviceFields.find(f => f.name === fieldStr)
+        if (field) {
+            services_fields.value.push(field)
+        }
+    }
+}
+if (!props.fields) { // one2many/many2many 关系需要显示的字段列表 没有则获取tree视图对应的字段
     getActionTreeView(props.service).then(data => {
         if (data && data.length) {
             view.value = data[0]
             renderView();
         }
     })
+} else {
+    fieldsParser();
 }
+
+
 const xmlTemplate = ref<any>(null)
 
 const renderView = () => {
@@ -79,9 +102,6 @@ const renderView = () => {
     }
 }
 
-let template_fields = ref<string[]>([]);
-let template_full_fields = ref<string[]>([]);
-let services_fields = ref<Field[]>([]);
 
 let parserResult: XMLParserResult | null = null;
 
@@ -113,18 +133,46 @@ const parserXml = async (str: string) => {
 }
 
 const fieldComputed = computed(() => {
-    if (props.fields && props.fields.length) return props.fields
     return services_fields.value
 })
 
 const subShow = ref(false)
 const subRowId = ref(undefined)
 const selectRow = ref<any>()
+
+const many2ManyShow = ref(false)
+
 const addRow = () => {
-    subRowId.value = undefined
-    selectRow.value = undefined
-    subShow.value = true
+    if (props.record.Field?.type && props.record.Field?.type == FieldTypeEnum.One2manyField) {
+        subRowId.value = undefined
+        selectRow.value = undefined
+        subShow.value = true
+    } else {
+        many2ManyShow.value = true
+    }
 }
+
+const many2ManyClose = () => {
+    many2ManyShow.value = false
+}
+
+const many2ManySure = (ids: any[]) => {
+    console.log('many2ManySure', ids)
+    getModelAllApi(props.fields as string, `(in,${primaryService.value?.keyField},${ids.join(',')})`, props.service).then(data => {
+        if (!props.record.value) {
+            props.record.value = []
+        }
+        for (let datum of data) {
+            const item: any = {
+                id: Symbol(Snowflake.getNextId()),
+            }
+            item[`${props.record.Field?.relativeForeignKeyName}`] = {...datum}
+            props.record.value.push(item)
+        }
+        many2ManyShow.value = false
+    })
+}
+
 const subRowCloseClick = () => {
     subShow.value = false
 }
@@ -147,12 +195,24 @@ const subRowSureClick = (row: any) => {
 }
 
 const rowDeleteClick = (row: any) => {
-    if (props.record.value) {
+    if (props.record.Field?.type && props.record.Field?.type == FieldTypeEnum.Many2manyField) {
+        const key = props.record.Field.relativeForeignKeyName;
         if (primaryService.value) {
-            const keyField = primaryService.value.keyField;
-            const i = props.record.value.findIndex((item: any) => item[keyField] == row[keyField])
-            if (i >= 0) {
-                props.record.value.splice(i, 1)
+            const keyName = primaryService.value.keyField;
+            const index = props.record.value.findIndex((x: any) => x[key][keyName] == row[keyName])
+            if (index >= 0) {
+                props.record.value.splice(index, 1)
+            }
+        }
+
+    } else {
+        if (props.record.value) {
+            if (primaryService.value) {
+                const keyField = primaryService.value.keyField;
+                const i = props.record.value.findIndex((item: any) => item[keyField] == row[keyField])
+                if (i >= 0) {
+                    props.record.value.splice(i, 1)
+                }
             }
         }
     }
@@ -166,6 +226,14 @@ const rowClick = (row: any) => {
     }
 }
 
+const getRecordComputed = computed(() => {
+    if (props.record.Field?.type && props.record.Field?.type == FieldTypeEnum.Many2manyField) {
+        const key = props.record.Field.relativeForeignKeyName;
+
+        return props.record.value.map((x: any) => x[key])
+    }
+    return props.record.value as any[];
+})
 
 </script>
 
@@ -175,7 +243,9 @@ const rowClick = (row: any) => {
             <MyButton type="primary" rounded @click="addRow">新增</MyButton>
         </div>
         <div class="py-2">
-            <MyTable :height="tableHeight" :record="record.value" :fields="fieldComputed" :service-name="serviceName"
+            <MyTable :height="tableHeight" :record="getRecordComputed" :fields="fieldComputed"
+                     :service-name="serviceName"
+                     :showDeleteBtn="true"
                      @rowDeleteClick="rowDeleteClick"
                      @rowClick="rowClick">
 
@@ -188,6 +258,8 @@ const rowClick = (row: any) => {
                      :old-record-row="selectRow"
                      @close="subRowCloseClick"
                      @sure="subRowSureClick"></MyFormModel>
+        <ServiceSearchModel :title="title" :show="many2ManyShow" :service="service" @close="many2ManyClose"
+                            @sure="many2ManySure"/>
     </div>
 
 </template>

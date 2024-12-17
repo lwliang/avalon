@@ -6,7 +6,7 @@
 import {getModelAllApi} from "./modelApi.ts";
 import _ from 'lodash'
 import {arrayToTree} from "../util/treeUtils.ts";
-import {postErpHttp} from "./http.ts";
+import {getErpHttp, postDownloadFileHttp, postErpHttp, postUploadFileHttp} from "./http.ts";
 
 
 export async function getModuleMenu(module: string) {
@@ -69,4 +69,48 @@ export function getActionSearchView(serviceName: string) {
     return getModelAllApi("id,name,viewMode,label,priority,arch",
         `(&,(=,serviceId.name,${serviceName}),(=,viewMode,search))`,
         'base.action.view')
+}
+
+export async function exportExcel(serviceName: string, fields: string, rpnCondition: string, order: string) {
+    return postDownloadFileHttp(`/service/export/${serviceName}/excel`, {
+        order,
+        field: fields,
+        condition: rpnCondition
+    }).then((response) => {
+        // 创建一个 URL 对象
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+
+        // 创建一个临时的下载链接
+        const link = document.createElement('a');
+        link.href = url;
+        // 获取 Content-Disposition 响应头
+        const contentDisposition = response.headers.get('Content-Disposition');
+
+        // 提取文件名
+        let fileName = 'default-filename.xlsx';
+        if (contentDisposition && contentDisposition.includes('filename=')) {
+            const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
+            if (fileNameMatch.length > 1) {
+                fileName = decodeURIComponent(fileNameMatch[1]);
+            }
+        }
+        // 文件名设置为导出的文件名
+        link.setAttribute('download', fileName);
+
+        // 触发下载
+        document.body.appendChild(link);
+        link.click();
+
+        // 清理 URL 对象
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    })
+}
+
+export function readExcelContent(serviceName: string, file: File) {
+    return postUploadFileHttp(`/service/read/${serviceName}/excel`, file)
+}
+
+export function importExcel(serviceName: string, param: any) {
+    return postErpHttp(`/service/import/${serviceName}/excel`, param)
 }

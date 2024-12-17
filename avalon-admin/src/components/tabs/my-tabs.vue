@@ -40,15 +40,15 @@ onMounted(() => {
 </script>
 
 <template>
-    <div>
-        <div class="flex overflow-x-auto bg-gray-200 pt-1 pl-1 pr-1 mb-2">
+    <div class="w-full">
+        <div class="flex w-full overflow-x-auto bg-gray-200 pt-1 pl-1 pr-1 mb-2">
             <div v-for="(panel,index) in panels" :key="index"
                  :class="['tab-panel-default' , 'rounded-t-lg' ,{'tab-panel-active':panel.active}]"
                  @click="tabClickHandler(panel)">
                 {{ panel.label }}
             </div>
         </div>
-        <div>
+        <div class="w-full">
             <slot name="default"></slot>
         </div>
     </div>

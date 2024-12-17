@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 @Slf4j
 @Service
 public class GroupService extends AbstractTreeService {
-    private final String[] noNeedPermissionService = new String[]{
+    private final String[] noNeedPermissionService = new String[]{ // 读取数据 不需要权限
             "base.action.view",
             "base.action.window",
             "base.action.window.view",

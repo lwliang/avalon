@@ -5,7 +5,7 @@ export default {
         "./src/**/*.{vue,js,ts,jsx,tsx}",
     ],
     presets: [],
-    darkMode: 'media', // or 'class'
+    darkMode: 'class', // or 'class'
     theme: {
         accentColor: ({theme}) => ({
             ...theme('colors'),
@@ -85,7 +85,7 @@ export default {
         },
         borderColor: ({theme}) => ({
             ...theme('colors'),
-            DEFAULT: theme('colors.gray.200', 'currentColor'),
+            DEFAULT: theme('colors.border', 'currentColor'),
         }),
         borderOpacity: ({theme}) => theme('opacity'),
         borderRadius: {
@@ -162,6 +162,29 @@ export default {
             fuchsia: colors.fuchsia,
             pink: colors.pink,
             rose: colors.rose,
+            background: 'var(--color-background)', // 主背景
+            border: 'var(--color-border)', // 边框
+            text: 'var(--color-text)', // 主文字
+            muted: 'var(--color-muted)', // 子要文字
+            primary: 'var(--color-primary)',       // 主色
+            'primary-hover': 'var(--color-primary-hover)', // 主色悬停
+            secondary: 'var(--color-secondary)',   // 辅助色
+            'secondary-hover': 'var(--color-secondary-hover)', // 辅助色悬停
+            success: 'var(--color-success)',       // 成功
+            'success-hover': 'var(--color-success-hover)', // 成功悬停
+            warning: 'var(--color-warning)',       // 警告
+            'warning-hover': 'var(--color-warning-hover)', // 警告悬停
+            danger: 'var(--color-danger)',         // 错误
+            'danger-hover': 'var(--color-danger-hover)', // 错误悬停
+            info: 'var(--color-info)',             // 信息色
+            'info-hover': 'var(--color-info-hover)', // 信息色悬停
+            'menu-hover': 'var(--color-menu-hover)', // 信息色悬停
+            pagination: 'var(--color-pagination)', // 分页背景色
+            'pagination-hover': 'var(--color-pagination-hover)', // 分页背景色
+            'select-hover': 'var(--color-select-hover)',//下拉框悬停
+            'table-header': 'var(--color-table-header)',//表头颜色
+            'table-row-hover': 'var(--color-table-header)',//表头颜色
+            'table-striped': 'var(--color-table-striped)', // 表格斑马纹
         }),
         columns: {
             auto: 'auto',
@@ -260,6 +283,9 @@ export default {
         }),
         flex: {
             1: '1 1 0%',
+            2: '2 1 0%',
+            3: '3 1 0%',
+            4: '4 1 0%',
             auto: '1 1 auto',
             initial: '0 1 auto',
             none: 'none',

@@ -3,17 +3,36 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import MyPopover from "../popover/my-popover.vue";
 import MyInput from "../input/my-input.vue";
-import {getDaysInMonth, getYear, getMonth, getDay, getFirstDayOfMonth} from "../../util/dateUtils.ts";
+import {
+    getDaysInMonth,
+    getYear,
+    getMonth,
+    getDay,
+    getFirstDayOfMonth,
+    getBeforeMonth,
+    getNextMonth
+} from "../../util/dateUtils.ts";
 import FormField from "../../model/FormField.ts";
 import {ref} from "vue";
+import {borderStyleType} from "../icon/my-icon.ts";
+import MyInnerPopover from "../popover/my-inner-popover.vue";
+
+interface monthDay {
+    year: number
+    month: number,
+    day: number
+}
 
 const props = defineProps({
     htmlId: String,
     htmlName: String,
     required: Boolean,
-    readonly: Boolean
+    readonly: Boolean,
+    border: {
+        type: borderStyleType,
+        default: 'round'
+    }
 })
 
 const formField = defineModel({
@@ -36,7 +55,7 @@ const month = ref()
 const day = ref()
 const editMode = ref<"year" | "month" | "day">('day') // 编辑模式
 
-const days = ref<Array<Number>[]>([])
+const days = ref<Array<monthDay>[]>([])
 const weeks = ref<string[]>(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
 
 const reComputeDay = () => {
@@ -44,19 +63,42 @@ const reComputeDay = () => {
     const daySum = getDaysInMonth(dateStr)
     let dayCount = 0;
     for (let i = 0; i < Math.ceil(daySum / 7); i++) { // 获取最大周数
-        const weekDays = [];
+        const weekDays: monthDay[] = [];
         let maxWeeks = 7; // 生成最大周数
         let week = 0; // 开始的周
         if (i == 0) { // 第一周
             week = getFirstDayOfMonth(dateStr)
+            const beforeDateStr = getBeforeMonth(dateStr);
+            const beforeMonth = getMonth(beforeDateStr);
+            const beforeYear = getYear(beforeDateStr);
+            let beforeDaySum = getDaysInMonth(beforeDateStr);
+            for (let j = 0; j < week; j++) {
+                weekDays[week - j - 1] = {year: beforeYear, month: beforeMonth, day: beforeDaySum};
+                beforeDaySum--;
+            }
         }
+        let lastI = 0;
         for (let j = week; j < maxWeeks; j++) {
             dayCount++;
+            lastI = j;
             if (dayCount > daySum) {
                 break;
             }
-            weekDays[j] = dayCount;
+            weekDays[j] = {year: year.value, month: month.value, day: dayCount};
         }
+
+        if (i == Math.ceil(daySum / 7) - 1) { // 最后一周
+            const nextDateStr = getNextMonth(dateStr);
+            const nextMonth = getMonth(nextDateStr);
+            const nextYear = getYear(nextDateStr);
+            let nextDaySum = 1
+
+            for (let j = lastI; j < maxWeeks; j++) {
+                weekDays[j] = {year: nextYear, month: nextMonth, day: nextDaySum};
+                nextDaySum++;
+            }
+        }
+
         days.value.push(weekDays);
     }
 }
@@ -78,9 +120,13 @@ const monthSub = () => {
     reComputeDay();
 }
 
-const setDate = (dayTemp: Number) => {
+const setDate = (yearTemp: number, monthTemp: number, dayTemp: Number) => {
     day.value = dayTemp
+    month.value = monthTemp
+    year.value = yearTemp
     formField.value.value = `${year.value}-${month.value}-${day.value}`
+    days.value.splice(0, days.value.length)
+    reComputeDay();
 }
 
 const monthAdd = () => {
@@ -112,15 +158,15 @@ const getCurrentDateStr = (day: any) => {
 </script>
 
 <template>
-    <MyPopover placement="bottom" trigger="click" width="332px">
+    <MyInnerPopover placement="bottom" trigger="click" width="332px">
         <template #default>
-            <MyInput v-model="formField" suffix-icon-style="far" suffix-icon="calendar"></MyInput>
+            <MyInput v-model="formField" suffix-icon-style="far" suffix-icon="calendar" :border="border"></MyInput>
         </template>
 
         <template #option>
             <div class="w-full rounded">
                 <div class="flex w-full pt-2 pb-4 px-2">
-                    <div class="px-2 cursor-pointer date-day" @click.stop="addYear"
+                    <div class="px-2 cursor-pointer date-day" @click.stop="subYear"
                          @mouseenter="arrowMouseEnter(activeLeftLeftColor)"
                          @mouseleave="arrowMouseLeave(activeLeftLeftColor)">
                         <MyIcon type="fas" icon="angles-left" :color="activeLeftLeftColor.color"></MyIcon>
@@ -139,7 +185,7 @@ const getCurrentDateStr = (day: any) => {
                          @mouseleave="arrowMouseLeave(activeRightColor)" @click.stop="monthAdd">
                         <MyIcon type="fas" icon="chevron-right" :color="activeRightColor.color"></MyIcon>
                     </div>
-                    <div class="px-2 cursor-pointer" @click.stop="subYear"
+                    <div class="px-2 cursor-pointer" @click.stop="addYear"
                          @mouseenter="arrowMouseEnter(activeRightRightColor)"
                          @mouseleave="arrowMouseLeave(activeRightRightColor)">
                         <MyIcon type="fas" icon="angles-right" :color="activeRightRightColor.color"></MyIcon>
@@ -154,13 +200,14 @@ const getCurrentDateStr = (day: any) => {
                     </tr>
                     <template v-for="(weekday,index) in days" :key="index">
                         <tr>
-                            <th v-for="(day,dayIndex) in weekday" :key="dayIndex">
+                            <th v-for="(dayx,dayIndex) in weekday" :key="dayIndex">
                                 <div class="py-1 cursor-pointer flex justify-center items-center">
                                     <div
-                                        @click="setDate(day)"
+                                        @click="setDate(dayx.year, dayx?.month, dayx?.day)"
                                         :class="['date-day' ,'w-[24px]', 'h-[24px]', 'text-xs', 'flex', 'justify-center' ,'items-center',
-                                        {'date-day-active': getCurrentDateStr(day) == formField.value}]">
-                                        {{ day }}
+                                        {'date-day-active': dayx.month == month && getCurrentDateStr(dayx?.day) == formField.value,
+                                        'date-day-grey': dayx.month != month}]">
+                                        {{ dayx?.day }}
                                     </div>
                                 </div>
                             </th>
@@ -170,17 +217,21 @@ const getCurrentDateStr = (day: any) => {
                 </table>
             </div>
         </template>
-    </MyPopover>
+    </MyInnerPopover>
 </template>
 
 <style scoped>
 .date-day:hover {
-    @apply text-blue-500;
+    @apply text-primary;
 }
 
 .date-day-active {
-    @apply bg-blue-500;
+    @apply bg-primary;
     color: white !important;
     border-radius: 50%;
+}
+
+.date-day-grey {
+    @apply text-muted;
 }
 </style>

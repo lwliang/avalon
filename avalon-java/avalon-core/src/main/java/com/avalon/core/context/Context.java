@@ -151,7 +151,6 @@ public class Context {
             if (!database.equals(getDefaultDatabase())) {
                 if (!ormMapperMap.containsKey(database)) {
                     synchronized (Context.class) {
-                        log.error("context hashcode {}", hashCode());
                         if (!ormMapperMap.containsKey(database)) {
                             ORMMapper ormMapper = initORM(database);
                             ormMapperMap.put(database, ormMapper);

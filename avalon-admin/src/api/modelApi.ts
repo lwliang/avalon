@@ -15,8 +15,12 @@ export function getModelSelectionApi(serviceName: string, fields: string): Promi
 }
 
 
-export function getServiceFieldApi(serviceName: string): Promise<any> {
-    return postErpHttp(`/service/get/${serviceName}/fields`, {serviceName})
+export function getServiceFieldApi(serviceName: string, field?: string): Promise<any> {
+    const param: any = {serviceName}
+    if (field) {
+        param['field'] = field
+    }
+    return postErpHttp(`/service/get/${serviceName}/fields`, param)
 }
 
 export function addModelApi(value: Object, serviceName: string): Promise<any> {
@@ -60,6 +64,10 @@ export function getModelPageApi(fields: string,
 
 export function deleteModelApi(id: number, serviceName: string) {
     return postErpHttp(`/service/${serviceName}/delete`, {serviceName, id})
+}
+
+export function deleteMultiModelApi(ids: any[], serviceName: string) {
+    return postErpHttp(`/service/${serviceName}/delete`, {serviceName, ids})
 }
 
 export function getModelAllApi(fields: string,

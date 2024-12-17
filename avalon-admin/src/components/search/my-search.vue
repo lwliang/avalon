@@ -111,7 +111,7 @@ const searchChange = (field: Field, value: String) => {
         <div ref="reference">
             <div class="flex border items-center gap-2 px-2 py-1 rounded-xl overflow-hidden">
                 <MyIcon type="fas" icon="search" size="sm"></MyIcon>
-                <input placeholder="搜索..." class="text-sm" type="text" v-model="searchValue">
+                <input placeholder="搜索..." class="text-sm bg-background" type="text" v-model="searchValue">
                 <MyIcon type="fas" icon="caret-down" size="sm"></MyIcon>
             </div>
         </div>

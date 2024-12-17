@@ -20,7 +20,7 @@ const menuClickHandler = (menu: MenuModel) => {
 </script>
 
 <template>
-    <div class="flex px-1">
+    <div class="flex overflow-x-auto px-1 w-full">
         <myMenuItem v-for="menu in menuStore" :key="menu.id" :menu="menu"
                     @menuClick="menuClickHandler"/>
     </div>

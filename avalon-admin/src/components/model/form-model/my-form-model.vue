@@ -196,7 +196,7 @@ const sureClick = async () => {
 
 <template>
     <MyOverlay v-if="props.show">
-        <div class="absolute-center w-4/5 h-3/4 bg-white flex flex-col">
+        <div class="absolute-center w-4/5 h-3/4 bg-background flex flex-col">
             <div class="model-head">
                 <div class="dialog-title flex-1">
                     {{ title }}

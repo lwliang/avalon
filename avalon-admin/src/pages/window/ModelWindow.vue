@@ -4,7 +4,7 @@
  * @date 2024/11/22
  */
 import {useRoute} from "vue-router";
-import {ref, watch, provide} from "vue";
+import {ref, watch, provide, getCurrentInstance, ComponentInternalInstance} from "vue";
 import {goModelForm, goModelKanban, goModelTree} from "../../util/routerUtils.ts";
 
 import {onMounted} from "@vue/runtime-dom";
@@ -17,6 +17,7 @@ const viewMode = ref<string>()
 const moduleName = ref<string | undefined>(route.params.module as string)
 const serviceName = ref<string | undefined>(route.params.service as string)
 const activeViewMode = ref<string>('');
+const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 
 if (route.fullPath.endsWith('/window')) {
     getModelAllApi("id,name,viewMode,label,serviceId",
@@ -69,6 +70,8 @@ onMounted(() => {
 const rowClickHandler = (id: number | undefined) => {
     goServiceForm(id)
 }
+
+
 provide('rowClick', rowClickHandler)
 
 </script>

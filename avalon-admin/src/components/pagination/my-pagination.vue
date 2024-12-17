@@ -33,10 +33,12 @@ const pageChangeClick = (dir: string) => {
         </div>
         <div style="color: #374151">/</div>
         <div style="color: #374151">{{ total }}</div>
-        <div @click="pageChangeClick('left')" :class="['bgc px-3 py-0.5 rounded',{'cursor-pointer':begin > 1}]">
+        <div @click="pageChangeClick('left')"
+             :class="['bg-pagination px-3 py-0.5 rounded',{'cursor-pointer':begin > 1,'hover:bg-pagination-hover':begin > 1}]">
             <MyIcon type="fas" icon="angle-left" color="#AAA"></MyIcon>
         </div>
-        <div @click="pageChangeClick('right')" :class="['bgc px-3 py-0.5 rounded',{'cursor-pointer':end < total}]">
+        <div @click="pageChangeClick('right')"
+             :class="['bg-pagination px-3 py-0.5 rounded',{'cursor-pointer':end < total,'hover:bg-pagination-hover':end < total}]">
             <MyIcon type="fas" icon="angle-right" color="#AAA"></MyIcon>
         </div>
     </div>

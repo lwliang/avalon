@@ -100,6 +100,29 @@ export function getDaysInMonth(dateString: string) {
     return dayjs().date();
 }
 
+/**
+ * 获取上一个月，无参数，则返回当前月的上一个月
+ * @param dateString
+ */
+export function getBeforeMonth(dateString: string) {
+    if (dateString) {
+        return dayjs(dateString).subtract(1, 'month').format(DATE_FORMAT);
+    }
+    return dayjs().subtract(1, 'month').format(DATE_FORMAT);
+}
+
+/**
+ * 获取下一个月，无参数，则返回当前月的下一个月
+ * @param dateString
+ */
+export function getNextMonth(dateString: string) {
+    if (dateString) {
+        return dayjs(dateString).add(1, 'month').format(DATE_FORMAT);
+    }
+    return dayjs().add(1, 'month').format(DATE_FORMAT);
+}
+
+
 const DATE_FORMAT = 'YYYY-MM-DD';
 const TIME_FORMAT = 'HH:mm';
 const DATETIME_FORMAT = 'YYYY-MM-DD HH:mm';

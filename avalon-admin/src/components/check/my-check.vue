@@ -13,6 +13,7 @@ const props = defineProps({
     readonly: Boolean
 })
 
+const emit = defineEmits(['change'])
 
 const formField = defineModel({
     type: FormField,
@@ -20,6 +21,7 @@ const formField = defineModel({
 })
 
 watch(() => formField.value?.value, () => {
+    emit('change', formField.value?.value)
     setValidate(true)
 })
 
@@ -49,7 +51,7 @@ defineExpose({validate})
 <template>
     <div class="inline-flex relative">
         <input
-            :class="['form-input-control', 'w-5', {'form-input-control-error': !formField.isValidate}]"
+            :class="[' cursor-pointer','form-input-control', 'w-5', {'form-input-control-error': !formField.isValidate}]"
             v-if="formField"
             type="checkbox"
             v-model="formField.value" :id="htmlId" :disabled="readonly"

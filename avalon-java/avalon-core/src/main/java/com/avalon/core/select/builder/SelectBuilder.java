@@ -89,7 +89,7 @@ public class SelectBuilder {
         List<String> selects = new ArrayList<>();
         List<String> tables = new ArrayList<>();
         queryNodeTables(queryRoot, tables);
-        String masterField = queryRoot.getSelectField(aliasSupport);
+        String masterField = queryRoot.getSelectField(aliasSupport, true);
         if (StringUtils.isEmpty(masterField)) {
             masterField = queryRoot.getAlias(aliasSupport) + FieldUtils.getJoinDivision()
                     + queryRoot.getService().getPrimaryKeyName();
@@ -205,10 +205,10 @@ public class SelectBuilder {
      * @param node 需要查询的根节点
      * @return
      */
-    private StringBuilder getCompleteSql(QueryNode node) {
+    private StringBuilder getCompleteSql(QueryNode node, boolean needAlias) {
         List<String> selects = new ArrayList<>();
         List<String> tables = new ArrayList<>();
-        queryNode(node, selects, tables);
+        queryNode(node, selects, tables, needAlias);
 
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
@@ -279,12 +279,12 @@ public class SelectBuilder {
         }
     }
 
-    private void queryNode(QueryNode node, List<String> selects, List<String> tables) {
-        selects.add(node.getSelectField(aliasSupport));
+    private void queryNode(QueryNode node, List<String> selects, List<String> tables, boolean needAlias) {
+        selects.add(node.getSelectField(aliasSupport, needAlias));
         tables.add(node.getTable(aliasSupport));
 
         for (QueryNode queryNode : node.getQueryNodeList()) {
-            queryNode(queryNode, selects, tables);
+            queryNode(queryNode, selects, tables, needAlias);
         }
     }
 
@@ -293,13 +293,17 @@ public class SelectBuilder {
      *
      * @return
      */
-    protected QueryStatement getAllSql() {
+    protected QueryStatement getAllSql(boolean needAlias) {
         fieldValueStatement.clear();
-        StringBuilder completeSql = getCompleteSql(queryRoot);
+        StringBuilder completeSql = getCompleteSql(queryRoot, needAlias);
         QueryStatement queryStatement = new QueryStatement();
         queryStatement.setSql(completeSql);
         queryStatement.setValueStatement((FieldValueStatement) fieldValueStatement.clone());
         return queryStatement;
+    }
+
+    protected QueryStatement getAllSql() {
+        return getAllSql(true);
     }
 
     /**
@@ -307,6 +311,10 @@ public class SelectBuilder {
      */
     public QueryStatement getSql() {
         return getAllSql();
+    }
+
+    public QueryStatement getSql(boolean needAlias) {
+        return getAllSql(needAlias);
     }
 
     public void completeTable(Condition condition) {

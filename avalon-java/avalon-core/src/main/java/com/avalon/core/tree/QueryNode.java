@@ -88,7 +88,7 @@ public class QueryNode implements IAliasRequire {
     }
 
 
-    public String getSelectField(DefaultAliasSupport defaultAliasSupport) {
+    public String getSelectField(DefaultAliasSupport defaultAliasSupport, boolean needAlias) {
         StringBuilder selectFields = new StringBuilder();
         for (Field field : fields) {
             if (!selectFields.isEmpty()) {
@@ -99,20 +99,22 @@ public class QueryNode implements IAliasRequire {
                     .append(FieldUtils.getJoinDivision())
                     .append(field.getFieldName());
 
-            if (service.getContext().isMysql()) {
-                selectFields.append(" AS ")
-                        .append("'")
-                        .append(alias)
-                        .append(FieldUtils.getJoinDivision())
-                        .append(field.getFieldName())
-                        .append("'");
-            } else {
-                selectFields.append(" AS ")
-                        .append("\"")
-                        .append(alias)
-                        .append(FieldUtils.getJoinDivision())
-                        .append(field.getFieldName())
-                        .append("\"");
+            if (needAlias) {
+                if (service.getContext().isMysql()) {
+                    selectFields.append(" AS ")
+                            .append("'")
+                            .append(alias)
+                            .append(FieldUtils.getJoinDivision())
+                            .append(field.getFieldName())
+                            .append("'");
+                } else {
+                    selectFields.append(" AS ")
+                            .append("\"")
+                            .append(alias)
+                            .append(FieldUtils.getJoinDivision())
+                            .append(field.getFieldName())
+                            .append("\"");
+                }
             }
         }
         return selectFields.toString();

@@ -73,7 +73,7 @@ defineExpose({validate})
 </script>
 
 <template>
-    <div class="w-[94px] h-[94px] bgc flex justify-center items-center rounded cursor-pointer overflow-hidden"
+    <div class="w-[94px] h-[94px] bgc flex justify-center items-center rounded cursor-pointer overflow-hidden border"
          @click="selectFileClick">
         <img v-if="!formField.value" src="/upload.png" alt="" width="30" height="30">
         <MyImage v-if="formField.value" :src="getImageUrl" alt="上传图片" width="94" height="94"/>

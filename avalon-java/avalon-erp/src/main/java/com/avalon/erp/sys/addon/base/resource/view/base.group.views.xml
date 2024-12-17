@@ -19,13 +19,34 @@
                     </row>
                     <notebook>
                         <page label="用户">
-                            <field name="userIds"/>
+                            <field name="userIds">
+                                <tree>
+                                    <field name="account"/>
+                                    <field name="name"/>
+                                    <field name="avatar"/>
+                                </tree>
+                            </field>
                         </page>
                         <page label="规则">
-                            <field name="ruleIds"/>
+                            <field name="ruleIds">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="serviceId"/>
+                                    <field name="domainForce"/>
+                                    <field name="permRead"/>
+                                    <field name="permWrite"/>
+                                    <field name="permCreate"/>
+                                    <field name="permUnlink"/>
+                                </tree>
+                            </field>
                         </page>
                         <page label="菜单">
-                            <field name="menuIds"/>
+                            <field name="menuIds">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="label"/>
+                                </tree>
+                            </field>
                         </page>
                         <page label="模型">
                             <field name="serviceAccess"/>

@@ -83,19 +83,19 @@ const selectDBClick = (db: string) => {
                 <my-image class="mx-auto" src="/avalon.png" width="300"></my-image>
             </div>
             <div class="mt-8 rounded max-h-[600px] overflow-y-auto">
-                <div class="p-2 bg-white" v-for="(db,index) in databases" :key="index">
+                <div class="p-2 bg-background" v-for="(db,index) in databases" :key="index">
                     <div class="flex justify-between">
                         <my-button type="primary" is-link @click="selectDBClick(db.dataName)">{{
                                 db.dataName
                             }}
                         </my-button>
-                        <div >
+                        <div>
                             <my-btn-group>
-                                <my-button icon="floppy-disk" @click="developerClick">备份</my-button>
-                                <my-button type="info" icon="clone" @click="developerClick">复制</my-button>
-                                <my-button type="warning" icon="window-restore" @click="developerClick">恢复</my-button>
+                                <my-button icon="floppy-disk" @click="developerClick" icon-color="#FFF">备份</my-button>
+                                <my-button type="info" icon="clone" @click="developerClick" icon-color="#FFF">复制</my-button>
+                                <my-button type="warning" icon="window-restore" @click="developerClick" icon-color="#FFF">恢复</my-button>
                                 <MyPopoverConfirm @click="dropDBClick(db.dataName)" content="确认删除?">
-                                    <my-button type="danger" icon="trash-can">删除
+                                    <my-button type="danger" icon="trash-can" icon-color="#FFF">删除
                                     </my-button>
                                 </MyPopoverConfirm>
                             </my-btn-group>

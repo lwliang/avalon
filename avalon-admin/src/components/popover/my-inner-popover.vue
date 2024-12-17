@@ -122,7 +122,7 @@ defineExpose({
             <slot></slot>
         </div>
         <div v-if="show"
-             :class="{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
+             :class="['max-h-[300px]','overflow-auto',{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}]"
              ref="floating"
              :style="[dynamicStyles,floatingStyles]"
              @mouseenter="showMousePopper"
@@ -147,10 +147,10 @@ defineExpose({
             <div class="flex justify-end">
                 <slot name="footer"></slot>
             </div>
-            <div v-if="arrowShow" :class="{'arrow':true,'border-t':!placement.startsWith('top'),
+            <div v-if="arrowShow" :class="['bg-background',{'arrow':true,'border-t':!placement.startsWith('top'),
             'border-l':!placement.startsWith('top'),
             'border-b':placement.startsWith('top'),
-            'border-r':placement.startsWith('top')}"
+            'border-r':placement.startsWith('top')}]"
                  ref="floatingArrow"
                  :style="{ position: 'absolute',
                 left:  middlewareData.arrow?.x != null ? `${middlewareData.arrow.x}px` : '',

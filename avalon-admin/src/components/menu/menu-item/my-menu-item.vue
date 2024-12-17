@@ -28,7 +28,7 @@ const menuClickHandler = (menu: MenuModel) => {
 
 <template>
     <template v-if="!menu.children || !menu.children.length">
-        <div class="cursor-pointer my-menu mx-1"
+        <div class="cursor-pointer my-menu mx-1 truncate"
              @click="menuClickHandler(menu)">
             {{ menu.name }}
         </div>
@@ -36,7 +36,7 @@ const menuClickHandler = (menu: MenuModel) => {
     <template v-else>
         <MyPopover ref="popper" placement="bottom" :trigger="trigger" :arrow-show="false">
             <template #default>
-                <div class="cursor-pointer my-menu mx-1">
+                <div class="cursor-pointer my-menu mx-1 truncate">
                     {{ menu.name }}
                 </div>
             </template>

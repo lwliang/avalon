@@ -21,7 +21,7 @@
                     </row>
                     <notebook>
                         <page label="视图">
-                            <field name="arch"/>
+                            <field name="arch" widget="xml"/>
                         </page>
                     </notebook>
                 </sheet>

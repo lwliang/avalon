@@ -62,6 +62,7 @@ public class BaseModule extends AbstractModule {
                 "resource/view/base.action.window.views.xml",
                 "resource/view/base.action.window.view.views.xml",
                 "resource/view/base.action.view.views.xml",
+                "resource/view/base.menus.views.xml",
                 "resource/view/menus.xml"
         };
     }

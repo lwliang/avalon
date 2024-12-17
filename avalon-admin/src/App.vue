@@ -10,6 +10,7 @@ import {goLogin} from "./util/routerUtils.ts";
 
 
 if (isLogin()) {
+    document.body.setAttribute('login', '')
     mittBus.emit("loadMenu")
     mittBus.emit("loadModule")
     mittBus.emit("loadService")
@@ -17,6 +18,7 @@ if (isLogin()) {
     mittBus.emit('loadUserInfo')
     console.log("App vue")
 } else {
+    document.body.removeAttribute('login')
     goLogin()
 }
 

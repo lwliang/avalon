@@ -45,6 +45,16 @@ public class DynamicJdbcTemplate {
         return dataReaderHandler.getRecord();
     }
 
+    public Record select(AvalonPreparedStatement psc) {
+        if (context.getApplicationConfig().getDebug()) {
+            log.debug("db {} select default sql -> {}", context.getBaseName(), psc.toString());
+        }
+        DataReaderRowDefaultHandler dataReaderHandler = new DataReaderRowDefaultHandler();
+        jdbcTemplate.query(psc, dataReaderHandler);
+
+        return dataReaderHandler.getRecord();
+    }
+
 
     public Integer selectCount(StringBuilder sql) {
         String s = sql.toString();

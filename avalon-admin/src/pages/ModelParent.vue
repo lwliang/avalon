@@ -73,16 +73,18 @@ const menuClick = (menu: MenuModel) => {
 </script>
 
 <template>
-    <div class="flex h-full bg-white">
-        <div class="w-[100px] flex flex-col items-center border-r overflow-y-auto">
+    <div class="flex h-full">
+        <div class="w-[80px] flex flex-col items-center border-r overflow-y-auto flex-shrink-0">
             <ModuleMenu @moduleClick="moduleClick"></ModuleMenu>
         </div>
-        <div class="flex-1 flex flex-col ">
-            <div class="h-[46px] flex items-center">
-                <div class="pl-4 flex-1">
-                    <MyMenu @menuClick="menuClick"></MyMenu>
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div class="h-[46px] flex items-center w-full overflow-y-auto">
+                <div class="pl-4 flex-1 overflow-x-auto">
+                    <div class="">
+                        <MyMenu @menuClick="menuClick"></MyMenu>
+                    </div>
                 </div>
-                <div class="pr-4">
+                <div class="pr-4 flex-shrink-0">
                     <UserInfo></UserInfo>
                 </div>
             </div>

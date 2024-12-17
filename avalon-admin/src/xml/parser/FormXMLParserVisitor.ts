@@ -9,15 +9,16 @@ import Field from "../../model/Field.ts";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
 import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
-import  {useUserInfoStore} from "../../global/store/userInfoStore.ts";
+import {useUserInfoStore} from "../../global/store/userInfoStore.ts";
+import {ParserField} from "../model/ParserField.ts";
 
 const useService = useGlobalServiceDataStore();
 const useFieldDataStore = useGlobalFieldDataStore()
 
 
 export class FormXMLParserVisitor extends XMLParserVisitor<any> {
-    fields: any[]
-    fullFields: any[]
+    fields: any[] // 保存原始字段
+    fullFields: any[] // 全显示字段，包括 one2many,one2one字段 真正用于查询数据库的字段
     service: string
     viewMode: string
     kanban: any
@@ -36,6 +37,34 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
 
     private _contain_stack = (el: any): boolean => {
         return this._stack.includes(el)
+    }
+
+    private _field_stack: any[] = [] // 记录识别字段的深度
+    private _push_field_stack = (el: any) => {
+        this._field_stack.push(el)
+    }
+    private _pop_field_stack = () => {
+        this._field_stack.pop()
+    }
+    private _get_top_field_stack = () => {
+        return this._field_stack[this._field_stack.length - 1]
+    }
+    private _contain_field_stack = (): boolean => {
+        return !!this._field_stack.length
+    }
+
+    private _field_sub_stack: ParserField[] = [] // 第二tree内行字段的值
+    private _push_field_sub_stack = (el: ParserField) => {
+        this._field_sub_stack.push(el)
+    }
+    private _pop_field_sub_stack = () => {
+        this._field_sub_stack.pop()
+    }
+    private _get_top_field_sub_stack = () => {
+        return this._field_sub_stack[this._field_stack.length - 1]
+    }
+    private _contain_field_sub_stack = (): boolean => {
+        return !!this._field_sub_stack.length
     }
 
     constructor(service: string) {
@@ -91,6 +120,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
 
     visitElement = async (ctx: ElementContext) => {
         const tagName = ctx.Name_list()[0].getText();
+        const attributeContexts = ctx.attribute_list();
         this._push_stack(tagName)
         if (ctx.Name_list().length == 2) { //  <div ></div>
             if (tagName.trim().toLowerCase() == 'kanban') { // kanban
@@ -106,12 +136,51 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 this.getTemplate().template = ""
                 await this.visitTreeElement(ctx)
             } else if (tagName.trim().toLowerCase() == 'tree') { // tree
-                this.viewMode = 'tree'
-                this.getTemplate().template = ""
-                await this.visitTreeElement(ctx)
-                const key = await this.appendServiceKeyField()
-                if (key) {
-                    this.addFields({name: key.name})
+                if (!this._contain_field_stack()) { // 是列表视图
+                    this.viewMode = 'tree'
+                    this.getTemplate().template = ""
+                    await this.visitTreeElement(ctx)
+                    const key = await this.appendServiceKeyField()
+                    if (key) {
+                        this.addFields({name: key.name})
+                    }
+                } else { // form视图下的tree视图
+                    this.getTemplate().template += `<MySubTree`
+                    this.visitorTagAttribute(ctx);
+                    const field = this._get_top_field_stack()
+                    const serviceField = await this.loadServiceField(this.service, field.name) as Field
+                    const relativeServiceName = serviceField.relativeServiceName;
+                    const service = await useService.getServiceByNameAsync(relativeServiceName)
+                    this.getTemplate().template += ` ref="${field.name}_input" title="${serviceField.label}" service="${service.name}" field="${serviceField.name}"
+                                :record="${field.name}" fieldType=${serviceField.type}`
+                    await this.visitContent(ctx.content())
+                    this.addFields(field);
+                    if (this._contain_field_sub_stack()) { // 有字段
+                        let fields = ""
+                        for (let fieldSubStackElement of this._field_sub_stack) {
+                            const subServiceField = await this.loadServiceField(relativeServiceName, fieldSubStackElement.name) as Field
+                            const subService = await useService.getServiceByNameAsync(relativeServiceName)
+                            if (subServiceField.type == FieldTypeEnum.Many2oneField || subServiceField.type == FieldTypeEnum.Many2manyField) {
+                                this.fullFields.push({name: `${field.name}.${serviceField.relativeForeignKeyName}.${fieldSubStackElement.name}`})
+                                this.fullFields.push({name: `${field.name}.${serviceField.relativeForeignKeyName}.${fieldSubStackElement.name}.${subService.keyField}`})
+                                this.fullFields.push({name: `${field.name}.${serviceField.relativeForeignKeyName}.${fieldSubStackElement.name}.${subService.nameField}`})
+                            } else {
+                                this.fullFields.push({name: `${field.name}.${serviceField.relativeForeignKeyName}.${fieldSubStackElement.name}`})
+                            }
+
+                            if (!fields) {
+                                fields = fieldSubStackElement.name
+                            } else {
+                                fields = `${fields},${fieldSubStackElement.name}`
+                            }
+                        }
+                        this.fullFields.push({name: `${field.name}.id`})
+                        fields = `${fields},id`
+                        this.getTemplate().template += ` fields="${fields}" `;
+                    }
+                    this.getTemplate().template += ">"
+                    this.getTemplate().template += `</MySubTree>`
+                    this._field_sub_stack.splice(0, this._field_sub_stack.length)
                 }
             } else if (tagName.trim().toLowerCase() == 'form') { // form
                 this.viewMode = 'form'
@@ -142,6 +211,11 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 this.getTemplate().template += ">"
                 await this.visitContent(ctx.content())
                 this.getTemplate().template += `</MyTabPanel>`
+            } else if (tagName.trim().toLowerCase() == 'field') {
+                const field = await this.visitFieldElement(ctx)
+                this._push_field_stack(field);
+                await this.visitContent(ctx.content())
+                this._pop_field_stack();
             } else {
                 this.getTemplate().template += `<${tagName}`
                 this.visitorTagAttribute(ctx);
@@ -155,6 +229,10 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         } else { // 格式 <div />
             if (tagName.trim().toLowerCase() == 'field') { // field
                 const field = await this.visitFieldElement(ctx)
+                if (this._contain_field_stack()) { // 第二级 tree
+                    this._push_field_sub_stack(field)
+                    return
+                }
                 const serviceField = await this.loadServiceField(this.service, field.name) as Field
                 if (!this.fields.find(x => x.name == field.name)) {
                     this.addFields(field)
@@ -177,7 +255,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                         this.getTemplate().template += `<div class="contents">`
 
                         const useInfoStore = useUserInfoStore();
-                        if(useInfoStore.user.debug) {
+                        if (useInfoStore.user.debug) {
                             this.getTemplate().template += `<my-label htmlFor="${field.name}">${serviceField?.label}`
                             this.getTemplate().template += ` <my-debug service="${this.service}" field="${field.name}"></my-debug>`
                             this.getTemplate().template += `</my-label>`;
@@ -187,35 +265,12 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                     }
 
                     if (serviceField.type == FieldTypeEnum.One2manyField) { // 多对多
-                        const relativeServiceName = serviceField.relativeServiceName;
-                        const service = await useService.getServiceByNameAsync(relativeServiceName)
-                        this.getTemplate().template += `<MySubTree ref="${field.name}_input" title="${serviceField.label}" service="${service.name}" field="${serviceField.name}"
-                                :record="${field.name}"></MySubTree>`
                         this.one2ManyFields.push(field.name)
-                    } else if (serviceField.type == FieldTypeEnum.SelectionField) {
-                        this.getTemplate().template += `<MySelectionSelect ref="${field.name}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MySelectionSelect>`
-                    } else if (serviceField.type == FieldTypeEnum.Many2oneField) {
-                        this.getTemplate().template += `<MyIdSelect ref="${field.name}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyIdSelect>`
-                    } else if (serviceField.type == FieldTypeEnum.ImageField) {
-                        this.getTemplate().template += `<MyUpload ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyUpload>`
-                    } else if (serviceField.type == FieldTypeEnum.PasswordField) {
-                        this.getTemplate().template += `<MyPassword ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyPassword>`
-                    } else if (serviceField.type == FieldTypeEnum.DateField) {
-                        this.getTemplate().template += `<my-date ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></my-date>`
-                    } else if (serviceField.type == FieldTypeEnum.BooleanField) {
-                        this.getTemplate().template += `<MyCheck ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyCheck>`
-                    } else if (serviceField.type == FieldTypeEnum.HtmlField) {
-                        this.getTemplate().template += `<MyTextarea ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyTextarea>`
-                    } else if (serviceField.type == FieldTypeEnum.TextField) {
-                        this.getTemplate().template += `<MyTextarea ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyTextarea>`
-                    } else if (serviceField.type == FieldTypeEnum.Many2manyField) {
-                        this.getTemplate().template += `<MyMany2manySelect ref="${field.name}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyMany2manySelect>`
-                    } else if (serviceField.type == FieldTypeEnum.TimeField) {
-                        this.getTemplate().template += `<MyTime ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyTime>`
-                    } else if (serviceField.type == FieldTypeEnum.DateTimeField) {
-                        this.getTemplate().template += `<MyDatetime ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyDatetime>`
-                    } else {
-                        this.getTemplate().template += `<MyInput ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyInput>`
+                    }
+
+                    const templateXml = await this.createComponentName(field, serviceField)
+                    if (templateXml) {
+                        this.getTemplate().template += templateXml;
                     }
 
                     if (this._contain_stack('col')) {
@@ -229,6 +284,52 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             }
         }
         this._pop_stack()
+    }
+
+
+    private async createComponentName(field: ParserField, serviceField: Field) {
+        let componentName = '';
+        if (field.widget) {
+            if (field.widget == 'xml') {
+                componentName = `MyXmlViewer`
+            }
+        }
+
+        if (serviceField.type == FieldTypeEnum.One2manyField) { // 多对多
+            const relativeServiceName = serviceField.relativeServiceName;
+            const service = await useService.getServiceByNameAsync(relativeServiceName)
+            return `<MySubTree ref="${field.name}_input" title="${serviceField.label}" service="${service.name}" field="${serviceField.name}"
+                                :record="${field.name}" fieldType=${serviceField.type}></MySubTree>`
+        } else if (serviceField.type == FieldTypeEnum.SelectionField) {
+            return `<MySelectionSelect border="bottom" ref="${field.name}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MySelectionSelect>`
+        } else if (serviceField.type == FieldTypeEnum.FieldSelectionField) {
+            return `<MySelectionSelect border="bottom" ref="${field.name}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MySelectionSelect>`
+        } else if (serviceField.type == FieldTypeEnum.Many2oneField) {
+            return `<MyIdSelect border="bottom" ref="${field.name}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyIdSelect>`
+        } else if (serviceField.type == FieldTypeEnum.ImageField) {
+            return `<MyUpload ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyUpload>`
+        } else if (serviceField.type == FieldTypeEnum.PasswordField) {
+            return `<MyPassword ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}" border="bottom"></MyPassword>`
+        } else if (serviceField.type == FieldTypeEnum.DateField) {
+            return `<my-date ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></my-date>`
+        } else if (serviceField.type == FieldTypeEnum.BooleanField) {
+            return `<MyCheck ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyCheck>`
+        } else if (serviceField.type == FieldTypeEnum.HtmlField) {
+            return `<MyTextarea border="bottom" ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyTextarea>`
+        } else if (serviceField.type == FieldTypeEnum.TextField) {
+            if (!componentName) {
+                componentName = `MyTextarea`
+            }
+            return `<${componentName}  border="bottom" ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></${componentName}>`
+        } else if (serviceField.type == FieldTypeEnum.Many2manyField) {
+            return `<MyMany2manySelect border="bottom" ref="${field.name}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyMany2manySelect>`
+        } else if (serviceField.type == FieldTypeEnum.TimeField) {
+            return `<MyTime ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyTime>`
+        } else if (serviceField.type == FieldTypeEnum.DateTimeField) {
+            return `<MyDatetime border="bottom" ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}"></MyDatetime>`
+        } else {
+            return `<MyInput ref="${field.name}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${field.name}" border="bottom"></MyInput>`
+        }
     }
 
     private visitorTagAttribute(ctx: ElementContext) {
@@ -264,7 +365,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         for (let attributeContext of ctx.attribute_list()) {
             await this.visitObjectAttribute(attributeContext, field)
         }
-        return field
+        return field as ParserField
     }
     visitObjectAttribute = async (ctx: AttributeContext, obj: any) => {
         const str = ctx.STRING().getText().replaceAll("\"", "");

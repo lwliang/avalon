@@ -17,15 +17,25 @@ public class FieldSelectionField extends SelectionField {
             label = "类型选择";
         }
         SelectionHashMap selectionHashMap = new SelectionHashMap();
-        selectionHashMap.put(BigDecimalField.class.getName(), "实数");
-        selectionHashMap.put(IntegerField.class.getName(), "整数");
-        selectionHashMap.put(DateField.class.getName(), "日期");
-        selectionHashMap.put(DateTimeField.class.getName(), "日期时间");
-        selectionHashMap.put(TimeField.class.getName(), "时间");
-        selectionHashMap.put(HtmlField.class.getName(), "HTML");
-        selectionHashMap.put(ImageField.class.getName(), "图片");
-        selectionHashMap.put(StringField.class.getName(), "单行文本");
-        selectionHashMap.put(TextField.class.getName(), "多行文本");
+        selectionHashMap.put(BigDecimalField.class.getSimpleName(), "BigDecimal");
+        selectionHashMap.put(BigIntegerField.class.getSimpleName(), "Long");
+        selectionHashMap.put(IntegerField.class.getSimpleName(), "整数");
+        selectionHashMap.put(BooleanField.class.getSimpleName(), "Bool");
+        selectionHashMap.put(DateField.class.getSimpleName(), "日期");
+        selectionHashMap.put(DateTimeField.class.getSimpleName(), "日期时间");
+        selectionHashMap.put(DoubleField.class.getSimpleName(), "Double");
+        selectionHashMap.put(FloatField.class.getSimpleName(), "Float");
+        selectionHashMap.put(TimeField.class.getSimpleName(), "时间");
+        selectionHashMap.put(HtmlField.class.getSimpleName(), "HTML");
+        selectionHashMap.put(ImageField.class.getSimpleName(), "图片");
+        selectionHashMap.put(StringField.class.getSimpleName(), "单行文本");
+        selectionHashMap.put(PasswordField.class.getSimpleName(), "密码");
+        selectionHashMap.put(TextField.class.getSimpleName(), "多行文本");
+        selectionHashMap.put(SelectionField.class.getSimpleName(), "字典");
+        selectionHashMap.put(One2oneField.class.getSimpleName(), "1对1");
+        selectionHashMap.put(One2manyField.class.getSimpleName(), "1对多");
+        selectionHashMap.put(Many2oneField.class.getSimpleName(), "多对1");
+        selectionHashMap.put(Many2manyField.class.getSimpleName(), "多对多");
         setSection(selectionHashMap);
         setLabel(label);
     }

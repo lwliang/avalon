@@ -138,7 +138,7 @@ const handlePageChange = (dir: string) => {
         </div>
     </div>
     <div class="flex flex-wrap p-1">
-        <div v-for="item in record" :key="item.id" class="flex bg-white p-3 border rounded m-2 w-[400px]">
+        <div v-for="item in record" :key="item.id" class="flex p-3 border rounded m-2 w-[400px]">
             <kanbanTemplate v-if="xmlTemplate" :template="xmlTemplate" :fields="item"
                             @btnClick="btnClick"></kanbanTemplate>
         </div>

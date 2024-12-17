@@ -35,16 +35,11 @@ public class Many2manyField extends RelationField {
             if (ObjectUtils.isNull(selfService)) {
                 ExternalService externalService = getMasterService().getContext().getNewExternalService();
                 externalService.setServiceName(Fields.dot2UnderscoreName(getTableSqlName()));
-                // 主键
-                Field field = IntegerField.Builder.getInstance()
-                        .setFieldName(getMasterService().getPrimaryKeyField().getFieldName())
-                        .setIsAutoIncrement(true)
-                        .setIsPrimaryKey(true)
-                        .build();
-                field.setService(externalService);
-                externalService.addField(field);
+                externalService.setNeedDefaultField(false);
+                externalService.setNeedDefaultName(false);
+                externalService.init();
                 // 外键
-                field = IntegerField.Builder.getInstance()
+                Field field = IntegerField.Builder.getInstance()
                         .setFieldName(getMasterForeignKeyName())
                         .build();
                 field.setService(externalService);

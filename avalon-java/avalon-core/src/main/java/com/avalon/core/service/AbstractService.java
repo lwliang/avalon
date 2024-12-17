@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
 @Lazy
-public abstract class AbstractService implements IAvalonService, IAliasRequire, ICheckPermission, IExtendFieldService {
+public abstract class AbstractService implements IAvalonService, IAliasRequire, ICheckPermission, IExtendFieldService, IExportImportService {
     public final static String CREATE_TIME = "createTime";
     public final static String CREATOR = "creator";
     public final static String UPDATE_TIME = "updateTime";
@@ -1276,6 +1276,11 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
 
     private FieldList fieldList;
 
+    /**
+     * 获取自身的字段列表
+     *
+     * @return 字段列表
+     */
     public FieldList getFields() {
         if (!ObjectUtils.isNull(fieldList)) {
             return fieldList;
@@ -2074,5 +2079,24 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
             FieldList extendField = serviceBean.getExtendField(getServiceName());
             extendFieldList.addAll(extendField);
         }
+    }
+
+    @Override
+    public Record exportExcel(String field, String condition, String order) {
+        Condition con = Condition.parseRPN(condition);
+        SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
+                field.split(","),
+                con,
+                order);
+
+        QueryStatement sql = selectBuilder.getSql(false);
+        AvalonPreparedStatement avalonPrepareStatement = createAvalonPrepareStatement(sql.getSql(),
+                sql.getValueStatement());
+        return jdbcTemplate.select(avalonPrepareStatement);
+    }
+
+    @Override
+    public Integer importExcel(Record record) {
+        return insertMulti(record).size();
     }
 }

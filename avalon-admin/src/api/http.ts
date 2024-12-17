@@ -26,9 +26,12 @@ axios.interceptors.request.use((config) => {
 })
 
 axios.interceptors.response.use((response) => {
+    if (response.config.responseType == 'blob') {
+        return response
+    }
     if (response.data)
         return response.data
-    return {}
+    return response
 }, (error) => {
     if (error.response.status === 401) {
         goLogin()
@@ -53,6 +56,32 @@ export function getHttp(url: string, config: any): Promise<any> {
 export function postHttp(url: string, params: any): Promise<any> {
     return new Promise((resolve, reject) => {
         axios.post(url, params).then((res) => {
+            resolve(res)
+        }).catch((err) => {
+            reject(err)
+        })
+    })
+}
+
+export function postDownloadFileHttp(url: string, params: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+        axios.post(getErpPrefix() + url, params, {responseType: 'blob'}).then((res) => {
+            resolve(res)
+        }).catch((err) => {
+            reject(err)
+        })
+    })
+}
+
+export function postUploadFileHttp(url: string, file: File): Promise<any> {
+    const formData = new FormData()
+    formData.append('file', file)
+    return new Promise((resolve, reject) => {
+        axios.post(getErpPrefix() + url, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }).then((res) => {
             resolve(res)
         }).catch((err) => {
             reject(err)

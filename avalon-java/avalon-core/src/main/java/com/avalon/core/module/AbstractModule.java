@@ -164,6 +164,24 @@ public abstract class AbstractModule {
         loadResource();
     }
 
+    protected void uninstallResource() {
+        IServiceDataService serviceDataService = getServiceDataService();
+
+        if (ObjectUtils.isNull(serviceDataService)) return;
+
+        com.avalon.core.model.Record moduleRecord = serviceDataService.getModuleRecord(getModuleName());
+        if (moduleRecord.isEmpty()) return;
+
+        for (RecordRow recordRow : moduleRecord) {
+            if (recordRow.isNull("serviceId")) {
+                continue;
+            }
+            AbstractService serviceBean = getContext().getServiceBean(recordRow.getRecordRow("serviceId").getString("name"));
+            serviceBean.delete(recordRow.getInteger("sourceId")); // 直接删除记录
+            serviceDataService.deleteServiceData(recordRow.getInteger("id"));
+        }
+    }
+
     // 加载资源文件，增加基本数据，无新增，有更新
     protected void loadResource() {
         try {
@@ -275,7 +293,8 @@ public abstract class AbstractModule {
         if (StringUtils.isNotEmpty(parentMenuId)) { // 上级菜单
             row.put("parentId", refId(parentMenuId));
         }
-        upgradeRecord(0, row.getString("id"), "base.menu", row);
+
+        upgradeRecord(getServiceId("base.menu"), row.getString("id"), "base.menu", row);
         NodeList childNodes = item.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node item1 = childNodes.item(i);
@@ -326,20 +345,30 @@ public abstract class AbstractModule {
         }
     }
 
-    protected void deleteModuleInfo() {
-        AbstractService serviceBean = context.getServiceBean("base.module");
-        if (ObjectUtils.isNotNull(serviceBean)) {
-            serviceBean.delete(Condition.equalCondition("name", getModuleName()));
+    public void dropModule() {
+        if (ObjectUtils.isNull(getServiceList())) return;
+        uninstallResource(); // 删除表 之前 删除资源记录
+        for (AbstractService service : getServiceList()) {
+            Integer serviceId = getServiceId(service.getServiceName());
+            clearServiceField(serviceId);
+            deleteBaseServiceData(serviceId);
+            service.dropTable();
         }
     }
 
-
-    public void dropModule() {
-        if (ObjectUtils.isNull(getServiceList())) return;
-
-        for (AbstractService service : getServiceList()) {
-            service.dropTable();
+    // 删除模型下的所有字段数据
+    public void clearServiceField(Integer serviceId) {
+        AbstractService serviceBean = context.getServiceBean("base.field");
+        com.avalon.core.model.Record fields = serviceBean.select(Condition.equalCondition("serviceId", serviceId), "id");
+        for (RecordRow field : fields) {
+            serviceBean.delete(field.getInteger("id"));
         }
+    }
+
+    // 删除模型记录
+    public void deleteBaseServiceData(Integer serviceId) {
+        AbstractService serviceBean = context.getServiceBean("base.service");
+        serviceBean.delete(serviceId);
     }
 
     public void upgradeModule() {
@@ -454,7 +483,6 @@ public abstract class AbstractModule {
             log.error("getServiceDataService", e);
             return null;
         }
-
     }
 
     protected void insertRecord(String moduleName, Integer dstServiceId,

@@ -111,6 +111,7 @@ public class ModuleService extends AbstractService implements IModuleSupport {
                 Record select = select(Condition.equalCondition("id", id), "name");
                 String moduleName = select.get(0).getString("name");
                 AbstractModule module = getContext().getModule(moduleName);
+                modules.add(module);
                 module.setIsInstall(true);
                 module.createModule();
                 select = select(Condition.equalCondition("name", moduleName), "id");
@@ -119,6 +120,7 @@ public class ModuleService extends AbstractService implements IModuleSupport {
             }
         } else {
             AbstractModule module = getContext().getModule(row.getString("name"));
+            modules.add(module);
             module.setIsInstall(true);
             module.createModule();
         }

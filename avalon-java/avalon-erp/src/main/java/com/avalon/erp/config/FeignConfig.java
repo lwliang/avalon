@@ -1,6 +1,7 @@
 package com.avalon.erp.config;
 
 import com.avalon.core.context.Context;
+import com.avalon.core.util.StringUtils;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,10 @@ public class FeignConfig {
         return new RequestInterceptor() {
             @Override
             public void apply(RequestTemplate template) {
-                template.header("Token", context.getToken());
+                String token = context.getToken();
+                if (StringUtils.isNotEmpty(token)) {
+                    template.header("Token", token);
+                }
             }
         };
     }

@@ -16,12 +16,17 @@ import {
 } from "../../util/dateUtils.ts";
 import FormField from "../../model/FormField.ts";
 import {ref, watch} from "vue";
+import {borderStyleType} from "../icon/my-icon.ts";
 
 const props = defineProps({
     htmlId: String,
     htmlName: String,
     required: Boolean,
-    readonly: Boolean
+    readonly: Boolean,
+    border: {
+        type: borderStyleType,
+        default: 'round'
+    }
 })
 
 const formField = defineModel({
@@ -142,7 +147,7 @@ const datetimeChange = (datetime: string) => {
     <MyPopover placement="bottom" trigger="click" width="332px">
         <template #default>
             <MyInput @valueChange="datetimeChange" v-model="formField" suffix-icon-style="far"
-                     suffix-icon="calendar"></MyInput>
+                     suffix-icon="calendar" :border="border"></MyInput>
         </template>
 
         <template #option>

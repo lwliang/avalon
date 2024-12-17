@@ -3,10 +3,10 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import {ComponentInternalInstance, getCurrentInstance, inject, ref, watch} from "vue";
+import {ComponentInternalInstance, getCurrentInstance, inject, provide, ref, watch} from "vue";
 import {useRoute} from "vue-router";
 import ActionView from "../../../../model/view/ActionView.ts";
-import {getModelAllApi, getModelPageApi} from "../../../../api/modelApi.ts";
+import {deleteMultiModelApi, getModelAllApi, getModelPageApi} from "../../../../api/modelApi.ts";
 import {getTemplate, XMLParserResult} from "../../../../xml/XMLParserResult.ts";
 import {parserEx} from "../../../../xml/XMLParser.ts";
 import MyButton from "../../../../components/button/my-button.vue";
@@ -15,7 +15,7 @@ import {useGlobalServiceDataStore} from "../../../../global/store/serviceStore.t
 import Field from "../../../../model/Field.ts";
 import {getSelectionValueByServiceAndField} from "../../../../cache/SelectionValueMemory.ts";
 import {FieldTypeEnum} from "../../../../model/enum-type/FieldTypeEnum.ts";
-import {getActionTreeView} from "../../../../api/commonApi.ts";
+import {exportExcel, getActionTreeView} from "../../../../api/commonApi.ts";
 import MyImage from "../../../../components/image/my-image.vue";
 import {getFilePrefix, getFileUploadUrl, getPageSize} from "../../../../api/env.ts";
 import MyTable from "../../../../components/table/my-table.vue";
@@ -26,6 +26,9 @@ import {getDateTime} from "../../../../util/dateUtils.ts";
 import MySearch from "../../../../components/search/my-search.vue";
 import {useUserInfoStore} from "../../../../global/store/userInfoStore.ts";
 import MyDebug from "../../../../components/debug/my-debug.vue";
+import MyDialog from "../../../../components/dialog/my-dialog.vue";
+import MyExportDialog from "../../../../components/dialog/my-export-dialog.vue";
+import {goModelImport, goModelWindow} from "../../../../util/routerUtils.ts";
 
 
 const serviceFieldStore = useGlobalFieldDataStore()
@@ -126,13 +129,20 @@ const loadData = async () => {
 }
 
 
-const rowClick = (id: number) => {
-    rowClickHandler(id)
+const rowClick = (row: any) => {
+    serviceStore.getServiceByNameAsync(serviceName.value).then(service => {
+        rowClickHandler(row[service.keyField])
+    })
 }
 
 const createServiceClick = () => {
     rowClickHandler(undefined)
 }
+
+const deleteServiceClick = () => {
+    deleteShow.value = true
+}
+
 const getMany2manyFormField = (obj: any, value: any, field: Field) => {
     obj[field.name + '_many'] = new FormField(value, field)
     return ''
@@ -156,13 +166,72 @@ const handlePageChange = (dir: string) => {
     }
     loadData()
 }
+const rowSelectCount = ref(0)
+const rowSelectIds = ref<any[]>([])
+const rowSelectChangeHandler = (selectCount: number, ids: any[]) => {
+    rowSelectCount.value = selectCount
+
+    rowSelectIds.value.splice(0, rowSelectIds.value.length)
+    if (selectCount) {
+        rowSelectIds.value.push(...ids)
+    }
+}
+
+const deleteShow = ref(false)
+
+const hideClick = () => {
+    deleteShow.value = false
+    rowSelectIds.value.splice(0, rowSelectIds.value.length)
+}
+const sureClick = () => {
+    deleteMultiModelApi(rowSelectIds.value, serviceName.value as string).then(data => {
+        proxy?.$notify.success('提示', '删除完成');
+        deleteShow.value = false
+
+        for (let deleteIdsKey of rowSelectIds.value) {
+            const index = record.value.findIndex((x: any) => x.id == deleteIdsKey)
+            if (index >= 0) {
+                record.value.splice(index, 1)
+            }
+        }
+
+    })
+}
+
+const exportShow = ref(false)
+const exportClose = () => {
+    exportShow.value = false
+}
+const exportOpen = () => {
+    exportShow.value = true
+}
+const exportSure = async (fields: string) => {
+    const primaryKeyField = await serviceStore.getServiceByNameAsync(serviceName.value)
+    let condition = "";
+    if (rowSelectIds.value.length) {
+        condition = `(in,${primaryKeyField.keyField},${rowSelectIds.value.join(",")})`
+    }
+    exportExcel(serviceName.value, fields, condition, "").then(data => {
+        proxy?.$notify.success("提示", "导出成功");
+    })
+}
+
+const importExcelClick = () => {
+    goModelImport(moduleName.value, serviceName.value, {})
+}
 </script>
 
 <template>
     <div class="flex flex-col flex-wrap p-4 items-start h-full">
         <div class="pb-4 flex items-start w-full">
             <div class="flex-1">
-                <my-button type="primary" rounded @click="createServiceClick">新增</my-button>
+                <my-button class="mr-0.5" type="primary" rounded @click="createServiceClick">新增</my-button>
+                <my-button class="mr-0.5" type="primary" rounded @click="importExcelClick">导入</my-button>
+                <my-button class="mr-0.5" v-if="rowSelectCount" type="success" rounded @click="exportOpen">
+                    导出
+                </my-button>
+                <my-button class="mr-0.5" v-if="rowSelectCount" type="danger" rounded @click="deleteServiceClick">删除
+                </my-button>
             </div>
             <div class="flex-1 px-4">
                 <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
@@ -175,64 +244,19 @@ const handlePageChange = (dir: string) => {
         </div>
         <div class="flex-1 overflow-y-auto flex flex-col">
             <div class="flex-1 overflow-y-auto">
-                <table class="w-full table-fixed border-collapse data-table">
-                    <thead class="overflow-visible">
-                    <tr>
-                        <th class="text-left relative"
-                            v-for="(field) in services_fields" :key="field.id">
-                            <span>{{ field.label }}</span>
-                            <template v-if="userInfoStore.user.debug">
-                                <span class="px-0.5"></span>
-                                <MyDebug :service="serviceName" :field="field.name"/>
-                            </template>
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="row in record" :key="row.id" class="cursor-pointer"
-                        @click="rowClick(row[`id`])">
-                        <td v-for="(field,index) in services_fields" :key="index">
-                            <template v-if="field.type == FieldTypeEnum.SelectionField">
-                                {{ selectionDynamic[field.name][row[field.name]] }}
-                            </template>
-                            <template v-else-if="field.type == FieldTypeEnum.Many2oneField">
-                                {{
-                                    row[field.name] ? row[field.name][serviceStore.getServiceByName(field.relativeServiceName).nameField] : ''
-                                }}
-                            </template>
-                            <template v-else-if="field.type == FieldTypeEnum.Many2manyField">
-                                {{ getMany2manyFormField(row, row[field.name], field) }}
-                                <MyMany2manySelect v-model="row[field.name+'_many']" :readonly="true"
-                                                   :ref="field.name+'_input'"
-                                                   :service="field.relativeServiceName"
-                                                   :field="field.name"
-                                                   :htmlId="field.name"
-                                                   :htmlName="field.name"/>
-                            </template>
-                            <template v-else-if="field.type == FieldTypeEnum.BooleanField">
-                                {{ getFormField(row, row[field.name], field) }}
-                                <MyCheck :ref="field.name+'_input'" v-model="row[field.name+'_field']" :readonly="true"
-                                         :field="field.name"
-                                         :htmlId="field.name"
-                                         :htmlName="field.name"></MyCheck>
-                            </template>
-                            <template v-else-if="field.type == FieldTypeEnum.ImageField">
-                                <MyImage width="50" height="50" :src="getFileUploadUrl(row[field.name])"></MyImage>
-                            </template>
-                            <template v-else-if="field.type == FieldTypeEnum.DateTimeField">
-                                {{ row[field.name] ? getDateTime(row[field.name]) : '' }}
-                            </template>
-                            <template v-else>
-                                {{ row[field.name] }}
-                            </template>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                <MyTable height="100%" :record="record" :fields="services_fields" :service-name="serviceName"
+                         :showSelectBtn="true"
+                         @rowClick="rowClick"
+                         @rowSelectChange="rowSelectChangeHandler">
+
+                </MyTable>
             </div>
         </div>
     </div>
-
+    <MyDialog :show="deleteShow" @close="hideClick" @sure="sureClick" title="提示">
+        确认删除吗?
+    </MyDialog>
+    <MyExportDialog :show="exportShow" :service="serviceName" @close="exportClose" @sure="exportSure"></MyExportDialog>
 </template>
 
 <style scoped>

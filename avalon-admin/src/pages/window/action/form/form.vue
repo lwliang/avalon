@@ -12,7 +12,7 @@ import {
     inject,
     compile,
     createVNode,
-    defineComponent, shallowRef
+    defineComponent, shallowRef, computed
 } from "vue";
 import {LocationQueryValue, useRoute} from "vue-router";
 import ActionView from "../../../../model/view/ActionView.ts";
@@ -31,9 +31,10 @@ import FormField from "../../../../model/FormField.ts";
 import MyButton from "../../../../components/button/my-button.vue";
 import {FieldTypeEnum} from "../../../../model/enum-type/FieldTypeEnum.ts";
 import Field from "../../../../model/Field.ts";
-import {goModelForm} from "../../../../util/routerUtils.ts";
+import {goModelWindow, replaceModelForm} from "../../../../util/routerUtils.ts";
 import {getActionFormView, getActionTreeView, getActionView} from "../../../../api/commonApi.ts";
 import MyServiceLog from "../../../../components/service-log/my-service-log.vue";
+import router from "../../../../router";
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 const route = useRoute();
@@ -84,7 +85,8 @@ const renderView = async (arch: string) => {
     await parserXml(arch)
 }
 
-let template_fields = ref<string[]>([]);
+let template_fields = ref<string[]>([]); // 全部字段 用于查询数据库
+let self_service_fields = ref<string[]>([]); // 自身第一级字段
 
 let parserResult: XMLParserResult | null = null;
 
@@ -95,6 +97,10 @@ const parserXml = async (str: string) => {
     xmlTemplate.value = getTemplate(parserResult);
     template_fields.value.splice(0, template_fields.value.length)
     template_fields.value.push(...parserResult.fullFields.map(x => x.name))
+
+    self_service_fields.value.splice(0, self_service_fields.value.length)
+    self_service_fields.value.push(...parserResult.fields.map(x => x.name))
+
     if (parserResult.one2ManyFields && parserResult.one2ManyFields.length) {
         for (let manyField of parserResult.one2ManyFields) {
             const find = serviceFields.find(x => x.name == manyField) as Field;
@@ -116,12 +122,20 @@ const parserXml = async (str: string) => {
 
 const recordRow = ref<any>({})
 const recordRowWithField = ref<Record<string, FormField>>({})
+const recordRowIsChange = computed(() => { // 字段是否有变量
+    for (let key in recordRowWithField.value) {
+        if (recordRowWithField.value[key].isChanged()) {
+            return true
+        }
+    }
+    return false
+})
 const loadDetailData = async (id: number) => {
     return getModelDetailApi(id, template_fields.value.join(","),
         serviceName.value);
 }
 const loadDataWithLayout = async () => {
-    if (!(serviceName.value && moduleName.value && template_fields.value.length)) {
+    if (!(serviceName.value && moduleName.value && self_service_fields.value.length)) {
         return;
     }
     const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
@@ -142,7 +156,7 @@ const loadDataWithLayout = async () => {
             }
         })
     } else {
-        for (let key of template_fields.value) {
+        for (let key of self_service_fields.value) {
             const field = serviceFields.find(f => f.name === key)
             if (field && (field.type == FieldTypeEnum.One2manyField ||
                 field.type == FieldTypeEnum.Many2manyField)) {
@@ -175,6 +189,10 @@ const createClick = () => {
     }
 }
 
+const backClick = () => {
+    goModelWindow(moduleName.value, serviceName.value, {})
+}
+
 const saveClick = async () => {
     if (row_id.value) { // 保存
         update().then(() => {
@@ -187,7 +205,7 @@ const saveClick = async () => {
         })
     } else {
         insert().then((data: any) => {
-            goModelForm(moduleName.value, serviceName.value, data.id)
+            replaceModelForm(moduleName.value, serviceName.value, data.id)
         })
     }
 }
@@ -229,24 +247,24 @@ const update = async () => {
 <template>
     <div class="p-4 w-full overflow-hidden h-full box-border">
         <div>
+            <MyButton class="mr-2" type="success" is-link rounded @click="backClick" icon="chevron-left"
+                      icon-style="fas">返回
+            </MyButton>
             <MyButton type="primary" rounded @click="createClick">新增</MyButton>
-            <MyButton type="success" rounded @click="saveClick" class="ml-2">保存</MyButton>
+            <MyButton type="success" rounded @click="saveClick" class="ml-2" v-if="recordRowIsChange">保存</MyButton>
         </div>
 
-        <div class="w-full flex overflow-hidden h-full box-border">
-            <div class="w-[1060px] flex-1">
+        <div class="w-full flex h-full box-border">
+            <div class="w-full overflow-x-auto" style="flex: 2">
                 <component :is="template_component"/>
             </div>
-            <div class=" w-[590px] h-full box-border">
+            <div class="flex-1 h-full box-border hidden 2xl:block">
                 <div class="w-full overflow-auto h-full">
                     <MyServiceLog :service="serviceName" :service-id="row_id"></MyServiceLog>
                 </div>
             </div>
         </div>
-
-
     </div>
-
 </template>
 
 <style scoped>

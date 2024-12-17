@@ -11,6 +11,7 @@ import {getSelectionValueByServiceAndField} from "../../../cache/SelectionValueM
 import {onMounted} from "@vue/runtime-dom";
 import MyIcon from "../../icon/my-icon.vue";
 import MyInnerPopover from "../../popover/my-inner-popover.vue";
+import {borderStyleType} from "../../icon/my-icon.ts";
 
 const props = defineProps({
     htmlId: String,
@@ -18,7 +19,11 @@ const props = defineProps({
     required: Boolean,
     readonly: Boolean,
     service: String,
-    field: String
+    field: String,
+    border: {
+        type: borderStyleType,
+        default: 'round'
+    }
 })
 
 const emit = defineEmits(['rightBtnClick'])
@@ -85,7 +90,8 @@ defineExpose<InputExpose>({validate})
         <MyInnerPopover placement="bottom" trigger="click" :option="options" full-width @itemSelect="optionSelectClick">
             <div class="inline-flex w-full relative">
                 <input
-                    :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate}]"
+                    :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,
+                    'border':border == 'round', 'border-b':border == 'bottom'}]"
                     style="padding-right: 25px"
                     v-if="labelField"
                     type="text"

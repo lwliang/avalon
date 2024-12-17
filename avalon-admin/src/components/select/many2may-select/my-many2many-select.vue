@@ -17,6 +17,7 @@ import MyIcon from "../../icon/my-icon.vue";
 import MyTag from "../../tag/my-tag.vue";
 import Snowflake from "../../../model/Snowflake.ts";
 import MyInnerPopover from "../../popover/my-inner-popover.vue";
+import {borderStyleType} from "../../icon/my-icon.ts";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -27,7 +28,11 @@ const props = defineProps({
     required: Boolean,
     readonly: Boolean,
     service: String,
-    field: String
+    field: String,
+    border: {
+        type: borderStyleType,
+        default: 'round'
+    }
 })
 const service = ref<Service>()
 const emit = defineEmits(['rightBtnClick'])
@@ -185,13 +190,15 @@ defineExpose<InputExpose>({validate})
                        :label="fieldValue[formField.Field.relativeForeignKeyName][relativeServiceName]"
                        :value="fieldValue" @deleteTag="deleteTagClick" @tagClick="tagClick"/>
             </template>
-            <MyInnerPopover v-if="!readonly" class="min-w-48" style="flex:1" placement="bottom" trigger="click" full-width
-                       ref="popperSelect"
-                       @popperShow="popperShow">
+            <MyInnerPopover v-if="!readonly" class="min-w-48" style="flex:1" placement="bottom" trigger="click"
+                            full-width
+                            ref="popperSelect"
+                            @popperShow="popperShow">
                 <template v-slot:default>
                     <div class="inline-flex relative w-full">
                         <input
-                            :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate}]"
+                            :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,
+                             'border':border == 'round', 'border-b':border == 'bottom'}]"
                             style="padding-right: 25px"
                             v-if="labelField"
                             type="text"
@@ -204,9 +211,9 @@ defineExpose<InputExpose>({validate})
                     </div>
                 </template>
                 <template v-slot:option>
-                    <div class="max-h-[400px] overflow-y-auto flex flex-col w-full">
+                    <div class="flex flex-col w-full">
                         <div v-for="(value,index) in options" :key="index"
-                             class="w-full cursor-pointer hover:bg-gray-300 px-4"
+                             class="w-full cursor-pointer hover:bg-select-hover px-4"
                              @click="optionSelectClick(value)">
                             {{ value[service?.nameField as string] }}
                         </div>

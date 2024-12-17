@@ -82,4 +82,15 @@ public class BaseServiceDataService extends AbstractService implements IServiceD
         }
         return select.get(0).getInteger("id");
     }
+
+    @Override
+    public Record getModuleRecord(String moduleName) {
+        Condition condition = Condition.equalCondition("moduleId.name", moduleName);
+        return select(condition, "sourceId", "serviceId.name", "id");
+    }
+
+    @Override
+    public void deleteServiceData(Integer id) {
+        delete(id);
+    }
 }
