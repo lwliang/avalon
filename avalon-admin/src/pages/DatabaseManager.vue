@@ -77,47 +77,52 @@ const selectDBClick = (db: string) => {
 </script>
 
 <template>
-    <div class="w-full pt-8">
-        <div class="max-w-[700px] mx-auto">
-            <div>
-                <my-image class="mx-auto" src="/avalon.png" width="300"></my-image>
-            </div>
-            <div class="mt-8 rounded max-h-[600px] overflow-y-auto">
-                <div class="p-2 bg-background" v-for="(db,index) in databases" :key="index">
-                    <div class="flex justify-between">
-                        <my-button type="primary" is-link @click="selectDBClick(db.dataName)">{{
-                                db.dataName
-                            }}
-                        </my-button>
-                        <div>
-                            <my-btn-group>
-                                <my-button icon="floppy-disk" @click="developerClick" icon-color="#FFF">备份</my-button>
-                                <my-button type="info" icon="clone" @click="developerClick" icon-color="#FFF">复制</my-button>
-                                <my-button type="warning" icon="window-restore" @click="developerClick" icon-color="#FFF">恢复</my-button>
-                                <MyPopoverConfirm @click="dropDBClick(db.dataName)" content="确认删除?">
-                                    <my-button type="danger" icon="trash-can" icon-color="#FFF">删除
-                                    </my-button>
-                                </MyPopoverConfirm>
-                            </my-btn-group>
-                        </div>
-                    </div>
-                    <my-divider v-if="databases.length != 1 && index != databases.length -1"
-                                margin="16px auto 0"></my-divider>
+    <div class="w-full h-full bg">
+        <div class="w-full pt-8">
+            <div class="max-w-[700px] mx-auto">
+                <div>
+                    <my-image class="mx-auto" src="/avalon.png" width="300"></my-image>
                 </div>
+                <div class="mt-8 rounded max-h-[600px] overflow-y-auto">
+                    <div class="p-2 bg-background" v-for="(db,index) in databases" :key="index">
+                        <div class="flex justify-between">
+                            <my-button type="primary" is-link @click="selectDBClick(db.dataName)">{{
+                                    db.dataName
+                                }}
+                            </my-button>
+                            <div>
+                                <my-btn-group>
+                                    <my-button icon="floppy-disk" @click="developerClick" icon-color="#FFF">备份</my-button>
+                                    <my-button type="info" icon="clone" @click="developerClick" icon-color="#FFF">复制</my-button>
+                                    <my-button type="warning" icon="window-restore" @click="developerClick" icon-color="#FFF">恢复</my-button>
+                                    <MyPopoverConfirm @click="dropDBClick(db.dataName)" content="确认删除?">
+                                        <my-button type="danger" icon="trash-can" icon-color="#FFF">删除
+                                        </my-button>
+                                    </MyPopoverConfirm>
+                                </my-btn-group>
+                            </div>
+                        </div>
+                        <my-divider v-if="databases.length != 1 && index != databases.length -1"
+                                    margin="16px auto 0"></my-divider>
+                    </div>
 
-            </div>
-            <div class="pt-4 pb-4">
-                <my-button icon-style="fas" type="success" icon="plus" @click="createDBClick">创建数据库</my-button>
-                <div class="inline-block w-5"></div>
-                <my-button icon-style="fas" type="danger" icon="lock" @click="developerClick">设置主密码</my-button>
+                </div>
+                <div class="pt-4 pb-4">
+                    <my-button icon-style="fas" type="success" icon="plus" @click="createDBClick">创建数据库</my-button>
+                    <div class="inline-block w-5"></div>
+                    <my-button icon-style="fas" type="danger" icon="lock" @click="developerClick">设置主密码</my-button>
+                </div>
             </div>
         </div>
     </div>
+
     <MyDialog :show="show" @close="hideClick" @sure="sureClick" title="创建数据库">
         <MyInput ref="db_input" v-model="db" :required="true"></MyInput>
     </MyDialog>
 </template>
 
 <style scoped>
-
+.bg {
+    background-image: url("/background-light.svg");
+}
 </style>
