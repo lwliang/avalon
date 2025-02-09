@@ -50,7 +50,8 @@ public class AvalonPreparedStatement implements PreparedStatementCreator {
                 continue;
             }
 
-            if (field instanceof ImageField || field instanceof StringField || field instanceof SelectionField) {
+            if (field instanceof ImageField || field instanceof VideoField || field instanceof FileField
+                    || field instanceof StringField || field instanceof SelectionField) {
                 ps.setString(index, value.getString());
             } else if (field instanceof BooleanField) {
                 ps.setBoolean(index, value.getBoolean());

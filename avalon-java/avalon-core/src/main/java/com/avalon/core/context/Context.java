@@ -13,6 +13,7 @@ import com.avalon.core.db.DynamicDataSource;
 import com.avalon.core.db.DynamicJdbcTemplate;
 import com.avalon.core.enums.SystemStateEnum;
 import com.avalon.core.exception.AvalonException;
+import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.module.AbstractModule;
 import com.avalon.core.module.ModuleList;
@@ -23,10 +24,7 @@ import com.avalon.core.redis.IRedisLock;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.AbstractServiceList;
 import com.avalon.core.service.ExternalService;
-import com.avalon.core.util.FieldValue;
-import com.avalon.core.util.ObjectUtils;
-import com.avalon.core.util.SnowflakeIdWorker3rd;
-import com.avalon.core.util.StringUtils;
+import com.avalon.core.util.*;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.NotFoundException;
@@ -35,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.Lazy;
@@ -80,7 +77,7 @@ public class Context {
         systemPrepared = prepared;
     }
 
-    private final static AbstractServiceList serviceList = new AbstractServiceList();
+    private final static AbstractServiceList serviceList = new AbstractServiceList(); // 默认数据库的所有模型
 
     public AbstractServiceList getServiceList() {
         return serviceList;
@@ -136,6 +133,7 @@ public class Context {
 
     public synchronized void init(String database) {
         log.info("init database {}", database);
+        database = database.toLowerCase();
         Map<String, Object> map = createThreadMap();
         map.put("databaseName", database);
         map.put("databaseConfig", applicationConfig.getDataSource());
@@ -401,7 +399,7 @@ public class Context {
     }
 
     public <T> T getModule(Class<T> t) {
-        return getServiceBean(t);
+        return getClassBean(t);
     }
 
     public AbstractModule getModule(String moduleName) {
@@ -421,7 +419,7 @@ public class Context {
         }
     }
 
-    public <T> T getServiceBean(Class<T> t) {
+    public <T> T getClassBean(Class<T> t) {
         return getAvalonApplicationContext().getBean(t);
     }
 
@@ -566,6 +564,11 @@ public class Context {
         return service.invokeMethod(methodName, ids, row);
     }
 
+    public Object invokeServiceMethod(String serviceName, String methodName, Object... args) {
+        AbstractService service = getServiceBean(serviceName);
+        return service.invokeMethod(serviceName, methodName, args);
+    }
+
     public void registerBean(String beanName, Class<?> beanClass) {
         // 获取 BeanFactory
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getAvalonApplicationContext().getBeanFactory();
@@ -661,6 +664,7 @@ public class Context {
         }
 
         Map<String, Class<?>> rootServices = getAvalonApplicationContext().getDefaultORM().getRootServiceFromModule(modules);
+        Map<String, Class<?>> allServices = getAvalonApplicationContext().getDefaultORM().getAllServiceFromModule();
         Map<String, List<Class<?>>> inheritServices = getAvalonApplicationContext().getDefaultORM()
                 .getInheritServiceFromModule(modules);
 
@@ -673,7 +677,7 @@ public class Context {
 
         ClassPool classPool = ClassPoolManager.createClassPool();
         inheritServices.forEach((serviceName, services) -> {
-            Class<?> rootService = rootServices.get(serviceName); // 根模型
+            Class<?> rootService = allServices.get(serviceName); // 根模型
             try {
                 Class<?> enhancedClass = ClassPoolManager.createEnhancedClass(classPool, rootService, services);
                 beanServices.put(serviceName, enhancedClass);
@@ -723,5 +727,9 @@ public class Context {
 
 
         return ormMapper;
+    }
+
+    public Record getDB() {
+        return jdbcTemplate.getDB();
     }
 }

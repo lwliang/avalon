@@ -41,7 +41,7 @@ public class DynamicBeanNameRegistryPostProcessor implements BeanDefinitionRegis
     private static class InheritInfo {
         private String serviceName;
         private String inheritName;
-        private Class<?> className;
+        private Class<?> className; // 当前类
     }
 
     @Override
@@ -74,7 +74,7 @@ public class DynamicBeanNameRegistryPostProcessor implements BeanDefinitionRegis
                         inheritList.add(inheritInfo);
                         continue;
                     }
-                    // 如果名称不同，则修改 BeanDefinition 的名称
+                    // 如果名称不同，则修改 BeanDefinition 的名称  无继承的情况下
                     if (!beanName.equals(serviceName)) {
                         registry.removeBeanDefinition(beanName); // 移除旧的定义
                         registry.registerBeanDefinition(serviceName, beanDefinition); // 注册新的定义

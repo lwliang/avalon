@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_purchase_order_action" name="采购订单" action="purchase_order_action"/>
+    <menuitem id="menu_purchase_grn_action" name="收货单" action="purchase_grn_action"/>
+    <menuitem id="menu_purchase_request_action" name="采购申请单" action="purchase_request_action"/>
+    <menuitem id="menu_purchase_supplier_action" name="供应商" action="purchase_supplier_action"/>
+</avalon>

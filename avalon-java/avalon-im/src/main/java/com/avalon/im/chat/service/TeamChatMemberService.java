@@ -15,12 +15,23 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class TeamChatMemberService extends AbstractService {
     @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    @Override
     public String getServiceName() {
         return "chat.team.member";
     }
 
     private final Field teamId = Fields.createMany2one("群组ID", "chat.team");
     private final Field userId = Fields.createInteger("用户ID");
+
     @Override
     public Boolean getNeedDefaultField() {
         return false;

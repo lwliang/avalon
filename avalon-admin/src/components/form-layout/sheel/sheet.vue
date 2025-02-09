@@ -7,7 +7,7 @@ import './sheet.css'
 </script>
 
 <template>
-    <div class="relative p-4 ">
+    <div class="relative p-4 h-full">
         <slot></slot>
     </div>
 </template>

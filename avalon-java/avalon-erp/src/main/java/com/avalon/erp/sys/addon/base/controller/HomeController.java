@@ -17,8 +17,6 @@ import com.avalon.core.util.BCryptUtil;
 import com.avalon.core.util.ObjectUtils;
 import com.avalon.core.redis.RedisCommon;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

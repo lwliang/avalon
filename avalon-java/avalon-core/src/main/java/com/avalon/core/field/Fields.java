@@ -6,10 +6,7 @@
 package com.avalon.core.field;
 
 import com.avalon.core.context.Context;
-import com.avalon.core.face.field.BooleanFieldDefaultValue;
-import com.avalon.core.face.field.DateTimeFieldDefaultValue;
-import com.avalon.core.face.field.IFieldDefaultValue;
-import com.avalon.core.face.field.IntegerFieldDefaultValue;
+import com.avalon.core.face.field.*;
 import com.avalon.core.model.SelectionHashMap;
 import com.avalon.core.util.EnumUtils;
 
@@ -104,7 +101,7 @@ public class Fields {
      * @return 字段选择值
      */
     public static FieldSelectionField createFieldSelectionField() {
-        return new FieldSelectionField("类型选择");
+        return new FieldSelectionField("字段类型");
     }
 
     public static BigIntegerField createBigIntegerField(String label) {
@@ -219,8 +216,17 @@ public class Fields {
         return new SelectionField(label, enumClass);
     }
 
-    public static SelectionField createSelection(String label, Class<? extends Enum> enumClass, Enum defaultValue) {
-        return new SelectionField(label, enumClass, defaultValue);
+    public static Field createSelection(String label, Class<? extends Enum> enumClass, Enum defaultValue) {
+        return createSelection(label, enumClass, defaultValue, false);
+    }
+
+    public static Field createSelection(String label, Class<? extends Enum> enumClass, Enum defaultValue, boolean isMulti) {
+        SelectionField.Builder builder = SelectionField.Builder.getInstance();
+        builder.setLabel(label);
+        builder.setSection(EnumUtils.getSelectionMapFromEnum(enumClass));
+        builder.setDefaultValue(new FieldDefaultValue(defaultValue));
+        builder.setMulti(isMulti);
+        return builder.build();
     }
 
     public static SelectionField createSelection(String label,
@@ -435,4 +441,15 @@ public class Fields {
         return new BooleanField(label, isRequired, false, new BooleanFieldDefaultValue(defaultValue));
     }
 
+    public static Field createVideo(String label) {
+        VideoField.Builder builder = VideoField.Builder.getInstance();
+        builder.setLabel(label);
+        return builder.build();
+    }
+
+    public static Field createField(String label) {
+        FileField.Builder builder = FileField.Builder.getInstance();
+        builder.setLabel(label);
+        return builder.build();
+    }
 }

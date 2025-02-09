@@ -19,22 +19,6 @@ public class ImageField extends Field {
         super(label);
     }
 
-    public ImageField(String label, Boolean isRequired) {
-        super(label, isRequired);
-    }
-
-    public ImageField(String label, Boolean isRequired, Boolean isReadonly) {
-        super(label, isRequired, isReadonly);
-    }
-
-    public ImageField(String label, Boolean isRequired, Boolean isReadonly, IFieldDefaultValue defaultValue) {
-        super(label, isRequired, isReadonly, defaultValue);
-    }
-
-    public ImageField(String label, Boolean isRequired, Boolean isReadonly, IFieldDefaultValue defaultValue, Boolean isPrimaryKey, Boolean isAutoIncrement) {
-        super(label, isRequired, isReadonly, defaultValue, isPrimaryKey, isAutoIncrement);
-    }
-
     @Override
     public Type getFieldType() {
         return String.class;

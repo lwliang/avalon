@@ -38,7 +38,7 @@ public class ServiceService extends AbstractService {
 
     protected final Field label = Fields.createString("服务名");
     protected final Field tableName = Fields.createString("表名");
-    protected final Field moduleId = Fields.createMany2one("模块", "base.module");
+    public final Field moduleId = Fields.createMany2one("模块", "base.module");
 
     public final Field nameField = Fields.createString("显示字段");
 
@@ -49,6 +49,7 @@ public class ServiceService extends AbstractService {
 
     public final Field sourceType = Fields.createSelection("来源类型", FieldSourceTypeEnum.class,
             FieldSourceTypeEnum.custom);
+    public final Field delegateField = Fields.createString("委托继承字段");
 
     @Override
     public PrimaryKey insert(RecordRow recordRow) throws AvalonException {

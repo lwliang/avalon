@@ -14,18 +14,15 @@ import com.avalon.core.model.RecordRow;
 import com.avalon.core.permission.ElevatePermissionEnum;
 import com.avalon.core.permission.PermissionEnum;
 import com.avalon.core.permission.TemporaryElevate;
-import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.AbstractTreeService;
 import com.avalon.core.util.ObjectUtils;
 import com.avalon.erp.sys.addon.base.model.enums.ActionTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 权限服务，用户组 含权限，菜单，规则, 组织等
@@ -50,16 +47,7 @@ public class GroupService extends AbstractTreeService {
             "base.user"
     };
 
-    private ServiceService serviceService;
-    private MenuService menuService;
-
     public GroupService() {
-    }
-
-    public GroupService(ServiceService serviceService,
-                        MenuService menuService) {
-        this.serviceService = serviceService;
-        this.menuService = menuService;
     }
 
     @Override
@@ -82,6 +70,12 @@ public class GroupService extends AbstractTreeService {
     public final Field serviceAccess = Fields.createOne2many("服务访问",
             "base.service.access", "groupId");
 
+    /**
+     * 获取 用户所在组总，可以访问的模块的id
+     *
+     * @param userId 用户
+     * @return 模块id
+     */
     public List<Integer> getPermissionModule(Integer userId) {
         Condition condition = Condition.equalCondition("userIds.userId", userId);
         condition = condition.andEqualCondition(active, true);
@@ -104,7 +98,7 @@ public class GroupService extends AbstractTreeService {
         if (!serviceIdList.isEmpty()) {
             menuCondition = menuCondition.andInCondition("action.serviceId", (List<?>) serviceIdList);
         }
-        Record menuIds = menuService.select(menuCondition, "id"); // 获取模型对应的菜单id
+        Record menuIds = getServiceBean("base.menu").select(menuCondition, "id"); // 获取模型对应的菜单id
 
         Record menuIdsRecord = select(condition, "menuIds.menuId"); // 获取权限下的菜单
         List<Integer> menuIdsPer = menuIdsRecord.stream().flatMap(row -> row.getRecord("menuIds").stream())
@@ -134,7 +128,7 @@ public class GroupService extends AbstractTreeService {
             return true;
         }
 
-        Integer i = serviceService.selectCount(Condition.equalCondition("name", serviceName));
+        Integer i = getServiceBean("base.service").selectCount(Condition.equalCondition("name", serviceName));
         if (i <= 0) { // 是many2many字段生成的动态表
             return true;
         }
@@ -158,7 +152,7 @@ public class GroupService extends AbstractTreeService {
         if (userId.equals(SystemConstant.ADMIN)) {
             return true;
         }
-        Integer i = serviceService.selectCount(Condition.equalCondition("name", serviceName));
+        Integer i = getServiceBean("base.service").selectCount(Condition.equalCondition("name", serviceName));
         if (i <= 0) { // 是many2many字段生成的动态表
             return true;
         }
@@ -181,7 +175,7 @@ public class GroupService extends AbstractTreeService {
         if (userId.equals(SystemConstant.ADMIN)) {
             return true;
         }
-        Integer i = serviceService.selectCount(Condition.equalCondition("name", serviceName));
+        Integer i = getServiceBean("base.service").selectCount(Condition.equalCondition("name", serviceName));
         if (i <= 0) { // 是many2many字段生成的动态表
             return true;
         }
@@ -204,7 +198,7 @@ public class GroupService extends AbstractTreeService {
         if (userId.equals(SystemConstant.ADMIN)) {
             return true;
         }
-        Integer i = serviceService.selectCount(Condition.equalCondition("name", serviceName));
+        Integer i = getServiceBean("base.service").selectCount(Condition.equalCondition("name", serviceName));
         if (i <= 0) { // 是many2many字段生成的动态表
             return true;
         }

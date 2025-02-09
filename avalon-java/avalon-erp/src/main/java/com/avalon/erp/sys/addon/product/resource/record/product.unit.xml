@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="product_unit_piece" service="product.unit">
+        <field name="name">件</field>
+        <field name="label">件</field>
+        <field refId="unitCategoryId">product_unit_category_unit</field>
+    </record>
+    <update id="product_unit_category_unit" service="product.unit.category">
+        <field refId="defaultUnit">product_unit_piece</field>
+    </update>
+    <record id="product_unit_dozen" service="product.unit">
+        <field name="name">打</field>
+        <field name="label">打</field>
+        <field refId="unitCategoryId">product_unit_category_unit</field>
+    </record>
+    <record id="product_unit_gram" service="product.unit">
+        <field name="name">g</field>
+        <field name="label">克</field>
+        <field refId="unitCategoryId">product_unit_category_weight</field>
+    </record>
+    <record id="product_unit_kilogram" service="product.unit">
+        <field name="name">kg</field>
+        <field name="label">千克</field>
+        <field refId="unitCategoryId">product_unit_category_weight</field>
+    </record>
+    <update id="product_unit_category_weight" service="product.unit.category">
+        <field refId="defaultUnit">product_unit_kilogram</field>
+    </update>
+    <record id="product_unit_ton" service="product.unit">
+        <field name="name">t</field>
+        <field name="label">吨</field>
+        <field refId="unitCategoryId">product_unit_category_weight</field>
+    </record>
+    <record id="product_unit_mm" service="product.unit">
+        <field name="name">mm</field>
+        <field name="label">毫米</field>
+        <field refId="unitCategoryId">product_unit_category_length</field>
+    </record>
+    <record id="product_unit_centimeter" service="product.unit">
+        <field name="name">cm</field>
+        <field name="label">厘米</field>
+        <field refId="unitCategoryId">product_unit_category_length</field>
+    </record>
+    <record id="product_unit_meter" service="product.unit">
+        <field name="name">m</field>
+        <field name="label">米</field>
+        <field refId="unitCategoryId">product_unit_category_length</field>
+    </record>
+    <update id="product_unit_category_length" service="product.unit.category">
+        <field refId="defaultUnit">product_unit_meter</field>
+    </update>
+    <record id="product_unit_km" service="product.unit">
+        <field name="name">km</field>
+        <field name="label">千米</field>
+        <field refId="unitCategoryId">product_unit_category_length</field>
+    </record>
+    <record id="product_unit_cubic_centimeters" service="product.unit">
+        <field name="name">cm3</field>
+        <field name="label">立方厘米</field>
+        <field refId="unitCategoryId">product_unit_category_volume</field>
+    </record>
+    <update id="product_unit_category_volume" service="product.unit.category">
+        <field refId="defaultUnit">product_unit_cubic_centimeters</field>
+    </update>
+    <record id="product_unit_cubic_meter" service="product.unit">
+        <field name="name">m3</field>
+        <field name="label">立方米</field>
+        <field refId="unitCategoryId">product_unit_category_volume</field>
+    </record>
+</avalon>

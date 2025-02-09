@@ -9,6 +9,7 @@ import com.avalon.core.condition.Condition;
 import com.avalon.core.model.PrimaryKey;
 import com.avalon.core.module.AbstractModule;
 import com.avalon.core.service.AbstractService;
+import com.avalon.core.service.TransientService;
 import com.avalon.core.util.FieldValue;
 import com.avalon.core.util.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,7 @@ public class BaseModule extends AbstractModule {
     public String[] getResource() {
         return new String[]{
                 "resource/record/base.user.xml",
+                "resource/record/base.group.xml",
                 "resource/view/base.field.views.xml",
                 "resource/view/base.service.views.xml",
                 "resource/view/module.views.xml",
@@ -62,6 +64,7 @@ public class BaseModule extends AbstractModule {
                 "resource/view/base.action.window.views.xml",
                 "resource/view/base.action.window.view.views.xml",
                 "resource/view/base.action.view.views.xml",
+                "resource/view/base.cron.views.xml",
                 "resource/view/base.menus.views.xml",
                 "resource/view/menus.xml"
         };
@@ -85,6 +88,9 @@ public class BaseModule extends AbstractModule {
                 service.insertFieldInfo(serviceId);
                 continue;
             }
+            if (service instanceof TransientService) {
+                continue;
+            }
             service.createTable();
             PrimaryKey serviceId = service.insertTableInfo(key);
             service.insertFieldInfo(serviceId);
@@ -95,24 +101,36 @@ public class BaseModule extends AbstractModule {
 
     @Override
     public void upgradeModule() {
-        upgradeModuleInfo();
+        PrimaryKey moduleKeyId = upgradeModuleInfo();
         if (ObjectUtils.isNull(getServiceList())) return;
         List<String> noUpgrade = List.of("base.field", "base.service.log", "base.module", "base.service");
         for (String s : noUpgrade) {
-            getContext().getServiceBean(s).upgradeTable(); // 优先升级
+            AbstractService serviceBean = getContext().getServiceBean(s);
+            serviceBean.upgradeTable(); // 优先升级
         }
 
         AbstractService serviceBean = getContext().getServiceBean("base.service");
 
         for (AbstractService service : getServiceList()) {
-            if (!noUpgrade.contains(service.getServiceName())) {
+            if (!noUpgrade.contains(service.getServiceName())) { // 升级表结构
                 service.upgradeTable();
+                service.upgradeTableInfo(moduleKeyId);
+            } else {
+                if (service instanceof TransientService) {
+                    continue;
+                }
+                serviceBean.upgradeTableInfo(moduleKeyId);
             }
 
             if (ObjectUtils.isNotNull(serviceBean)) {
                 FieldValue fieldValue = serviceBean.getFieldValue("id",
                         Condition.equalCondition("name", service.getServiceName()));
-                PrimaryKey serviceId = PrimaryKey.build(fieldValue);
+                PrimaryKey serviceId;
+                if (fieldValue.isNull()) { // 新模型
+                    serviceId = service.insertTableInfo(moduleKeyId);
+                } else {
+                    serviceId = PrimaryKey.build(fieldValue);
+                }
                 service.insertFieldInfo(serviceId);
             }
         }

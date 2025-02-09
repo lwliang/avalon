@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="purchase_order_view_form" service="base.action.view">
+        <field name="name">order</field>
+        <field name="label">采购订单</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">purchase.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                            <field name="expectedDate"/>
+                            <field name="userId"/>
+                        </col>
+                        <col>
+                            <field name="status"/>
+                            <field name="totalAmount"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="订单明细">
+                            <field name="detailIds"/>
+                        </page>
+                        <page label="备注">
+                            <field name="remark"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="purchase_order_view_tree" service="base.action.view">
+        <field name="name">order</field>
+        <field name="label">采购订单</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">purchase.order</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="orderDate"/>
+                <field name="userId"/>
+                <field name="expectedDate"/>
+                <field name="totalAmount"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="purchase_order_action" service="base.action.window">
+        <field name="name">purchase order</field>
+        <field name="label">采购订单</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">purchase.order</field>
+    </record>
+</avalon>

@@ -8,7 +8,6 @@ package com.avalon.erp.sys.addon.base.service;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.face.field.DateFieldDefaultValue;
-import com.avalon.core.face.field.IFieldDefaultValue;
 import com.avalon.core.face.field.IntegerFieldDefaultValue;
 import com.avalon.core.face.field.StringFieldDefaultValue;
 import com.avalon.core.field.*;
@@ -21,12 +20,14 @@ import com.avalon.core.util.ObjectUtils;
 import com.avalon.core.util.StringUtils;
 import com.avalon.erp.sys.addon.base.model.enums.FieldSourceTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
 @Slf4j
 @Service
+@Primary
 public class FieldService extends AbstractService implements IExtendFieldSupportService {
     @Override
     public String getServiceName() {
@@ -80,7 +81,6 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         String targetService = select.get(0).getRecordRow("serviceId").getString("name");
         AbstractService serviceBean = getContext().getServiceBean(targetService);
         serviceBean.updateExtendField();
-        serviceBean.upgradeTable();
 
         return update;
     }

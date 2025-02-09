@@ -21,9 +21,20 @@ import java.util.Map;
 @Slf4j
 public class TeamChatService extends AbstractService {
     @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    @Override
     public String getServiceName() {
         return "chat.team";
     }
+
     @Override
     public Boolean getNeedDefaultField() {
         return false;

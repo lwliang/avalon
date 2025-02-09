@@ -27,7 +27,8 @@ public interface IAvalonService extends ILockSupport,
         IDeleteService,
         IUpdateService,
         IInvokeMethod,
-        IInheritTable {
+        IInheritTable,
+        ICreateService {
     String getLabel(); // 服务标签 比如用户
 
     Boolean getNeedLog();

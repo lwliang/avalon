@@ -56,7 +56,7 @@ const moduleClick = (module: Module) => {
 
 const menuClick = (menu: MenuModel) => {
     if (menu.type == 'action') {
-        goModelWindow(menu.action.serviceId.moduleId.name,
+        goModelWindow(menu.moduleId.name,
             menu.action.serviceId.name,
             {})
     } else {

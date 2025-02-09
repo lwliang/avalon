@@ -1,6 +1,7 @@
 package com.avalon.core.orm;
 
 import javassist.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
  * @author lwlianghehe@gmail.com
  * @date 2024/12/06 9:27
  */
+@Slf4j
 public class ClassPoolManager {
     /**
      * 模型动态继承
@@ -28,21 +30,18 @@ public class ClassPoolManager {
             throws NotFoundException, CannotCompileException {
         CtClass parentCtClass = classPool.get(parentClass.getName());
         CtClass childCtClass = null;
-
+        Class<?> targetClass = null;
         for (Class<?> childClass : childClasses) {
             childCtClass = classPool.get(childClass.getName()); // 子类
             // 设置继承关系
             childCtClass.setSuperclass(parentCtClass);
-            parentCtClass.detach();
+
+            String newClassName = childClass.getName() + "$Enhanced_" + System.currentTimeMillis();
+            childCtClass.setName(newClassName);
+            //  加载类到当前类加载器
+            targetClass = childCtClass.toClass(Thread.currentThread().getContextClassLoader());
             parentCtClass = childCtClass;
         }
-
-        String newClassName = childClasses.get(childClasses.size() - 1).getName() + "$Enhanced_" + System.currentTimeMillis();
-        childCtClass.setName(newClassName);
-        //  加载类到当前类加载器
-        Class<?> targetClass = childCtClass.toClass(ClassLoader.getSystemClassLoader());
-
-        childCtClass.detach();
 
         return targetClass;
     }
@@ -53,15 +52,11 @@ public class ClassPoolManager {
      * @return
      */
     public static ClassPool createClassPool() {
-        ClassPool classPool = new ClassPool(true);
         try {
-            // 1. 添加系统类路径
-            classPool.appendSystemPath();
-
             // 2. 获取当前上下文的类加载器
             ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            ClassPool classPool = ClassPool.getDefault();
             classPool.appendClassPath(new LoaderClassPath(contextClassLoader));
-
             return classPool;
         } catch (Exception e) {
             throw new IllegalStateException("Failed to create ClassPool", e);

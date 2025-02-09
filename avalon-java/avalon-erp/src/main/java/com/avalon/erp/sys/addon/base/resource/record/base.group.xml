@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_group" service="base.group">
+        <field name="name">基础权限组</field>
+        <field name="active">true</field>
+    </record>
+</avalon>

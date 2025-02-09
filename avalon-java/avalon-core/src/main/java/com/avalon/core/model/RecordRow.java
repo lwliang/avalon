@@ -140,10 +140,12 @@ public class RecordRow extends HashMap<String, RecordColumn> implements Serializ
 
     /**
      * 获取原始值
+     * 调用者在调用时会显式或隐式地指定 T 的实际类型
      *
      * @param fieldName
      * @return
      */
+    @SuppressWarnings("unchecked")
     public <T> T getRawValue(String fieldName) {
         if (!containsKey(fieldName)) {
             return null;
@@ -152,7 +154,35 @@ public class RecordRow extends HashMap<String, RecordColumn> implements Serializ
         if (ObjectUtils.isNull(recordColumn)) {
             return null;
         }
-        return (T) (get(fieldName).getValue());
+        return (T) (recordColumn.getValue());
+    }
+
+    /**
+     * 获取原始值
+     * 显示指定类型，保证类型安全
+     *
+     * @param fieldName
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getRawValue(String fieldName, Class<T> type) {
+        if (!containsKey(fieldName)) {
+            return null;
+        }
+        RecordColumn recordColumn = get(fieldName);
+        if (ObjectUtils.isNull(recordColumn)) {
+            return null;
+        }
+        Object value = recordColumn.getValue();
+
+        // 类型检查，确保返回值类型正确
+        if (type.isInstance(value)) {
+            return (T) value;
+        } else {
+            throw new ClassCastException(
+                    "Field value cannot be cast to " + type.getName() + ": " + value
+            );
+        }
     }
 
     public Object getRawValue(Field field) {

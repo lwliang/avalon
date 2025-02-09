@@ -17,6 +17,16 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CustomChatService extends AbstractService {
     @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    @Override
     public String getServiceName() {
         return "chat.custom";
     }
@@ -41,7 +51,7 @@ public class CustomChatService extends AbstractService {
             recordRow = RecordRow.build();
             recordRow.put(chatUserId, customUserId);
             insert(recordRow);
-        } else{
+        } else {
             recordRow = select.get(0);
         }
         return recordRow;

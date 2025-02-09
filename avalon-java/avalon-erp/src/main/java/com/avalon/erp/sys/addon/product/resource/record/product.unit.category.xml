@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="product_unit_category_unit" service="product.unit.category">
+        <field name="name">单位</field>
+    </record>
+    <record id="product_unit_category_weight" service="product.unit.category">
+        <field name="name">重量</field>
+    </record>
+    <record id="product_unit_category_length" service="product.unit.category">
+        <field name="name">长度/距离</field>
+    </record>
+    <record id="product_unit_category_volume" service="product.unit.category">
+        <field name="name">体积</field>
+    </record>
+</avalon>

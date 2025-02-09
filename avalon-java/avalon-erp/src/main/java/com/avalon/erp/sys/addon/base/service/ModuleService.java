@@ -23,6 +23,7 @@ import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.IModuleSupport;
 import com.avalon.core.util.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Primary
 public class ModuleService extends AbstractService implements IModuleSupport {
     @Override
     public String getServiceName() {

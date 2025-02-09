@@ -27,6 +27,10 @@ export function addModelApi(value: Object, serviceName: string): Promise<any> {
     return postErpHttp(`/service/${serviceName}/add`, {serviceName, value})
 }
 
+export function createModelApi(value: Object, serviceName: string) {
+    return postErpHttp(`/service/${serviceName}/create`, {serviceName, value})
+}
+
 export function getModelDetailApi(id: number, fields: string, serviceName: string): Promise<any> {
     return postErpHttp(`/service/get/${serviceName}/detail`, {
         serviceName,

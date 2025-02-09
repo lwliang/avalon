@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="project_task_view_form" service="base.action.view">
+        <field name="name">project task view form</field>
+        <field name="label">任务</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">project.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="description"/>
+                        </col>
+                    </row>
+                    <row>
+                        <col>
+                            <field name="projectId"/>
+                            <field name="userId"/>
+                            <field name="state"/>
+                            <field name="progress"/>
+                            <field name="priority"/>
+                        </col>
+                        <col>
+                            <field name="startDate"/>
+                            <field name="endDate"/>
+                            <field name="plannedHours"/>
+                            <field name="hoursSpent"/>
+                            <field name="sequence"/>
+                            <field name="tagIds"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="备注">
+                            <field name="remark"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="project_task_view_tree" service="base.action.view">
+        <field name="name">project task view tree</field>
+        <field name="label">任务</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">project.task</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="projectId"/>
+                <field name="userId"/>
+                <field name="description"/>
+                <field name="startDate"/>
+                <field name="endDate"/>
+                <field name="state"/>
+                <field name="plannedHours"/>
+                <field name="hoursSpent"/>
+                <field name="priority"/>
+                <field name="sequence"/>
+                <field name="progress"/>
+                <field name="tagIds"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="project_task_action" service="base.action.window">
+        <field name="name">task</field>
+        <field name="label">任务</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">project.task</field>
+    </record>
+</avalon>

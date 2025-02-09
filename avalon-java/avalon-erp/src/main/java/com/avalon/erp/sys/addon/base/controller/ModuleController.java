@@ -37,6 +37,7 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,11 @@ public class ModuleController {
     @PostMapping("/get/permission/module")
     public Record getModulePermission() {
         return moduleService.getDisplayModules();
+    }
+
+    @PostMapping("/get/install/module")
+    public Record getInstallModule() {
+        return moduleService.getInstalledModules();
     }
 
     @PostMapping("/get/permission/menu")
@@ -155,6 +161,49 @@ public class ModuleController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new FileIOException("默认icon图片读取发生错误");
+        }
+    }
+
+    @GetMapping("/get/start/js/{module}")
+    public List<String> getModuleStartJS(@PathVariable("module") String moduleName) {
+        AbstractModule module = context.getModule(moduleName);
+        if (ObjectUtils.isEmpty(module.getStartJS())) {
+            return new ArrayList<>();
+        }
+        return List.of(module.getStartJS());
+    }
+
+    @GetMapping("/download/start/js/{module}/**")
+    public void downloadModuleStartJS(@PathVariable("module") String moduleName,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) throws FileIOException {
+        String prefix = "/module/download/start/js/" + moduleName;
+        String path = request.getServletPath().substring(prefix.length());
+        AbstractModule module = context.getModule(moduleName);
+        String filePath = ClassUtils.getModulePackagePath(module);
+        if (path.startsWith("/")) {
+            filePath = filePath + path;
+        } else {
+            filePath = filePath + "/" + path;
+        }
+
+        try {
+            InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(filePath);
+            byte[] content = resourceAsStream.readAllBytes();
+
+            //设置下载响应头
+            response.setContentType("text/javascript");
+            response.setHeader("content-disposition", "attachment;fileName=" +
+                    URLEncoder.encode(path.replaceAll("/", "_"), StandardCharsets.UTF_8));
+            ServletOutputStream outputStream = response.getOutputStream();
+            outputStream.write(content);
+            outputStream.flush();
+            outputStream.close();
+        } catch (FileIOException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new FileIOException("start js 读取发生错误");
         }
     }
 }

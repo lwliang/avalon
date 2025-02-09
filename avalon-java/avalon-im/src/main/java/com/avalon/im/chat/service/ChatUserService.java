@@ -17,14 +17,26 @@ import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.IUserService;
 import com.avalon.core.util.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@Primary
 public class ChatUserService extends AbstractService implements IUserService {
     @Override
     public String getServiceName() {
         return "chat.user";
+    }
+
+    @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return false;
     }
 
     @Override

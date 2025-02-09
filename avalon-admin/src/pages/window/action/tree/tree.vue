@@ -29,6 +29,8 @@ import MyDebug from "../../../../components/debug/my-debug.vue";
 import MyDialog from "../../../../components/dialog/my-dialog.vue";
 import MyExportDialog from "../../../../components/dialog/my-export-dialog.vue";
 import {goModelImport, goModelWindow} from "../../../../util/routerUtils.ts";
+import {getServiceField, hasJoin} from "../../../../util/fieldUtils.ts";
+import ShowField from "../../../../model/ShowField.ts";
 
 
 const serviceFieldStore = useGlobalFieldDataStore()
@@ -62,7 +64,7 @@ const renderView = async () => {
 
 let template_fields = ref<string[]>([]);
 let template_full_fields = ref<string[]>([]);
-let services_fields = ref<Field[]>([]);
+let services_fields = ref<ShowField[]>([]);
 
 let parserResult: XMLParserResult | null = null;
 
@@ -86,13 +88,17 @@ const parserXml = async (str: string) => {
 
     services_fields.value.splice(0, services_fields.value.length)
     for (const key of template_fields.value) {
-        const field = serviceFields.find(f => f.name === key)
+        let field;
+        if (!hasJoin(key)) {
+            field = serviceFields.find(f => f.name === key)
+        } else {
+            field = await getServiceField(serviceName.value, key);
+        }
         if (field) {
-            services_fields.value.push(field)
+            services_fields.value.push({Field: field, originField: key, serviceName: serviceName.value})
         }
     }
 }
-
 
 const emit = defineEmits(['rowClick'])
 
@@ -120,8 +126,8 @@ const loadData = async () => {
         total.value = pageInfo.total
     })
     for (let field of services_fields.value) {
-        if (field.type == FieldTypeEnum.SelectionField) { // 得到字段对应的selection的值
-            selectionDynamic.value[field.name] = await getSelectionValueByServiceAndField(serviceName.value, field.name)
+        if (field.Field.type == FieldTypeEnum.SelectionField) { // 得到字段对应的selection的值
+            selectionDynamic.value[field.Field.name] = await getSelectionValueByServiceAndField(serviceName.value, field.Field.name)
         }
     }
     record.value.splice(0, record.value.length);

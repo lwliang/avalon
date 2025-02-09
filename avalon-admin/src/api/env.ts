@@ -11,6 +11,11 @@ export function getFileUploadUrl(url: any) {
     return filePrefixRoot + url
 }
 
+export function getVideoUploadUrl(url: any) {
+    return filePrefixRoot + url
+}
+
+
 
 export function getErpPrefix() {
     return erpPrefixRoot

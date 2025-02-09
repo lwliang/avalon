@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="product_unit_category_view_form" service="base.action.view">
+        <field name="name">product unit category</field>
+        <field name="label">单位类别</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">product.unit.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                        </col>
+                        <col>
+                            <field name="defaultUnit"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="单位">
+                            <field name="unitIds"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="product_unit_category_view_tree" service="base.action.view">
+        <field name="name">product unit category</field>
+        <field name="label">单位类别</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">product.unit.category</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="defaultUnit"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="product_unit_category_action" service="base.action.window">
+        <field name="name">product unit category</field>
+        <field name="label">单位类别</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">product.unit.category</field>
+    </record>
+</avalon>

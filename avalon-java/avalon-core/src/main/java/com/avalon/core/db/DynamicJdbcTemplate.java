@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Slf4j
@@ -23,6 +25,28 @@ public class DynamicJdbcTemplate {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private Context context;
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public boolean waitForDatabase(String databaseName) {
+        String sql = "select datname as data_name\n" +
+                "from pg_database\n" +
+                "WHERE datistemplate = false\n" +
+                "and datallowconn\n" +
+                "  and datname = '" + databaseName.toLowerCase() + "';";
+        Record select = select(sql);
+        return !select.isEmpty();
+    }
+
+    public Record getDB() {
+        String sql = String.format("select datname as data_name\n" +
+                        "from pg_database\n" +
+                        "WHERE datistemplate = false\n" +
+                        "and datallowconn\n" +
+                        "  and datname not in ('" + context.getDefaultDatabase() + "') " +
+                        "  AND datdba = (select usesysid from pg_user where usename = '%s');",
+                context.getApplicationConfig().getDataSource().getUsername());
+        return select(sql);
+    }
 
     public Record select(String sql) {
         if (context.getApplicationConfig().getDebug()) {

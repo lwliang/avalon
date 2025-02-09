@@ -20,4 +20,14 @@ public class AvalonFileClient {
     RecordRow uploadFile(@RequestPart("file") MultipartFile file) {
         return null;
     }
+
+    /**
+     * 上传失败返回 null
+     *
+     * @param file 文件内容
+     * @return url
+     */
+    RecordRow uploadFileWithDatabase(@RequestPart("file") MultipartFile file, @RequestPart("db") String db) {
+        return null;
+    }
 }

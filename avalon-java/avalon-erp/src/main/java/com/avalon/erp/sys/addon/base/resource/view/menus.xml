@@ -6,10 +6,7 @@
                   action="refreshModuleFromDisk"/>
     </menuitem>
     <menuitem id="menu_user_action" name="用户" action="base_user_action"/>
-    <menuitem id="menu_org_action" name="组织" action="base_org_action"/>
-    <menuitem id="menu_job_action" name="岗位" action="base_job_action"/>
-    <menuitem id="menu_partner_action" name="联系人" action="base_partner_action"/>
-    <menuitem id="menu_staff_action" name="员工" action="base_staff_action"/>
+    <menuitem id="menu_base_cron_action" name="定时任务" action="base_cron_action"/>
     <menuitem id="menu_base_group_paren" name="权限">
         <menuitem id="menu_base_group_action" name="权限组" action="base_group_action"/>
         <menuitem id="menu_base_rule_action" name="记录规则" action="base_rule_action"/>

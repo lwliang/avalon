@@ -21,6 +21,7 @@ import Service from "../../../../model/Service.ts";
 import {FieldTypeEnum} from "../../../../model/enum-type/FieldTypeEnum.ts";
 import ServiceSearchModel from "../../../../components/model/service-search-model/service-search-model.vue";
 import {getModelAllApi} from "../../../../api/modelApi.ts";
+import ShowField from "../../../../model/ShowField.ts";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -51,9 +52,18 @@ const props = defineProps<{
     record: FormField,
     fields?: String, // 显示的字段，如果为空，则从service获取
     service: string,
+    parentService: string, // 委托继承时使用
+    delegate: boolean,
     field: string,// 关系字段
     title: string
 }>()
+
+const getServiceName = computed(() => {
+    if (props.delegate) {
+        return props.parentService;
+    }
+    return props.service
+})
 
 const view = ref<ActionView | undefined>(undefined)
 const serviceName = ref<string>(props.service as string)
@@ -68,7 +78,7 @@ serviceStore.getServiceByNameAsync(serviceName.value).then(data => {
 
 let template_fields = ref<string[]>([]);
 let template_full_fields = ref<string[]>([]);
-let services_fields = ref<Field[]>([]);
+let services_fields = ref<ShowField[]>([]);
 const fieldsParser = async () => {
     if (!props.fields) return;
     const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
@@ -78,7 +88,7 @@ const fieldsParser = async () => {
         template_full_fields.value.push(fieldStr);
         const field = serviceFields.find(f => f.name === fieldStr)
         if (field) {
-            services_fields.value.push(field)
+            services_fields.value.push({Field: field, originField: fieldStr, serviceName: serviceName.value})
         }
     }
 }
@@ -127,7 +137,7 @@ const parserXml = async (str: string) => {
     for (const key of template_full_fields.value) {
         const field = serviceFields.find(f => f.name === key)
         if (field) {
-            services_fields.value.push(field)
+            services_fields.value.push({Field: field, originField: key, serviceName: serviceName.value})
         }
     }
 }
@@ -148,7 +158,13 @@ const addRow = () => {
         selectRow.value = undefined
         subShow.value = true
     } else {
-        many2ManyShow.value = true
+        if (props.record.Field?.type && props.record.Field?.type == FieldTypeEnum.Many2oneField) {
+            subRowId.value = undefined
+            selectRow.value = undefined
+            subShow.value = true
+        } else {
+            many2ManyShow.value = true
+        }
     }
 }
 
@@ -253,7 +269,7 @@ const getRecordComputed = computed(() => {
         </div>
         <MyFormModel v-if="subShow" :show="subShow"
                      :title="title"
-                     :service="service"
+                     :service="getServiceName"
                      :row-id="subRowId"
                      :old-record-row="selectRow"
                      @close="subRowCloseClick"

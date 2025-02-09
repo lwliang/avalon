@@ -11,7 +11,7 @@ import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
 import {ComputedRef} from "@vue/reactivity";
 import MyIcon from "../icon/my-icon.vue";
 import MyButton from "../button/my-button.vue";
-import {getFileUploadUrl} from "../../api/env.ts";
+import {getFileUploadUrl, getVideoUploadUrl} from "../../api/env.ts";
 import MyImage from "../image/my-image.vue";
 import MyMany2manySelect from "../select/many2may-select/my-many2many-select.vue";
 import FormField from "../../model/FormField.ts";
@@ -20,13 +20,16 @@ import {getDateTime} from "../../util/dateUtils.ts";
 import MyDebug from "../debug/my-debug.vue";
 import {useUserInfoStore} from "../../global/store/userInfoStore.ts";
 import {useDebounceFn} from "@vueuse/core";
+import MyVideo from "../video/my-video.vue";
+import ShowField from "../../model/ShowField.ts";
+import {getJoinFirstField, getJoinLastField, hasJoin} from "../../util/fieldUtils.ts";
 
 const emit = defineEmits(['rowClick', 'rowDeleteClick', 'rowSelectChange'])
 
 const props = defineProps<{
     record: any[],
     serviceName: string,
-    fields: Field[],
+    fields: ShowField[],
     height?: string,
     showDeleteBtn?: boolean,
     showSelectBtn?: boolean
@@ -41,19 +44,27 @@ const loadData = async () => {
     }
 
     for (let field of props.fields) {
-        if (field.type == FieldTypeEnum.SelectionField || field.type == FieldTypeEnum.FieldSelectionField) { // 得到字段对应的selection的值
-            selectionDynamic.value[field.name] = await getSelectionValueByServiceAndField(props.serviceName, field.name)
+        if (field.Field.type == FieldTypeEnum.SelectionField || field.Field.type == FieldTypeEnum.FieldSelectionField) { // 得到字段对应的selection的值
+            selectionDynamic.value[field.Field.name] = await getSelectionValueByServiceAndField(props.serviceName, field.Field.name)
         }
     }
 }
 
 
-const getSelectionField = (field: Field, row: any): ComputedRef => {
+const getSelectionField = (field: ShowField, row: any): ComputedRef => {
     return computed(() => {
-        if (field.name in selectionDynamic.value) {
-            return selectionDynamic.value[field.name][row[field.name]]
+        if (hasJoin(field.originField)) {
+            const last = getJoinLastField(field.originField)
+            if (last in selectionDynamic.value) {
+                return selectionDynamic.value[last][getValue(field, row)]
+            }
+            return ''
+        } else {
+            if (field.Field.name in selectionDynamic.value) {
+                return selectionDynamic.value[field.Field.name][row[field.Field.name]]
+            }
+            return ''
         }
-        return ''
     })
 }
 
@@ -71,6 +82,15 @@ const rowDeleteClick = (row: any) => {
     emit('rowDeleteClick', row)
 }
 
+const getValue = (field: ShowField, row: any) => {
+    if (hasJoin(field.originField)) {
+        const first = getJoinFirstField(field.originField)
+        const last = getJoinLastField(field.originField)
+        return row[first][last];
+    }
+    return row[field.originField]
+}
+
 const getImageUrl = (file: any) => {
     if (file instanceof File) {
         return URL.createObjectURL(file)
@@ -78,6 +98,14 @@ const getImageUrl = (file: any) => {
 
     return getFileUploadUrl(file)
 }
+const getVideoUrl = (file: any) => {
+    if (file instanceof File) {
+        return URL.createObjectURL(file)
+    }
+
+    return getVideoUploadUrl(file)
+}
+
 const getMany2manyFormField = (obj: any, value: any, field: Field) => {
     obj[field.name + '_many'] = new FormField(value, field)
     return ''
@@ -137,12 +165,12 @@ watch(() => allSelect.value.value, (all) => {
                 <th v-if="showSelectBtn" class="w-[28px]">
                     <MyCheck v-model="allSelect"/>
                 </th>
-                <template v-for="field in fields" :key="field.id">
-                    <th v-if="!field.isPrimaryKey" class="whitespace-nowrap">
-                        <span>{{ field.label }}</span>
+                <template v-for="field in fields" :key="field.Field.id">
+                    <th v-if="!field.Field.isPrimaryKey" class="whitespace-nowrap">
+                        <span>{{ field.Field.label }}</span>
                         <template v-if="userInfoStore.user.debug">
                             <span class="px-0.5"></span>
-                            <MyDebug :service="serviceName" :field="field.name"/>
+                            <MyDebug :service="serviceName" :field="field.originField"/>
                         </template>
                     </th>
                 </template>
@@ -157,43 +185,47 @@ watch(() => allSelect.value.value, (all) => {
                 <td v-if="showSelectBtn" class="w-[28px]" @click.stop="void(0)">
                     <MyCheck v-model="row[web_select]" @change="selectChange"/>
                 </td>
-                <template v-for="field in fields" :key="field.id">
-                    <td v-if="!field.isPrimaryKey">
-                        <template v-if="field.type == FieldTypeEnum.SelectionField">
+                <template v-for="field in fields" :key="field.Field.id">
+                    <td v-if="!field.Field.isPrimaryKey">
+                        <template v-if="field.Field.type == FieldTypeEnum.SelectionField">
                             {{ getSelectionField(field, row) }}
                         </template>
-                        <template v-else-if="field.type == FieldTypeEnum.FieldSelectionField">
+                        <template v-else-if="field.Field.type == FieldTypeEnum.FieldSelectionField">
                             {{ getSelectionField(field, row) }}
                         </template>
-                        <template v-else-if="field.type == FieldTypeEnum.Many2oneField">
+                        <template v-else-if="field.Field.type == FieldTypeEnum.Many2oneField">
                             {{
-                                row[field.name] ? row[field.name][serviceStore.getServiceByName(field.relativeServiceName).nameField] : ''
+                                getValue(field, row) ? getValue(field, row)[serviceStore.getServiceByName(field.Field.relativeServiceName).nameField] : ''
                             }}
                         </template>
-                        <template v-else-if="field.type == FieldTypeEnum.ImageField">
-                            <MyImage width="50" height="50" :src="getImageUrl(row[field.name])"></MyImage>
+                        <template v-else-if="field.Field.type == FieldTypeEnum.ImageField">
+                            <MyImage width="50" height="50" :src="getImageUrl(getValue(field,row))"></MyImage>
                         </template>
-                        <template v-else-if="field.type == FieldTypeEnum.Many2manyField">
-                            {{ getMany2manyFormField(row, row[field.name], field) }}
-                            <MyMany2manySelect v-model="row[field.name+'_many']" :readonly="true"
-                                               :ref="field.name+'_input'"
-                                               :service="field.relativeServiceName"
-                                               :field="field.name"
-                                               :htmlId="field.name"
-                                               :htmlName="field.name"/>
+                        <template v-else-if="field.Field.type == FieldTypeEnum.VideoField">
+                            <MyVideo width="94" height="94" :src="getVideoUrl(getValue(field,row))"></MyVideo>
                         </template>
-                        <template v-else-if="field.type == FieldTypeEnum.BooleanField">
-                            {{ getFormField(row, row[field.name], field) }}
-                            <MyCheck :ref="field.name+'_input'" v-model="row[field.name+'_field']" :readonly="true"
-                                     :field="field.name"
-                                     :htmlId="field.name"
-                                     :htmlName="field.name"></MyCheck>
+                        <template v-else-if="field.Field.type == FieldTypeEnum.Many2manyField">
+                            {{ getMany2manyFormField(row, getValue(field, row), field.Field) }}
+                            <MyMany2manySelect v-model="row[field.Field.name+'_many']" :readonly="true"
+                                               :ref="field.Field.name+'_input'"
+                                               :service="field.Field.relativeServiceName"
+                                               :field="field.Field.name"
+                                               :htmlId="field.Field.name"
+                                               :htmlName="field.Field.name"/>
                         </template>
-                        <template v-else-if="field.type == FieldTypeEnum.DateTimeField">
-                            {{ row[field.name] ? getDateTime(row[field.name]) : '' }}
+                        <template v-else-if="field.Field.type == FieldTypeEnum.BooleanField">
+                            {{ getFormField(row, getValue(field, row), field.Field) }}
+                            <MyCheck :ref="field.Field.name+'_input'" v-model="row[field.Field.name+'_field']"
+                                     :readonly="true"
+                                     :field="field.Field.name"
+                                     :htmlId="field.Field.name"
+                                     :htmlName="field.Field.name"></MyCheck>
+                        </template>
+                        <template v-else-if="field.Field.type == FieldTypeEnum.DateTimeField">
+                            {{ getValue(field, row) ? getDateTime(getValue(field, row)) : '' }}
                         </template>
                         <template v-else>
-                            {{ row[field.name] }}
+                            {{ getValue(field, row) }}
                         </template>
                     </td>
                 </template>

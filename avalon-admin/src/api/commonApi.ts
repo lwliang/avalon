@@ -7,6 +7,7 @@ import {getModelAllApi} from "./modelApi.ts";
 import _ from 'lodash'
 import {arrayToTree} from "../util/treeUtils.ts";
 import {getErpHttp, postDownloadFileHttp, postErpHttp, postUploadFileHttp} from "./http.ts";
+import {getBaseActionView} from "./viewApi.ts";
 
 
 export async function getModuleMenu(module: string) {
@@ -14,7 +15,8 @@ export async function getModuleMenu(module: string) {
         module: module,
         field: "id,label,param,name,parentId,objectAction,serviceId.id,serviceId.name," +
             "sequence,type,icon,action.id,action.viewMode,action.label,action.serviceId.id," +
-            "action.serviceId.name,action.serviceId.moduleId.id,action.serviceId.moduleId.name"
+            "action.serviceId.name,action.serviceId.moduleId.id,action.serviceId.moduleId.name,"
+            + "moduleId.id,moduleId.name"
     }).then(data => {
         data = _.sortBy(data, ['sequence', 'id'])
         data = arrayToTree(data)
@@ -33,7 +35,7 @@ export function getFieldsByServiceName(serviceName: string): Promise<any> {
 
 export function getServiceByServiceName(serviceName: string): Promise<any> {
     const param: any = {
-        fields: "id,label,name,tableName,moduleId,nameField,keyField",
+        fields: "id,label,name,tableName,moduleId,nameField,keyField,delegateField",
         rpnCondition: `(=,name,${serviceName})`,
         serviceName: serviceName
     };
@@ -42,33 +44,29 @@ export function getServiceByServiceName(serviceName: string): Promise<any> {
 }
 
 export function getActionView(serviceName: string, viewMode: string) {
-    return getModelAllApi("id,name,viewMode,label,priority,arch",
+    return getModelAllApi("id,name,viewMode,label,priority,arch,moduleId.id,moduleId.name",
         `(&,(=,serviceId.name,${serviceName}),(=,viewMode,${viewMode}))`,
         'base.action.view')
 }
 
 export function getActionTreeView(serviceName: string) {
-    return getModelAllApi("id,name,viewMode,label,priority,arch",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,tree))`,
-        'base.action.view')
+    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,tree))`);
 }
 
 export function getActionFormView(serviceName: string) {
-    return getModelAllApi("id,name,viewMode,label,priority,arch",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,form))`,
-        'base.action.view')
+    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,form))`);
 }
 
 export function getActionKanbanView(serviceName: string) {
-    return getModelAllApi("id,name,viewMode,label,priority,arch",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,kanban))`,
-        'base.action.view')
+    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,kanban))`);
 }
 
 export function getActionSearchView(serviceName: string) {
-    return getModelAllApi("id,name,viewMode,label,priority,arch",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,search))`,
-        'base.action.view')
+    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,search))`);
 }
 
 export async function exportExcel(serviceName: string, fields: string, rpnCondition: string, order: string) {

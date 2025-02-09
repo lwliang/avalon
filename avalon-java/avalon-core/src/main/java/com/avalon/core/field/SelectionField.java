@@ -117,7 +117,7 @@ public class SelectionField extends Field implements IFieldFormat {
 
     @Override
     public String getCreateTableSql() {
-        return "VARCHAR(20)";
+        return "VARCHAR(50)";
     }
 
     @Override

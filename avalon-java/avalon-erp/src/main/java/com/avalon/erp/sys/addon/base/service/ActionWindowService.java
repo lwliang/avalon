@@ -7,7 +7,6 @@ package com.avalon.erp.sys.addon.base.service;
 
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
-import com.avalon.core.model.SelectionHashMap;
 import com.avalon.core.service.AbstractService;
 import com.avalon.erp.sys.addon.base.model.enums.ViewModeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +24,7 @@ public class ActionWindowService extends AbstractService {
     public final Field label = Fields.createString("名称");
     public final Field serviceId = Fields.createMany2one("服务",
             "base.service");
+    public final Field moduleId = Fields.createMany2one("模块", "base.module");
 
     public final Field viewMode = Fields.createSelection("类型",
             ViewModeEnum.class, true);

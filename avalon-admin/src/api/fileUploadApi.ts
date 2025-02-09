@@ -21,8 +21,20 @@ export function postFileHttp(url: string, params: FormData): Promise<any> {
     })
 }
 
+export function uploadImage(file: File): Promise<any> {
+    const formData = new FormData()
+    formData.append('file', file)
+    return postFileHttp(getFilePrefix() + '/image/upload', formData)
+}
+
 export function uploadFile(file: File): Promise<any> {
     const formData = new FormData()
     formData.append('file', file)
     return postFileHttp(getFilePrefix() + '/file/upload', formData)
+}
+
+export function uploadVideo(file: File): Promise<any> {
+    const formData = new FormData()
+    formData.append('file', file)
+    return postFileHttp(getFilePrefix() + '/video/upload', formData)
 }

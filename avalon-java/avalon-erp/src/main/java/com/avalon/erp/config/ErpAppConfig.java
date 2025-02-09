@@ -43,6 +43,7 @@ public class ErpAppConfig extends WebMvcConfigurationSupport {
                 .excludePathPatterns("/electric/**")
                 .excludePathPatterns("/bank/**")
                 .excludePathPatterns("/school/**")
+                .excludePathPatterns("/module/download/start/js/**")
                 .excludePathPatterns("/test");
 
     }
@@ -56,6 +57,7 @@ public class ErpAppConfig extends WebMvcConfigurationSupport {
         registry.addResourceHandler("/favicon.ico")
                 .addResourceLocations("classpath:/templates/favicon.ico");
     }
+
 
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {

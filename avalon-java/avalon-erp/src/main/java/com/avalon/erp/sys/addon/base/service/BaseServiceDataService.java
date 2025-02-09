@@ -6,7 +6,6 @@
 package com.avalon.erp.sys.addon.base.service;
 
 import com.avalon.core.condition.Condition;
-import com.avalon.core.exception.AvalonException;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
 import com.avalon.core.model.PrimaryKey;
@@ -15,10 +14,12 @@ import com.avalon.core.model.RecordRow;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.IServiceDataService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@Primary
 public class BaseServiceDataService extends AbstractService implements IServiceDataService {
     @Override
     public String getServiceName() {

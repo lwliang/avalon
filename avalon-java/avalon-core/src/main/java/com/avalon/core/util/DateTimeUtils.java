@@ -5,7 +5,9 @@
 
 package com.avalon.core.util;
 
+import com.avalon.core.context.Context;
 import com.avalon.core.exception.AvalonException;
+import org.springframework.scheduling.support.CronExpression;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -24,6 +26,10 @@ public class DateTimeUtils {
         return new Date(System.currentTimeMillis());
     }
 
+    public static Date getCurrentDateTime() {
+        return new Date(System.currentTimeMillis());
+    }
+
     public static String getCurrentDateTimeString() {
         return getDateTimeFormat(new Date(System.currentTimeMillis()));
     }
@@ -37,11 +43,18 @@ public class DateTimeUtils {
     }
 
     public static String getDateFormat(Date date) {
-        return new SimpleDateFormat("yyyy-MM-dd").format(date);
+        String format = Context.getDateFormat();
+        return new SimpleDateFormat(format).format(date);
     }
 
     public static String getDateTimeFormat(Date date) {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+        String format = Context.getDateTimeFormat();
+        return new SimpleDateFormat(format).format(date);
+    }
+
+    public static String getTimeFormat(Date date) {
+        String format = Context.getTimeFormat();
+        return new SimpleDateFormat(format).format(date);
     }
 
     public static Time getCurrentTime() {
@@ -60,8 +73,43 @@ public class DateTimeUtils {
         }
     }
 
+    public static Time parseTime(String time) throws AvalonException {
+        try {
+            String format = Context.getTimeFormat();
+            return new Time(new SimpleDateFormat(format).parse(time).getTime());
+        } catch (ParseException e) {
+            throw new AvalonException(e.getMessage());
+        }
+    }
+
     public static Date parseDate(String format, String date) throws AvalonException {
         try {
+            return new SimpleDateFormat(format).parse(date);
+        } catch (ParseException e) {
+            throw new AvalonException(e.getMessage());
+        }
+    }
+
+    public static Date parseDate(String date) throws AvalonException {
+        try {
+            String format = Context.getDateFormat();
+            return new SimpleDateFormat(format).parse(date);
+        } catch (ParseException e) {
+            throw new AvalonException(e.getMessage());
+        }
+    }
+
+    public static Date parseDateTime(String format, String date) throws AvalonException {
+        try {
+            return new SimpleDateFormat(format).parse(date);
+        } catch (ParseException e) {
+            throw new AvalonException(e.getMessage());
+        }
+    }
+
+    public static Date parseDateTime(String date) throws AvalonException {
+        try {
+            String format = Context.getDateTimeFormat();
             return new SimpleDateFormat(format).parse(date);
         } catch (ParseException e) {
             throw new AvalonException(e.getMessage());
@@ -388,6 +436,19 @@ public class DateTimeUtils {
         return c.getTime();
     }
 
+    /**
+     * 增加分钟
+     *
+     * @param minutes
+     * @return
+     */
+    public static Date plusMinutes(Date date, Integer minutes) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.MINUTE, minutes);
+        return c.getTime();
+    }
+
     // 获得当前月--开始日期
     public static Date getMinMonthDate(Date date) {
         Calendar calendar = Calendar.getInstance();
@@ -425,5 +486,23 @@ public class DateTimeUtils {
             localSettleDate = DateTimeUtils.plusDays(currentDate, 3);
         }
         return localSettleDate;//本次结算日
+    }
+
+    /**
+     * 获取下次执行的时间
+     *
+     * @param date 开始执行时间
+     * @param cron 执行周期
+     * @return
+     */
+    public static Date getCronNextTime(Date date, String cron) {
+        // 解析 Cron 表达式
+        CronExpression cronExpression = CronExpression.parse(cron);
+        // 当前时间
+        LocalDateTime now = date.toInstant()
+                .atZone(ZoneId.systemDefault()) // 使用系统默认时区
+                .toLocalDateTime();
+        LocalDateTime next = cronExpression.next(now);
+        return Date.from(next.atZone(ZoneId.systemDefault()).toInstant());
     }
 }

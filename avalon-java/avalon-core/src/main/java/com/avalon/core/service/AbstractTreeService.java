@@ -99,7 +99,7 @@ public abstract class AbstractTreeService extends AbstractService implements ITr
     }
 
     private final Field parentPath = Fields.createString("路径"); // 格式 ,1,2,; 顶级 ,
-    private final Field childIds = Fields.createOne2many("子集", this.getServiceName(), "parentId");
+    private final Field childIds = Fields.createOne2many("子级", this.getServiceName(), "parentId");
 
     @Override
     public Field getParentPathField() {

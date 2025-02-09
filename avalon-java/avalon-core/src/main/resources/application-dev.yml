@@ -9,8 +9,8 @@ application:
     host: ${spring.profiles.host}
     port: 5432
     class-type: org.postgresql.Driver
-    username: avalon
-    password: avalon
+    username: odoo16
+    password: odoo16
     max-pool-size: 200
     min-idle: 10
     connection-timeout: 20000

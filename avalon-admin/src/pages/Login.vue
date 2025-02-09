@@ -80,7 +80,7 @@ const goDatabaseManagerClick = () => {
         <div class="w-full flex justify-center py-12">
             <div class="w-[300px] bg-background p-4">
                 <div>
-                    <my-image class="mx-auto" src="logo.png"></my-image>
+                    <my-image class="mx-auto" src="/logo.png"></my-image>
                 </div>
                 <MyDivider margin="1rem auto"></MyDivider>
                 <div class="pb-2" v-if="allDBS.length">

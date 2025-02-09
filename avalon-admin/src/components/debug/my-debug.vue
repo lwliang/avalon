@@ -6,12 +6,11 @@
 
 import MyPopover from "../popover/my-popover.vue";
 import MyIcon from "../icon/my-icon.vue";
-import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
 import Field from "../../model/Field.ts";
 import {ref} from "vue";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
+import {getServiceField} from "../../util/fieldUtils.ts";
 
-const serviceFieldStore = useGlobalFieldDataStore();
 
 const props = defineProps<{
     service: string,
@@ -19,12 +18,11 @@ const props = defineProps<{
 }>()
 
 const serviceField = ref<Field>()
-serviceFieldStore.getFieldByServiceNameAsync(props.service).then(fields => {
-    const serviceFieldX = fields.find(x => x.name == props.field)
-    if (serviceFieldX) {
-        serviceField.value = serviceFieldX
+getServiceField(props.service, props.field).then((field => {
+    if (field) {
+        serviceField.value = field
     }
-})
+}))
 
 
 </script>
@@ -40,7 +38,7 @@ serviceFieldStore.getFieldByServiceNameAsync(props.service).then(fields => {
                     <li>
                         <div class="flex gap-1 whitespace-nowrap items-center">
                             <div>字段:</div>
-                            <div>{{ serviceField?.name }}</div>
+                            <div>{{ field }}</div>
                         </div>
                     </li>
                     <li>

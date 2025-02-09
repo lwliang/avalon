@@ -11,7 +11,7 @@ import {compile, createVNode, defineComponent, ref, shallowRef} from "vue";
 import {useGlobalFieldDataStore} from "../../../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../../../global/store/serviceStore.ts";
 import ActionView from "../../../model/view/ActionView.ts";
-import {getModelAllApi, getModelDetailApi} from "../../../api/modelApi.ts";
+import {getModelDetailApi} from "../../../api/modelApi.ts";
 import {parserEx} from "../../../xml/XMLParser.ts";
 import Field from "../../../model/Field.ts";
 import {getTemplate, XMLParserResult} from "../../../xml/XMLParserResult.ts";
@@ -20,6 +20,7 @@ import FormField from "../../../model/FormField.ts";
 import {cloneDeep} from "lodash";
 import {getActionFormView, getActionTreeView} from "../../../api/commonApi.ts";
 import Service from "../../../model/Service.ts";
+import {getJoinFirstField, getJoinLastField, getServiceField, hasJoin} from "../../../util/fieldUtils.ts";
 
 const emit = defineEmits(['close', 'sure'])
 defineOptions({
@@ -61,38 +62,75 @@ loadView(props.service).then((dataView: any) => {
 })
 
 const recordRow = ref<any>({})
-const recordRowWithField = ref<Record<string, FormField>>({})
+const recordRowWithField = ref<Record<string, FormField | any>>({})
 const loadDataWithLayout = async () => {
     if (!(props.service && template_fields.value.length)) {
         return;
     }
     const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(props.service)
+    const serviceInstance = await serviceStore.getServiceByNameAsync(props.service);
     if (props.rowId && !(typeof props.rowId == 'symbol')) {
-        getModelDetailApi(props.rowId as number, template_fields.value.join(","),
-            props.service,).then(data => {
-            if (data) {
-                Object.assign(recordRow.value, data)
-                for (let key in recordRow.value) {
-                    const field = serviceFields.find(f => f.name === key) as Field
-                    if (field.type == FieldTypeEnum.One2manyField) {
-                        recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
+        const data = await getModelDetailApi(props.rowId as number, template_fields.value.join(","),
+            props.service)
+        if (data) {
+            Object.assign(recordRow.value, data)
+            for (let key in recordRow.value) {
+                const field = serviceFields.find(f => f.name === key) as Field
+                if (field.type == FieldTypeEnum.One2manyField) {
+                    recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
+                } else if (field.type == FieldTypeEnum.Many2oneField) {
+                    if (serviceInstance.delegateField) {
+                        const delegateField = JSON.parse(serviceInstance.delegateField)
+                        let delegate = false;
+                        for (let s in delegateField) {
+                            if (delegateField[s] == field.name) {
+                                delegate = true;
+                                recordRowWithField.value[key] = {}
+                                for (const sKey in recordRow.value[key]) {
+                                    recordRowWithField.value[key][sKey] = new FormField(recordRow.value[key][sKey], field)
+                                }
+                                break;
+                            }
+                        }
+                        if (!delegate) {
+                            recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
+                        }
                     } else {
                         recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
                     }
+                } else {
+                    recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
                 }
-                if (props.oldRecordRow) {
-                    mergeRecordRow(props.oldRecordRow, recordRowWithField.value)
-                }
-                template_component.value = createFormTemplateVNode();
             }
-        })
+            if (props.oldRecordRow) {
+                mergeRecordRow(props.oldRecordRow, recordRowWithField.value)
+            }
+            template_component.value = createFormTemplateVNode();
+        }
     } else {
         for (let key of template_fields.value) {
-            const field = serviceFields.find(f => f.name === key)
-            if (field && field.type == FieldTypeEnum.One2manyField) {
-                recordRowWithField.value[key] = new FormField([], field)
-            } else if (field) {
-                recordRowWithField.value[key] = new FormField(undefined, field)
+            if (hasJoin(key)) {
+                const first = getJoinFirstField(key); // 只支持二级字段
+                const firstField = await getServiceField(props.service, first);
+                const last = getJoinLastField(key);
+                const lastField = await getServiceField(props.service, key);
+                if (!recordRowWithField.value[first]) {
+                    recordRowWithField.value[first] = {}
+                }
+                if (lastField && (lastField.type == FieldTypeEnum.One2manyField ||
+                    lastField.type == FieldTypeEnum.Many2manyField)) {
+                    recordRowWithField.value[first][last] = new FormField([], lastField)
+                } else if (lastField) {
+                    recordRowWithField.value[first][last] = new FormField(undefined, lastField)
+                }
+            } else {
+                let field = serviceFields.find(f => f.name === key)
+                if (field && (field.type == FieldTypeEnum.One2manyField ||
+                    field.type == FieldTypeEnum.Many2manyField)) {
+                    recordRowWithField.value[key] = new FormField([], field)
+                } else if (field) {
+                    recordRowWithField.value[key] = new FormField(undefined, field)
+                }
             }
         }
         if (props.oldRecordRow) {
@@ -116,7 +154,7 @@ const mergeRecordRow = (src: any, dst: any) => {
 }
 
 const createFormTemplateVNode = () => {
-    return defineComponent({
+    const component = defineComponent({
         setup() {
             const vNode = compile(xmlTemplate.value)
             return () => {
@@ -124,6 +162,8 @@ const createFormTemplateVNode = () => {
             }
         }
     })
+
+    return component;
 }
 
 const xmlTemplate = ref<any>(null)
@@ -145,7 +185,15 @@ const parserXml = async (str: string) => {
     template_fields.value.push(...parserResult.fullFields.map(x => x.name))
     if (parserResult.one2ManyFields && parserResult.one2ManyFields.length) {
         for (let manyField of parserResult.one2ManyFields) {
-            const find = serviceFields.find(x => x.name == manyField) as Field;
+            let find;
+            if (!hasJoin(manyField)) { // 当前表字段
+                find = serviceFields.find(x => x.name == manyField) as Field;
+            } else {
+                find = await getServiceField(props.service, manyField)
+            }
+            if (!find) {
+                continue;
+            }
             const viewData = await loadTreeView(find.relativeServiceName);
             const tempFields = serviceFieldStore.getFieldByServiceName(find.relativeServiceName)
             const relativeService = await serviceStore.getServiceByNameAsync(find.relativeServiceName)
@@ -180,8 +228,17 @@ const sureClick = async () => {
     const row: any = {}
     for (let key in recordRowWithField.value) {
         const value = recordRowWithField.value[key]
-        if (value.isChanged()) {
-            row[key] = value.value
+        if (value instanceof FormField) {
+            if (value.isChanged()) {
+                row[key] = value.value
+            }
+        } else {
+            row[key] = {}
+            for (let x in value) {
+                if (value[x].isChanged()) {
+                    row[key][x] = value[x].value
+                }
+            }
         }
     }
     if (props.rowId) {

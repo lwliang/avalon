@@ -4,6 +4,7 @@ import com.avalon.core.module.AbstractModule;
 import com.avalon.core.module.ModuleList;
 import com.avalon.core.service.IModuleSupport;
 import com.avalon.core.util.ClassUtils;
+import com.avalon.core.util.ObjectUtils;
 import com.avalon.core.util.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -102,6 +103,10 @@ public class DefaultORMMapper extends ORMMapper{
         });
 
         return resultMap;
+    }
+
+    public Map<String, Class<?>> getAllServiceFromModule() {
+        return new Hashtable<>(this.rootService);
     }
 
     /**

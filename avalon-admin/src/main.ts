@@ -27,7 +27,7 @@ import MyTabPanel from "./components/tabs/my-tab-panel.vue";
 import MySubTree from './pages/window/action/form/my-sub-tree.vue';
 import MyOverlay from "./components/overlay/my-overlay.vue";
 import MyFormModel from "./components/model/form-model/my-form-model.vue";
-import MyUpload from "./components/upload/my-upload.vue";
+import MyImageUpload from "./components/upload/my-image-upload.vue";
 import MyPassword from "./components/password/my-password.vue";
 import MyDate from "./components/date/my-date.vue";
 import MyCheck from "./components/check/my-check.vue";
@@ -41,8 +41,15 @@ import MyPagination from "./components/pagination/my-pagination.vue";
 import MyAvatar from "./components/avatar/my-avatar.vue";
 import MyDebug from "./components/debug/my-debug.vue";
 import MyXmlViewer from "./components/xml-viewer/my-xml-viewer.vue";
+import MyVideoUpload from "./components/upload/my-video-upload.vue";
+import MyVideo from "./components/video/my-video.vue";
+import {ReconnectingWebSocket} from "./ws/WebScoket.ts";
+import {getToken} from "./cache/tokenStorage.ts";
+import ChatWindow from "./components/im/chat-window.vue";
 
 
+window.ReconnectingWebSocket = ReconnectingWebSocket;
+window.getToken = getToken
 window.console.log = log.info
 window.console.debug = log.debug
 window.console.info = log.info
@@ -77,7 +84,8 @@ app.component('MyTabPanel', MyTabPanel)
 app.component('MySubTree', MySubTree)
 app.component('MyOverlay', MyOverlay)
 app.component('MyFormModel', MyFormModel)
-app.component('MyUpload', MyUpload)
+app.component('MyImageUpload', MyImageUpload)
+app.component('MyVideoUpload', MyVideoUpload)
 app.component('MyPassword', MyPassword)
 app.component('MyDate', MyDate)
 app.component('MyCheck', MyCheck)
@@ -90,6 +98,8 @@ app.component('MySearch', MySearch)
 app.component('MyPagination', MyPagination)
 app.component('MyDebug', MyDebug)
 app.component('MyXmlViewer', MyXmlViewer)
+app.component('MyVideo', MyVideo)
+app.component('ChatWindow', ChatWindow)
 
 // 全局变量
 app.config.globalProperties.$notify = MyNotification

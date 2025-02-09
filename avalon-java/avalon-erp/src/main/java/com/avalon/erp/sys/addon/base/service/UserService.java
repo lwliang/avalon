@@ -21,12 +21,14 @@ import com.avalon.core.util.ImageUtils;
 import com.avalon.core.util.ObjectUtils;
 import com.avalon.erp.remote.IAvalonFileClient;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Slf4j
+@Primary
 public class UserService extends AbstractService implements IUserService {
     public UserService() {
     }

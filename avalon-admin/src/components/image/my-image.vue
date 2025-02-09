@@ -8,13 +8,17 @@ import {isAbsoluteUrl} from "../../util/commonUtils.ts";
 import {getFilePrefix} from "../../api/env.ts";
 
 const props = defineProps({
-    src: String,
-    alt: {
-        type: String,
-        default: '未找到图片'
-    },
-    width: String,
-    height: String,
+  src: String,
+  alt: {
+    type: String,
+    default: '未找到图片'
+  },
+  width: String,
+  height: String,
+  radius: {
+    type: Number,
+    default: 0
+  }
 })
 
 // const getImageUrl = () => {
@@ -31,7 +35,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <img :src="src" :alt="alt" :width="width" :height="height">
+  <img :style="{'border-radius':radius + 'px'}" :src="src" :alt="alt" :width="width" :height="height">
 </template>
 
 <style scoped>

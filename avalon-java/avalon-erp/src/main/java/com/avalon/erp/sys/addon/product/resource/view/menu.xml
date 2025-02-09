@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_product_product_action" name="产品" action="product_product_action"/>
+    <menuitem id="menu_product_unit_category_action" name="单位类别" action="product_unit_category_action"/>
+</avalon>

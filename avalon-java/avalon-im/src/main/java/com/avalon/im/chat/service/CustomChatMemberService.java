@@ -15,6 +15,16 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CustomChatMemberService extends AbstractService {
     @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    @Override
     public String getServiceName() {
         return "chat.custom.member";
     }

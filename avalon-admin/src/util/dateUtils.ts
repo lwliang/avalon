@@ -6,6 +6,13 @@
 import dayjs from 'dayjs';
 
 /**
+ * 获取当前时间的时间戳（单位是毫秒）
+ */
+export function getTick() {
+    return dayjs().valueOf();
+}
+
+/**
  * 返回参数的年，没有参数，则返回当前年份
  * @param dateString
  */

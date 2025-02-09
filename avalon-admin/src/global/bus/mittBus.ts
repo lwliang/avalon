@@ -7,13 +7,19 @@ import {getModelAllApi} from "../../api/modelApi.ts";
 import {useGlobalMenuDataStore} from "../store/menuStore.ts";
 import {useGlobalModuleDataStore} from "../store/moduleStore.ts";
 import {useGlobalServiceDataStore} from "../store/serviceStore.ts";
-import {useGlobalFieldDataStore} from "../store/fieldStore.ts";
 import {useUserInfoStore} from "../store/userInfoStore.ts"
 import mitt from "mitt";
 import {getUserDetail} from "../../api/loginApi.ts";
 import MenuModel from "../../model/MenuModel.ts";
 import {goModelWindow} from "../../util/routerUtils.ts";
-import {getPermissionModule} from "../../api/moduleApi.ts";
+import {
+    downloadModuleStartJS, getInstallModule,
+    getModuleStartJS,
+    getModuleStartJS_URL,
+    getPermissionModule
+} from "../../api/moduleApi.ts";
+import Module from "../../model/Module.ts";
+import {loadScript} from "../../util/scriptUtils.ts";
 
 type MittEvent = {
     changeModule: { module: string, click?: boolean }
@@ -72,10 +78,19 @@ mittBus.on('changeModule', async (args) => {
 })
 
 
-const handleLoadModuleEvent = () => {
-    getPermissionModule().then(data => {
-        useGlobalModuleDataStore().setModuleStore(data);
-    })
+const handleLoadModuleEvent = async () => {
+    const data: Module[] = await getPermissionModule();
+    useGlobalModuleDataStore().setModuleStore(data);
+
+    const installModules = await getInstallModule()
+    for (const module of installModules) {
+        const moduleNames: string[] = await getModuleStartJS(module.name);
+        for (const str of moduleNames) { // js 文件内容
+            loadScript(getModuleStartJS_URL(module.name, str), null)
+            // const jsContent = await downloadModuleStartJS(module.name, str)
+            // eval(jsContent)
+        }
+    }
 }
 
 mittBus.on('loadModule', handleLoadModuleEvent)

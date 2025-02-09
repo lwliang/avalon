@@ -8,19 +8,16 @@ package com.avalon.erp.sys.addon.base.controller;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.context.Context;
 import com.avalon.core.exception.AvalonException;
-import com.avalon.core.exception.FieldCheckException;
 import com.avalon.core.exception.ParamCheckException;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.FieldList;
 import com.avalon.core.field.SelectionField;
-import com.avalon.core.model.FieldHashMap;
 import com.avalon.core.model.PageInfo;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.FieldUtils;
 import com.avalon.core.util.ObjectUtils;
-import com.avalon.core.util.RecordRowUtils;
 import com.avalon.core.util.StringUtils;
 import com.avalon.erp.sys.addon.base.model.*;
 import com.avalon.erp.util.excel.ExcelUtil;
@@ -32,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -49,6 +45,13 @@ public class ServiceV2Controller {
 
     @Autowired
     private Context context;
+
+    @PostMapping("{serviceName}/create")
+    public RecordRow createModel(@PathVariable("serviceName") String serviceName,
+                              @RequestBody ServiceModelParam param) throws AvalonException {
+        AbstractService serviceBean = context.getServiceBean(serviceName);
+        return serviceBean.create(param.getValue());
+    }
 
     @PostMapping("{serviceName}/add")
     public RecordRow addModel(@PathVariable("serviceName") String serviceName,

@@ -18,7 +18,6 @@ import com.avalon.core.permission.TemporaryElevate;
 import com.avalon.core.service.AbstractService;
 import com.avalon.erp.sys.addon.base.service.DBService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -93,20 +92,19 @@ public class DatabaseController {
 
     @GetMapping("get/database")
     public Record getDatabases() throws AvalonException {
-        String sql = String.format("select datname as data_name\n" +
-                        "from pg_database\n" +
-                        "WHERE datistemplate = false\n" +
-                        "and datallowconn\n" +
-                        "  and datname not in ('" + context.getDefaultDatabase() + "') " +
-                        "  AND datdba = (select usesysid from pg_user where usename = '%s');",
-                context.getApplicationConfig().getDataSource().getUsername());
-        return context.getJdbcTemplate().select(sql);
+        return context.getDB();
     }
 
     @GetMapping("create/database/{database}")
     @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
     public void createDatabase(@PathVariable("database") String database) throws AvalonException {
         context.getJdbcTemplate().execute(String.format("CREATE DATABASE %s", database));
+        while (true) {
+            boolean b = context.getJdbcTemplate().waitForDatabase(database);
+            if (b) {
+                break;
+            }
+        }
 
         try {
             context.addSystemState(SystemStateEnum.createDB);

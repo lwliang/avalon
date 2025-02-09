@@ -254,7 +254,7 @@ public class SelectBuilder {
         List<String> orderList = FieldUtils.getFieldList(orderBy);
         StringBuilder orderBySql = new StringBuilder();
         for (String s : orderList) {
-            String[] s1 = s.split(" ");
+            String[] s1 = s.split(" ", 2);
             String field = s1[0];
             String asc = "asc";
             if (s1.length > 1) {

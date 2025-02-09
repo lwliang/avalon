@@ -20,7 +20,7 @@ const activeViewMode = ref<string>('');
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 
 if (route.fullPath.endsWith('/window')) {
-    getModelAllApi("id,name,viewMode,label,serviceId",
+    getModelAllApi("id,name,viewMode,label,serviceId,moduleId.id,moduleId.name",
         `(=,serviceId.name,${serviceName.value})`,
         "base.action.window")
         .then(data => {
@@ -35,6 +35,8 @@ const navigateToView = (viewMode: string) => {
         goServiceKanban();
     } else if (viewMode == 'tree') {
         goServiceTree()
+    } else if (viewMode == 'form') {
+        goServiceForm(undefined);
     }
 }
 

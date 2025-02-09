@@ -16,4 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface IAvalonFileClient extends AvalonRemoteClient {
     @PostMapping(value = "/file/file/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     RecordRow uploadFile(@RequestPart("file") MultipartFile file);
+
+    @PostMapping(value = "/file/file/upload/database", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    RecordRow uploadFileWithDatabase(@RequestPart("file") MultipartFile file, @RequestPart("db") String db);
 }

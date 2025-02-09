@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="asset_depreciation_view_form" service="base.action.view">
+        <field name="name">asset depreciation view form</field>
+        <field name="label">折旧表</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">asset.depreciation</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="assetId"/>
+                            <field name="depreciationDate"/>
+                            <field name="depreciationValue"/>
+                        </col>
+                        <col>
+                            <field name="cumulativeValue"/>
+                            <field name="remainValue"/>
+                        </col>
+                    </row>
+
+                    <notebook>
+                        <page label="备注">
+                            <field name="remark"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="asset_depreciation_view_tree" service="base.action.view">
+        <field name="name">asset depreciation view tree</field>
+        <field name="label">折旧表</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">asset.depreciation</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="assetId"/>
+                <field name="depreciationDate"/>
+                <field name="depreciationValue"/>
+                <field name="cumulativeValue"/>
+                <field name="remainValue"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="asset_depreciation_action" service="base.action.window">
+        <field name="name">depreciation</field>
+        <field name="label">折旧表</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">asset.depreciation</field>
+    </record>
+</avalon>

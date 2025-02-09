@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_sale_order_action" name="销售订单" action="sale_order_action"/>
+    <menuitem id="menu_sale_customer_action" name="客户" action="sale_customer_action"/>
+</avalon>
