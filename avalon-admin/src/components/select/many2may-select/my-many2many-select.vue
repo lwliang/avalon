@@ -105,9 +105,9 @@ const loadServiceOption = (name?: string) => {
             }
         }
         if (condition) {
-            condition = `(&,${condition},(like,${service.value.nameField},"${name ? name : ''}"))`
+            condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : ''})&(${condition})`
         } else {
-            condition = `(like,${service.value.nameField},"${name ? name : ''}")`
+            condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : ''})`
         }
         getModelPageApi(`${service.value.keyField},${service.value.nameField}`,
             condition,

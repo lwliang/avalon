@@ -86,15 +86,16 @@ const getFieldLabel = (field: string) => {
                 </div>
                 <div class="pl-8 pb-8">
                     <ul class="list-disc">
-                        <li v-for="(value,key,index) in log.contentJSON" :key="index">
+                        <li v-for="(item,index) in log.contentJSON" :key="index">
                             <div class="w-full grid" style="grid-template-columns: 100px 25px  minmax(0, 1fr) ">
-                                <div class="w-[100px]">{{ getFieldLabel(String(key)) }}</div>
+                                <div class="w-[100px]">{{
+                                       item == null ? '' : getFieldLabel(String(typeof item == 'object' ? item.key :item ))
+                                    }}</div>
                                 <div class="">
                                     <MyIcon type="fas" icon="arrow-right"/>
                                 </div>
-                                <div>{{ value }}</div>
+                                <div>{{ item == null ? '' : typeof item == 'object' ? item.value : item }}</div>
                             </div>
-
                         </li>
                     </ul>
                 </div>

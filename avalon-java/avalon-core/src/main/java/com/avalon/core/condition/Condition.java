@@ -6,6 +6,7 @@
 package com.avalon.core.condition;
 
 import com.avalon.core.exception.AvalonException;
+import com.avalon.core.field.DateField;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
 import com.avalon.core.model.FieldValueStatement;
@@ -67,6 +68,11 @@ public abstract class Condition implements ICondition {
         Field field = builder.getService().getField(getRealName());
         Object value = getValue();
         if (getValue() instanceof String) {
+            if (FieldUtils.isDateOrTime(field)) {
+                if (!value.toString().contains("'")) {
+                    value = "'" + value + "'";
+                }
+            }
             value = builder.getService().getContext().executeScript((String) value);
         }
         builder.getFieldValueStatement().put(field, value);
@@ -92,122 +98,13 @@ public abstract class Condition implements ICondition {
     }
 
     @Override
-    public String getReversePolishNotation() {
-        return String.format("(%s,%s,%s)", getOp().getName(), getRealName(), getValue());
-    }
-
-    @Override
-    public Condition parseReversePolishNotation(String conStr) {
-        conStr = conStr.trim();
-        conStr = conStr.replaceAll("\\(|\\)", "");
-        String[] split = conStr.split(",");
-        for (int i = 0; i < split.length; i++) {
-            split[i] = split[i].trim();
-        }
-        if (split.length < 2) {
-            throw new AvalonException("条件不符合");
-        }
-        return doParseReversePolishNotation(split);
-    }
-
-    protected Condition doParseReversePolishNotation(String[] values) {
-        throw new AvalonException("没有实现");
-    }
-
-
-    private static Hashtable<String, Condition> maps = new Hashtable<>();
-
-    static {
-        /**
-         *  这里的参数无意义，只是用来解析逆波兰表达式
-         */
-        maps.put(ConditionOperateEnum.Between.getName(), Condition.betweenCondition("", "", ""));
-        maps.put(ConditionOperateEnum.NotLike.getName(), Condition.notLikeCondition("", ""));
-        maps.put(ConditionOperateEnum.Like.getName(), Condition.likeCondition("", ""));
-        maps.put(ConditionOperateEnum.In.getName(), Condition.inCondition("", ""));
-        maps.put(ConditionOperateEnum.NotIn.getName(), Condition.notInCondition("", ""));
-        maps.put(ConditionOperateEnum.Equal.getName(), Condition.equalCondition("", ""));
-        maps.put(ConditionOperateEnum.NotEqual.getName(), Condition.notEqualCondition("", ""));
-        maps.put(ConditionOperateEnum.Greater.getName(), Condition.greaterCondition("", ""));
-        maps.put(ConditionOperateEnum.GreaterEqual.getName(), Condition.greaterEqualCondition("", ""));
-        maps.put(ConditionOperateEnum.Less.getName(), Condition.lessCondition("", ""));
-        maps.put(ConditionOperateEnum.LessEqual.getName(), Condition.lessEqualCondition("", ""));
-        maps.put(ConditionOperateEnum.Span.getName(), Condition.subGreaterThanSpanCondition("", "", ""));
-        maps.put(ConditionOperateEnum.And.getName(), Condition.andCondition(Condition.equalCondition("", ""),
-                Condition.equalCondition("", "")));
-        maps.put(ConditionOperateEnum.Or.getName(), Condition.orCondition(Condition.equalCondition("", ""),
-                Condition.equalCondition("", "")));
-    }
-
-    public static Condition parseRPN(String conStr) {
-        if (StringUtils.isEmpty(conStr)) {
-            return null;
-        }
-        conStr = conStr.trim();
-        int begin = conStr.indexOf("(");
-        int length = conStr.indexOf(",");
-        String op = conStr.substring(begin + 1, length - begin);
-
-        Condition condition = maps.get(op);
-
-        if (ObjectUtils.isNotNull(condition)) {
-            return condition.parseReversePolishNotation(conStr);
-        }
-
-        throw new AvalonException("过滤表达式格式存在问题");
-    }
-
-
-    /**
-     * 解析表达式三元祖
-     *
-     * @param conStr 表达式
-     * @return 三元祖
-     */
-    public String[] parseRPNToken(String conStr) {
-        conStr = conStr.trim();
-        int leftIndex = conStr.indexOf("(");
-        int commIndex = conStr.indexOf(",");
-        String opStr = conStr.substring(leftIndex + 1, commIndex - leftIndex).trim();
-
-        // 获取第二个条件
-        String left = getToken(conStr, commIndex);
-
-        // 第三个条件
-        String right = getToken(conStr, commIndex + left.length());
-
-        return new String[]{opStr, left, right};
-    }
-
-    /**
-     * 解析一个带口号表达式
-     *
-     * @param conStr    表达式
-     * @param fromIndex 开始索引
-     * @return 表达式
-     */
-    private String getToken(String conStr, int fromIndex) {
-        int begin = conStr.indexOf("(", fromIndex);
-        int end = begin;
-        int count = 1;
-        for (int i = begin + 1; i < conStr.length(); i++) {
-            if (conStr.charAt(i) == ')') {
-                count--;
-            }
-            if (conStr.charAt(i) == '(') {
-                count++;
-            }
-            if (count == 0) {
-                end = i;
-                break;
-            }
-        }
-        return conStr.substring(begin, end + 1).trim();
-    }
-
-    @Override
     public String toString() {
         return String.format(op.getValue(), getRealName(), value);
+    }
+
+    @Override
+    public String getConditionString() {
+        return String.format(op.getCondition(), getRealName(), value);
     }
 
     public Condition andCondition(Condition condition) {
@@ -333,38 +230,6 @@ public abstract class Condition implements ICondition {
 
     public Condition orLikeCondition(Field field, Object value) {
         return new OrCondition(this, Condition.likeCondition(field, value));
-    }
-
-    public Condition andBetweenCondition(String name, List<Object> value) {
-        return new AndCondition(this, Condition.betweenCondition(name, value));
-    }
-
-    public Condition andBetweenCondition(Field field, List<Object> value) {
-        return new AndCondition(this, Condition.betweenCondition(field, value));
-    }
-
-    public Condition andBetweenCondition(String name, Object... value) {
-        return new OrCondition(this, Condition.betweenCondition(name, value));
-    }
-
-    public Condition andBetweenCondition(Field field, Object... value) {
-        return new OrCondition(this, Condition.betweenCondition(field, value));
-    }
-
-    public Condition orBetweenCondition(String name, Object... value) {
-        return new OrCondition(this, Condition.betweenCondition(name, value));
-    }
-
-    public Condition orBetweenCondition(Field field, Object... value) {
-        return new OrCondition(this, Condition.betweenCondition(field, value));
-    }
-
-    public Condition orBetweenCondition(String name, List<Object> value) {
-        return new OrCondition(this, Condition.betweenCondition(name, value));
-    }
-
-    public Condition orBetweenCondition(Field field, List<Object> value) {
-        return new OrCondition(this, Condition.betweenCondition(field, value));
     }
 
     public Condition andGreaterCondition(String name, Object value) {
@@ -516,22 +381,6 @@ public abstract class Condition implements ICondition {
         return new GreaterEqualCondition(field, value);
     }
 
-    public static Condition betweenCondition(String name, Object... value) {
-        return new BetweenCondition(name, value);
-    }
-
-    public static Condition betweenCondition(Field field, Object... value) {
-        return new BetweenCondition(field, value);
-    }
-
-    public static Condition betweenCondition(String name, List<Object> value) {
-        return new BetweenCondition(name, value);
-    }
-
-    public static Condition betweenCondition(Field field, List<Object> value) {
-        return new BetweenCondition(field, value);
-    }
-
     public static Condition betweenCondition(String name, Object begin, Object end) {
         return new BetweenCondition(name, begin, end);
     }
@@ -624,6 +473,13 @@ public abstract class Condition implements ICondition {
             return left.orCondition(right);
         }
         return right;
+    }
+
+    public static Condition notCondition(Condition condition) {
+        if (ObjectUtils.isNotNull(condition)) {
+            return new NotCondition(condition);
+        }
+        return condition;
     }
 
 }

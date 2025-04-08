@@ -65,6 +65,46 @@ public class FileController {
             RecordRow result = new RecordRow();
             result.put("url", recordRow.get("url"));
             result.put("originName", recordRow.get("originName"));
+            result.put("mine", recordRow.get("mime"));
+            result.put("size", recordRow.get("size"));
+            return result;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new FileIOException(e.getMessage());
+        }
+    }
+
+    @ResponseBody
+    @PostMapping("/image/upload")
+    public RecordRow imageUpload(@RequestParam("file") MultipartFile file) throws FileIOException {
+        try {
+            String fileName = file.getOriginalFilename();
+            String mime = file.getContentType();
+            byte[] content = file.getBytes();
+
+            RecordRow recordRow = fileService.saveImageFile(fileName, mime, content);
+            RecordRow result = new RecordRow();
+            result.put("url", recordRow.get("url"));
+            result.put("originName", recordRow.get("originName"));
+            return result;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new FileIOException(e.getMessage());
+        }
+    }
+
+    @ResponseBody
+    @PostMapping("/video/upload")
+    public RecordRow videoUpload(@RequestParam("file") MultipartFile file) throws FileIOException {
+        try {
+            String fileName = file.getOriginalFilename();
+            String mime = file.getContentType();
+            byte[] content = file.getBytes();
+
+            RecordRow recordRow = fileService.saveVideoFile(fileName, mime, content);
+            RecordRow result = new RecordRow();
+            result.put("url", recordRow.get("url"));
+            result.put("originName", recordRow.get("originName"));
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -93,8 +133,8 @@ public class FileController {
     }
 
 
-    @GetMapping({"file/down/{first}/{second}/{filename}",
-            "file/down/{db}/{first}/{second}/{filename}"})
+    @RequestMapping(value = {"file/down/{first}/{second}/{filename}",
+            "file/down/{db}/{first}/{second}/{filename}"}, method = {RequestMethod.POST, RequestMethod.GET})
     public void downloadFile(@PathVariable(value = "db", required = false) String db,
                              @PathVariable("first") String first,
                              @PathVariable("second") String second,
@@ -109,7 +149,7 @@ public class FileController {
                 File.separator + second +
                 File.separator + filename;
 
-        String filePath = fileConfig.getDir() + fullFileName;
+        String filePath = fileConfig.getFile() + fullFileName;
 
         File file = new File(filePath);
         if (!file.exists()) {
@@ -133,6 +173,97 @@ public class FileController {
 //            RecordRow recordRow = select.get(0);
             //设置下载响应头
             //response.setContentType(recordRow.get("mime").toString());
+            response.setHeader("content-disposition", "attachment;fileName=" +
+                    URLEncoder.encode("file", StandardCharsets.UTF_8));
+            ServletOutputStream outputStream = response.getOutputStream();
+            outputStream.write(content);
+            outputStream.flush();
+            outputStream.close();
+        } catch (FileIOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new FileIOException("文件读取发生错误");
+        }
+    }
+
+    @RequestMapping(value = {"video/down/{db}/{first}/{second}/{filename}"},
+            method = {RequestMethod.POST, RequestMethod.GET})
+    public void downloadVideoFile(@PathVariable(value = "db", required = false) String db,
+                                  @PathVariable("first") String first,
+                                  @PathVariable("second") String second,
+                                  @PathVariable("filename") String filename,
+                                  HttpServletResponse response) throws IOException {
+
+        String fullFileName = "";
+        if (StringUtils.isNotEmpty(db)) {
+            fullFileName = db + File.separator;
+        }
+        fullFileName += first +
+                File.separator + second +
+                File.separator + filename;
+
+        String filePath = fileConfig.getVideo() + fullFileName;
+
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new FileIOException(String.format("文件不存在:%s", filePath));
+        }
+
+        try {
+            FileChannel channel = new FileInputStream(file).getChannel();
+
+            long size = channel.size();
+            ByteBuffer byteBuffer = ByteBuffer.allocate((int) size);
+
+            channel.read(byteBuffer);
+            channel.close();
+            byte[] content = byteBuffer.array();
+            Condition condition = new EqualCondition("name", filename);
+            response.setHeader("content-disposition", "attachment;fileName=" +
+                    URLEncoder.encode("video", StandardCharsets.UTF_8));
+            ServletOutputStream outputStream = response.getOutputStream();
+            outputStream.write(content);
+            outputStream.flush();
+            outputStream.close();
+        } catch (FileIOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new FileIOException("文件读取发生错误");
+        }
+    }
+
+    @RequestMapping(value = {"image/down/{db}/{first}/{second}/{filename}"}, method = {RequestMethod.GET, RequestMethod.POST})
+    public void downloadImageFile(@PathVariable(value = "db", required = false) String db,
+                                  @PathVariable("first") String first,
+                                  @PathVariable("second") String second,
+                                  @PathVariable("filename") String filename,
+                                  HttpServletResponse response) throws IOException {
+
+        String fullFileName = "";
+        if (StringUtils.isNotEmpty(db)) {
+            fullFileName = db + File.separator;
+        }
+        fullFileName += first +
+                File.separator + second +
+                File.separator + filename;
+
+        String filePath = fileConfig.getImage() + fullFileName;
+
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new FileIOException(String.format("文件不存在:%s", filePath));
+        }
+
+        try {
+            FileChannel channel = new FileInputStream(file).getChannel();
+
+            long size = channel.size();
+            ByteBuffer byteBuffer = ByteBuffer.allocate((int) size);
+
+            channel.read(byteBuffer);
+            channel.close();
+            byte[] content = byteBuffer.array();
+            Condition condition = new EqualCondition("name", filename);
             response.setHeader("content-disposition", "attachment;fileName=" +
                     URLEncoder.encode("image", StandardCharsets.UTF_8));
             ServletOutputStream outputStream = response.getOutputStream();

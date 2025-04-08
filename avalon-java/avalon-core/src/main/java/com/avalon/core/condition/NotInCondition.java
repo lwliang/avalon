@@ -31,10 +31,4 @@ public class NotInCondition extends InCondition {
         super(fieldName, values);
         setOp(ConditionOperateEnum.NotIn);
     }
-
-    @Override
-    protected Condition doParseReversePolishNotation(String[] values) {
-        List<Object> inValues = new ArrayList<>(Arrays.asList(values).subList(2, values.length));
-        return Condition.notInCondition(values[1], inValues);
-    }
 }

@@ -24,11 +24,6 @@ public class LessCondition extends Condition {
     }
 
     @Override
-    protected Condition doParseReversePolishNotation(String[] values) {
-        return Condition.lessCondition(values[1], values[2]);
-    }
-
-    @Override
     public String toString() {
         return super.toString();
     }

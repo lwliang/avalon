@@ -14,5 +14,7 @@ pulsar:
   enable: false
 
 file:
-  dir: ./data/
+  file: ./data/
+  video: ./video/
+  image: ./image/
   mode: date

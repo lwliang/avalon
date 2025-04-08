@@ -59,17 +59,6 @@ public class SpanCondition extends Condition {
     }
 
     @Override
-    public String getReversePolishNotation() {
-        // 默认相加，是大于等于匹配
-        return String.format("(%s,%s,%s,%s)", getOp().getName(), getRealName(), getValue(), getSpan());
-    }
-
-    @Override
-    protected Condition doParseReversePolishNotation(String[] values) {
-        return Condition.subGreaterThanSpanCondition(values[1], values[2], values[3]);
-    }
-
-    @Override
     public String toString() {
         return super.toString();
     }

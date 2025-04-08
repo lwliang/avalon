@@ -2,6 +2,7 @@ package com.avalon.core.orm;
 
 import javassist.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.ClassUtils;
 
 import java.util.List;
 
@@ -39,7 +40,9 @@ public class ClassPoolManager {
             String newClassName = childClass.getName() + "$Enhanced_" + System.currentTimeMillis();
             childCtClass.setName(newClassName);
             //  加载类到当前类加载器
-            targetClass = childCtClass.toClass(Thread.currentThread().getContextClassLoader());
+            targetClass = childCtClass.toClass(getAppClassLoader());
+            targetClass = childCtClass.toClass(getDefaultClassLoader());
+
             parentCtClass = childCtClass;
         }
 
@@ -54,12 +57,20 @@ public class ClassPoolManager {
     public static ClassPool createClassPool() {
         try {
             // 2. 获取当前上下文的类加载器
-            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            ClassLoader contextClassLoader = getDefaultClassLoader();
             ClassPool classPool = ClassPool.getDefault();
             classPool.appendClassPath(new LoaderClassPath(contextClassLoader));
             return classPool;
         } catch (Exception e) {
             throw new IllegalStateException("Failed to create ClassPool", e);
         }
+    }
+
+    public static ClassLoader getDefaultClassLoader() {
+        return ClassUtils.getDefaultClassLoader(); // 如果是接口
+    }
+
+    public static ClassLoader getAppClassLoader() {
+        return ClassUtils.class.getClassLoader();
     }
 }

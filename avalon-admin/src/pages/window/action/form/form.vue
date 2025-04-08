@@ -16,7 +16,7 @@ import {
 } from "vue";
 import {useRoute} from "vue-router";
 import ActionView from "../../../../model/view/ActionView.ts";
-import {addModelApi, createModelApi, editModelApi, getModelDetailApi} from "../../../../api/modelApi.ts";
+import {addModelApi, createModelApi, editModelApi, getModelDetailApi, invokeMethod} from "../../../../api/modelApi.ts";
 import {getTemplate, XMLParserResult} from "../../../../xml/XMLParserResult.ts";
 import {parserEx} from "../../../../xml/XMLParser.ts";
 import {useGlobalFieldDataStore} from "../../../../global/store/fieldStore.ts";
@@ -29,6 +29,11 @@ import {goModelWindow, replaceModelForm} from "../../../../util/routerUtils.ts";
 import {getActionFormView, getActionTreeView} from "../../../../api/commonApi.ts";
 import MyServiceLog from "../../../../components/service-log/my-service-log.vue";
 import {getJoinFirstField, getJoinLastField, getServiceField, hasJoin} from "../../../../util/fieldUtils.ts";
+import {getModuleIcon} from "../../../../api/moduleApi.ts";
+import {refreshPage} from "../../../../util/commonUtils.ts";
+import Service from "../../../../model/Service.ts";
+import Form from "../../../../model/form/Form.ts";
+import ServiceInvokeParam from "../../../../model/ServiceInvokeParam.ts";
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 const route = useRoute();
@@ -39,6 +44,11 @@ const moduleName = ref<string>(route.params.module as string)
 const row_id = ref<number | undefined>(parseInt(route.query.id as string))
 const serviceName = ref<string>(route.params.service as string)
 const form_container = ref()
+
+const servicePropInstance = ref<Service>()
+serviceStore.getServiceByNameAsync(serviceName.value).then(data => {
+    servicePropInstance.value = data
+})
 
 const view = ref<ActionView | undefined>(undefined)
 defineOptions({
@@ -73,7 +83,9 @@ const loadTreeView = async (service: string) => {
 }
 
 const xmlTemplate = ref<any>(null)
+const headerTemplate = ref<any>(null)
 const template_component = shallowRef<any>(null)
+const header_component = shallowRef<any>(null)
 
 const renderView = async (arch: string) => {
     await parserXml(arch)
@@ -83,12 +95,17 @@ let template_fields = ref<string[]>([]); // 全部字段 用于查询数据库
 let self_service_fields = ref<string[]>([]); // 自身第一级字段
 
 let parserResult: XMLParserResult | null = null;
+let form = ref<Form>({} as Form)
 
 const parserXml = async (str: string) => {
     const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
     const primaryKeyField = await serviceStore.getServiceByNameAsync(serviceName.value)
     parserResult = await parserEx(str, serviceName.value)
+    Object.assign(form.value, parserResult.form)
     xmlTemplate.value = getTemplate(parserResult);
+    if (parserResult.header && parserResult.header.template) {
+        headerTemplate.value = parserResult.header.template
+    }
     template_fields.value.splice(0, template_fields.value.length)
     template_fields.value.push(...parserResult.fullFields.map(x => x.name))
 
@@ -109,6 +126,7 @@ const parserXml = async (str: string) => {
             const viewData = await loadTreeView(find.relativeServiceName);
             const relativeService = await serviceStore.getServiceByNameAsync(find.relativeServiceName)
             const parserResult2 = await parserEx(viewData.arch, find.relativeServiceName)
+
             for (let tempField of parserResult2.fullFields) {
                 template_fields.value.push(`${manyField}.${tempField.name}`)
             }
@@ -186,12 +204,14 @@ const loadDataWithLayout = async () => {
 
             }
             template_component.value = createFormTemplateVNode();
+            createHeaderTemplateVNode();
         }
     } else {
         await createNewRecordRow(serviceFields);
         const defaultValue = await createModelApi({}, serviceName.value)
         await createModelRecordRow(defaultValue, serviceFields)
         template_component.value = createFormTemplateVNode();
+        createHeaderTemplateVNode();
     }
 }
 
@@ -244,6 +264,46 @@ const createFormTemplateVNode = () => {
         }
     })
     return component;
+}
+
+const createHeaderTemplateVNode = () => {
+    if (!headerTemplate.value) return
+    const vNode = compile(headerTemplate.value)
+    const btnClickHandler = async (actionType: string, action: string) => {
+        console.log('btnClick', actionType, action)
+
+        let param = null;
+        if (row_id.value) {
+            param = {
+                serviceName: serviceName.value,
+                method: action,
+                param: [row_id.value]
+            }
+        } else {
+            param = {
+                serviceName: serviceName.value,
+                method: action,
+                param: []
+            }
+        }
+        if (serviceName.value) {
+            const result = await invokeMethod(serviceName.value, param);
+            if (!result) { // 没有返回值
+                proxy?.$notify.success("提示", "操作成功");
+            } else {
+                if (result.type && result.type == 'ir.actions.client') { // 判断前端动作
+                    const service = proxy?.$registry.getAll('actions').get(result.tag) as any
+                    if (service) {
+                        service.execute(result.param);
+                    }
+                }
+
+            }
+        }
+    }
+    header_component.value = () => {
+        return createVNode(vNode, {...recordRowWithField.value, btnClickHandler})
+    }
 }
 // 新增，初始化对象
 const createClick = async () => {
@@ -339,8 +399,12 @@ const update = async () => {
             <MyButton class="mr-2" type="success" is-link rounded @click="backClick" icon="chevron-left"
                       icon-style="fas">返回
             </MyButton>
-            <MyButton type="primary" rounded @click="createClick">新增</MyButton>
-            <MyButton type="success" rounded @click="saveClick" class="ml-2" v-if="recordRowIsChange">保存</MyButton>
+            <MyButton type="primary" rounded @click="createClick" v-if="form.create">新增</MyButton>
+            <MyButton type="success" rounded @click="saveClick" class="ml-2"
+                      v-if="recordRowIsChange && (form.edit || form.create)">
+                保存
+            </MyButton>
+            <component :is="header_component"/>
         </div>
 
         <div class="w-full flex h-full box-border">

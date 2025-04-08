@@ -206,4 +206,47 @@ public class ModuleController {
             throw new FileIOException("start js 读取发生错误");
         }
     }
+
+    @GetMapping("/get/start/vue/{module}")
+    public List<String> getModuleVue(@PathVariable("module") String moduleName) {
+        AbstractModule module = context.getModule(moduleName);
+        if (ObjectUtils.isEmpty(module.getVue())) {
+            return new ArrayList<>();
+        }
+        return List.of(module.getVue());
+    }
+
+    @GetMapping("/download/start/vue/{module}/**")
+    public void downloadModuleVue(@PathVariable("module") String moduleName,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) throws FileIOException {
+        String prefix = "/module/download/start/vue/" + moduleName;
+        String path = request.getServletPath().substring(prefix.length());
+        AbstractModule module = context.getModule(moduleName);
+        String filePath = ClassUtils.getModulePackagePath(module);
+        if (path.startsWith("/")) {
+            filePath = filePath + path;
+        } else {
+            filePath = filePath + "/" + path;
+        }
+
+        try {
+            InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(filePath);
+            byte[] content = resourceAsStream.readAllBytes();
+
+            //设置下载响应头
+            response.setContentType("text/javascript");
+            response.setHeader("content-disposition", "attachment;fileName=" +
+                    URLEncoder.encode(path.replaceAll("/", "_"), StandardCharsets.UTF_8));
+            ServletOutputStream outputStream = response.getOutputStream();
+            outputStream.write(content);
+            outputStream.flush();
+            outputStream.close();
+        } catch (FileIOException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new FileIOException("start vue 读取发生错误");
+        }
+    }
 }

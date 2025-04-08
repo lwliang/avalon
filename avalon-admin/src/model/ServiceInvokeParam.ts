@@ -4,7 +4,7 @@
  */
 
 export default interface ServiceInvokeParam {
+    serviceName: string;
     method: string;
-    ids: Array<number>;
     param: any;
 }

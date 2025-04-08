@@ -9,9 +9,9 @@ import {useGlobalServiceDataStore} from "../global/store/serviceStore.ts";
 
 
 export async function getBaseActionView(fields: string,
-                                        rpnCondition: string) {
+                                        condition: string) {
     const serviceName = "base.action.view"
-    const param: any = {fields, rpnCondition, serviceName};
+    const param: any = {fields, condition, serviceName};
     const serviceStore = useGlobalServiceDataStore();
     const service = await serviceStore.getServiceByNameAsync(serviceName)
     param.order = `${service.keyField} desc`;

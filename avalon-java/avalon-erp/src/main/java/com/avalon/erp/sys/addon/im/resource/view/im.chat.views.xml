@@ -2,7 +2,7 @@
 <avalon>
     <record id="im_chat_view_form" service="base.action.view">
         <field name="name">im chat</field>
-        <field name="label">销售订单</field>
+        <field name="label">聊天</field>
         <field name="viewMode">form</field>
         <field name="ref_serviceId">im.chat</field>
         <field name="arch" type="xml">

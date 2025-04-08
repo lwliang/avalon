@@ -6,12 +6,21 @@
 package com.avalon.core.antlr;
 
 import com.avalon.core.CoreApplication;
+import com.avalon.core.TestCustomContextLoader;
+import com.avalon.core.antlr4.condition.ConditionInterpreter;
+import com.avalon.core.antlr4.condition.ExpressionLexer;
+import com.avalon.core.antlr4.condition.ExpressionParser;
 import com.avalon.core.antlr4.interpreter.AvalonExprManager;
+import com.avalon.core.condition.Condition;
 import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
@@ -19,8 +28,10 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = CoreApplication.class, properties = "spring.profiles.active=dev")
+@SpringBootTest(classes = CoreApplication.class, properties = "spring.profiles.active=dev", webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ContextConfiguration(loader = TestCustomContextLoader.class)
 @Slf4j
 public class AvalonExprTest {
 
@@ -138,5 +149,122 @@ public class AvalonExprTest {
     public void testObjectMethodWithArgs() {
         Optional<Object> value = avalonExprManager.interpreter("a.add(1,2);");
         assertEquals(value.get(), BigDecimal.valueOf(3));
+    }
+
+    @Test
+    public void testConditionEq() {
+        CharStream stream = CharStreams.fromString("('a',=,1)");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("( a = 1)", visit.toString());
+    }
+
+    @Test
+    public void testConditionIdentifierEq() {
+        CharStream stream = CharStreams.fromString("('a',=,b)");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("( a = b)", visit.toString());
+    }
+
+    @Test
+    public void testConditionAnd() {
+        CharStream stream = CharStreams.fromString("('a',=,1)&('b',>,'x')");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("(( a = 1) AND (b > 'x'))", visit.toString());
+    }
+
+    @Test
+    public void testConditionOr() {
+        CharStream stream = CharStreams.fromString("('a',=,1)|('b',>,'x')");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("( ( a = 1) OR (b > 'x'))", visit.toString());
+    }
+
+    @Test
+    public void testConditionNot() {
+        CharStream stream = CharStreams.fromString("!('a',=,1)");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("( NOT ( a = 1))", visit.toString());
+    }
+
+    @Test
+    public void testConditionNotAnd() {
+        CharStream stream = CharStreams.fromString("!(('a',=,1)&('b',>,'x'))");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("( NOT (( a = 1) AND (b > 'x')))", visit.toString());
+    }
+
+    @Test
+    public void testConditionIn() {
+        CharStream stream = CharStreams.fromString("('a',in,(1,2,3,4))");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("(a IN (1234))", visit.toString());
+    }
+
+    @Test
+    public void testConditionNotIn() {
+        CharStream stream = CharStreams.fromString("!('a',in,(1,2,3,4))");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("( NOT (a IN (1234)))", visit.toString());
+    }
+
+    @Test
+    public void testConditionBetween() {
+        CharStream stream = CharStreams.fromString("('a',between,1,2)");
+        ExpressionLexer lexer = new ExpressionLexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ExpressionParser parser = new ExpressionParser(tokenStream);
+
+        ExpressionParser.ExprContext tree = parser.expr();
+        ConditionInterpreter interpreter = new ConditionInterpreter();
+        Condition visit = interpreter.visitExpr(tree);
+        assertEquals("(a BETWEEN 1 AND 2)", visit.toString());
     }
 }

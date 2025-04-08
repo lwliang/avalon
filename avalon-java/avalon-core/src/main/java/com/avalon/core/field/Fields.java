@@ -252,6 +252,38 @@ public class Fields {
         return new SelectionField(label, false, selection, defaultValue);
     }
 
+    public static Field createSelection(String label,
+                                        SelectionHashMap selection,
+                                        String defaultValue,
+                                        Boolean multi) {
+        SelectionField.Builder builder = SelectionField.Builder.getInstance();
+        builder.setLabel(label);
+        builder.setSection(selection);
+        builder.setDefaultValue(new IFieldDefaultValue() {
+            @Override
+            public Object getDefault(Context context) {
+                return defaultValue;
+            }
+
+            @Override
+            public String getDefaultString() {
+                return defaultValue;
+            }
+
+            @Override
+            public void setDefaultString(String scriptValue) {
+
+            }
+
+            @Override
+            public Object getDefaultValue() {
+                return defaultValue;
+            }
+        });
+        builder.setMulti(multi);
+        return builder.build();
+    }
+
     public static <T> SelectionField createSelection(String label,
                                                      SelectionHashMap selection,
                                                      T defaultValue) {
@@ -263,7 +295,7 @@ public class Fields {
 
             @Override
             public String getDefaultString() {
-                return "";
+                return defaultValue.toString();
             }
 
             @Override
@@ -273,7 +305,7 @@ public class Fields {
 
             @Override
             public Object getDefaultValue() {
-                return null;
+                return defaultValue;
             }
         });
     }

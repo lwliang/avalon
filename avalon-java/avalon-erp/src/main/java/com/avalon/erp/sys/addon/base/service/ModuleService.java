@@ -84,7 +84,7 @@ public class ModuleService extends AbstractService implements IModuleSupport {
     }
 
     @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
-    public void refreshModuleFromDisk(List<Object> ids, RecordRow row) {
+    public void refreshModuleFromDisk(ArrayList<Object> ids, RecordRow row) {
         for (AbstractModule module : getContext().getModuleList()) {
             RecordRow recordRow = new RecordRow();
             recordRow.put("name", module.getModuleName());
@@ -106,7 +106,7 @@ public class ModuleService extends AbstractService implements IModuleSupport {
     }
 
     @SystemStateAnnotation(SystemStateEnum.installModule)
-    public void install(List<Object> ids, RecordRow row) throws AvalonException {
+    public void install(ArrayList<Integer> ids, RecordRow row) throws AvalonException {
         List<AbstractModule> modules = new ArrayList<>();
         if (!ObjectUtils.isEmpty(ids)) {
             for (Object id : ids) {
@@ -132,7 +132,7 @@ public class ModuleService extends AbstractService implements IModuleSupport {
     }
 
     @SystemStateAnnotation(SystemStateEnum.uninstallModule)
-    public void uninstall(List<Object> ids, RecordRow row) throws AvalonException {
+    public void uninstall(ArrayList<Integer> ids, RecordRow row) throws AvalonException {
         List<AbstractModule> modules = new ArrayList<>();
         for (Object id : ids) {
             Record select = select(Condition.equalCondition("id", id), "name");
@@ -151,7 +151,7 @@ public class ModuleService extends AbstractService implements IModuleSupport {
     }
 
     @SystemStateAnnotation(SystemStateEnum.uninstallModule)
-    public void upgrade(List<Object> ids, RecordRow row) throws AvalonException {
+    public void upgrade(ArrayList<Integer> ids, RecordRow row) throws AvalonException {
         for (Object id : ids) {
             Record select = select(Condition.equalCondition("id", id), "name");
             String moduleName = select.get(0).getString("name");

@@ -11,6 +11,7 @@ import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
+import com.avalon.core.model.SelectionHashMap;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.FieldUtils;
 import com.avalon.core.util.StringUtils;

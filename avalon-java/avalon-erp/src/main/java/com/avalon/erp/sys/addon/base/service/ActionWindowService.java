@@ -7,6 +7,7 @@ package com.avalon.erp.sys.addon.base.service;
 
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
+import com.avalon.core.model.SelectionHashMap;
 import com.avalon.core.service.AbstractService;
 import com.avalon.erp.sys.addon.base.model.enums.ViewModeEnum;
 import lombok.extern.slf4j.Slf4j;

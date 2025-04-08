@@ -31,10 +31,18 @@ export function getModuleStartJS(module: string) {
     return getErpHttp(`/module/get/start/js/${module}`, {})
 }
 
-export function downloadModuleStartJS(module: string, filePath: string) {
-    return getErpHttp(`/module/download/start/js/${module}/${filePath}`, {});
-}
-
 export function getModuleStartJS_URL(module: string, filePath: string) {
     return getErpPrefix() + `/module/download/start/js/${module}/${filePath}`
+}
+
+export function getModuleStartVue(module: string) {
+    return getErpHttp(`/module/get/start/vue/${module}`, {})
+}
+
+export async function getModuleStartVue_URL(vueUrl: string) {
+    return getErpHttp(`${vueUrl}`, {});
+}
+
+export function getModuleStartVue_URL_path(module: string, filePath: string) {
+    return `/module/download/start/vue/${module}/${filePath}`;
 }

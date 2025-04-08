@@ -5,6 +5,7 @@
 
 package com.avalon.erp.sys.addon.base.service;
 
+import com.avalon.core.condition.Condition;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
 import com.avalon.core.service.AbstractService;

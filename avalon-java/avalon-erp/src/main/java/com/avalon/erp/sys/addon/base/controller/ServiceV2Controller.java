@@ -48,9 +48,9 @@ public class ServiceV2Controller {
 
     @PostMapping("{serviceName}/create")
     public RecordRow createModel(@PathVariable("serviceName") String serviceName,
-                              @RequestBody ServiceModelParam param) throws AvalonException {
+                                 @RequestBody ServiceModelParam param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
-        return serviceBean.create(param.getValue());
+        return serviceBean.create(ObjectUtils.isNull(param.getValue()) ? RecordRow.build() : param.getValue());
     }
 
     @PostMapping("{serviceName}/add")
@@ -107,7 +107,7 @@ public class ServiceV2Controller {
     public RecordRow getDetail(@PathVariable("serviceName") String serviceName,
                                @RequestBody ServiceModelField param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
-        Condition condition = Condition.parseRPN(param.getRpnCondition());
+        Condition condition = context.conditionManager.interpreter(param.getCondition());
         Record select = serviceBean.select(condition, FieldUtils.getFieldArray(param.getFields()));
         if (select.isEmpty()) {
             return RecordRow.build();
@@ -126,9 +126,8 @@ public class ServiceV2Controller {
     public Record getAll(@PathVariable("serviceName") String serviceName,
                          @RequestBody ServiceModelField serviceConditionPage) {
         AbstractService serviceBean = context.getServiceBean(serviceName);
-
         return serviceBean.select(serviceConditionPage.getOrder(),
-                Condition.parseRPN(serviceConditionPage.getRpnCondition()),
+                context.conditionManager.interpreter(serviceConditionPage.getCondition()),
                 FieldUtils.getFieldList(serviceConditionPage.getFields()).toArray(new String[0]));
     }
 
@@ -139,7 +138,7 @@ public class ServiceV2Controller {
 
         return serviceBean.selectPage(serviceModelPage.getPage(),
                 serviceModelPage.getOrder(),
-                Condition.parseRPN(serviceModelPage.getRpnCondition()),
+                context.conditionManager.interpreter(serviceModelPage.getCondition()),
                 FieldUtils.getFieldList(serviceModelPage.getFields()).toArray(new String[0]));
     }
 
@@ -287,6 +286,6 @@ public class ServiceV2Controller {
     public Object invokeService(@PathVariable("serviceName") String serviceName,
                                 @RequestBody ServiceInvokeParam param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
-        return serviceBean.invokeMethod(param.getMethod(), param.getIds(), param.getParam());
+        return serviceBean.invokeMethod(param.getServiceName(), param.getMethod(), param.getParam().toArray());
     }
 }

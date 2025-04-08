@@ -18,6 +18,7 @@ import com.avalon.core.service.AbstractTreeService;
 import com.avalon.core.util.ObjectUtils;
 import com.avalon.erp.sys.addon.base.model.enums.ActionTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -257,9 +258,9 @@ public class GroupService extends AbstractTreeService {
                 String domainForce = recordRow.getRecordRow("ruleId")
                         .getString("domainForce");
                 if (ObjectUtils.isNull(condition)) {
-                    condition = Condition.parseRPN(domainForce);
+                    condition = getCondition(domainForce);
                 } else {
-                    condition = condition.orCondition(Condition.parseRPN(domainForce));
+                    condition = condition.orCondition(getCondition(domainForce));
                 }
             }
         }
@@ -283,9 +284,9 @@ public class GroupService extends AbstractTreeService {
         for (RecordRow globalRule : globalRules) {
             String domainForce = globalRule.getString("domainForce");
             if (ObjectUtils.isNull(condition)) {
-                condition = Condition.parseRPN(domainForce);
+                condition = getCondition(domainForce);
             } else {
-                condition = condition.orCondition(Condition.parseRPN(domainForce));
+                condition = condition.orCondition(getCondition(domainForce));
             }
         }
 

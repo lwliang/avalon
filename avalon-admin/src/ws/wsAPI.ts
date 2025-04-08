@@ -29,7 +29,7 @@ export async function getImUserIdCache() {
 
 export async function getUserByImUserId(imId: Number) {
     const users = await getModelAllApi("id,name,avatar",
-        `(=,imUserId,${imId})`,
+        `('imUserId',=,${imId})`,
         "base.user");
 
     if (users.length) {

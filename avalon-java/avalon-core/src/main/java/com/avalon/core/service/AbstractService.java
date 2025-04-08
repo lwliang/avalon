@@ -62,6 +62,10 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     public final static String ID = "id";
     public final static String OPERATE = "op";//系统使用的字段，子类不能使用
 
+    public Condition getCondition(String script) {
+        return context.conditionManager.interpreter(script);
+    }
+
     /**
      * 获取当前事物id
      *
@@ -375,8 +379,11 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
             log.error(e.getMessage(), e);
         }
         loadField(); // 初始化字段名称，可以使用 字段生成条件
-        if (!getClass().getName().contains("$Enhanced_")) { // 非动态类
-            context.addService(this);
+        if (!getClass().getName().contains("$Enhanced_")) { // 非动态类 不同数据库，会生成不同的实例，导致重复
+            context.addServiceName(getServiceName());
+            if (StringUtils.isEmpty(context.getBaseName()) || context.getBaseName().equals(context.getDefaultDatabase())) { // 只保存最基础的
+                context.addServiceName(this.getClass().getName(), this);
+            }
         }
     }
 
@@ -2208,14 +2215,16 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         synchronized (this) {
             extendFieldList.clear();
             IExtendFieldSupportService serviceBean = (IExtendFieldSupportService) context.getServiceBean("base.field");
-            FieldList extendField = serviceBean.getExtendField(getServiceName());
-            extendFieldList.addAll(extendField);
+            if (ObjectUtils.isNotNull(serviceBean)) {
+                FieldList extendField = serviceBean.getExtendField(getServiceName());
+                extendFieldList.addAll(extendField);
+            }
         }
     }
 
     @Override
     public Record exportExcel(String field, String condition, String order) {
-        Condition con = Condition.parseRPN(condition);
+        Condition con = context.conditionManager.interpreter(condition);
         SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
                 field.split(","),
                 con,

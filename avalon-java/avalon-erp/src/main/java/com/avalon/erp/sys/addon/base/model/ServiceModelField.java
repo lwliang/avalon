@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class ServiceModelField extends ServiceModelId {
     private String fields; // field,field field.field,field
-    private String rpnCondition;
+    private String condition;// 查询条件 ('a',=,2)
     private String order;// field asc, field.field desc
     private Boolean isDistinct;
 }

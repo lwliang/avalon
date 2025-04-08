@@ -89,15 +89,10 @@ watch(() => [moduleName.value, serviceName.value, template_fields.value.length],
 
 
 const btnClick = (actionType: string, action: string, fields: any) => {
-    const ids: any = []
-    if (fields.id) {
-        ids.push(fields.id)
-    }
-
     const param = {
+        serviceName: serviceName.value,
         method: action,
-        ids,
-        param: fields
+        param: [[fields.id], fields]
     }
     if (serviceName.value) {
         invokeMethod(serviceName.value, param).then(data => {

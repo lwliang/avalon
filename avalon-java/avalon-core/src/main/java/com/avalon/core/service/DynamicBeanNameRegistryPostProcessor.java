@@ -76,7 +76,9 @@ public class DynamicBeanNameRegistryPostProcessor implements BeanDefinitionRegis
                     }
                     // 如果名称不同，则修改 BeanDefinition 的名称  无继承的情况下
                     if (!beanName.equals(serviceName)) {
+                        log.info("去除 bean definition {}", beanName);
                         registry.removeBeanDefinition(beanName); // 移除旧的定义
+                        log.info("注册 bean definition {}, class name {}", beanName, beanDefinition.getBeanClassName());
                         registry.registerBeanDefinition(serviceName, beanDefinition); // 注册新的定义
                         if (log.isDebugEnabled()) {
                             log.debug("Bean name changed from {} to {}", beanName, serviceName);

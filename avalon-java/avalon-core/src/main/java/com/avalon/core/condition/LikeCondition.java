@@ -24,14 +24,6 @@ public class LikeCondition extends Condition {
     }
 
     @Override
-    protected Condition doParseReversePolishNotation(String[] values) {
-        if (values.length == 2) { // 如果只有两个元素，说明没有输入值，直接返回一个空的like条件
-            return Condition.likeCondition(values[1], StringUtils.EMPTY);
-        }
-        return Condition.likeCondition(values[1], values[2]);
-    }
-
-    @Override
     public String toString() {
         return super.toString();
     }

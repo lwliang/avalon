@@ -5,12 +5,14 @@
 
 package com.avalon.erp.config;
 
+import com.avalon.core.model.RecordRow;
 import com.avalon.erp.interceptor.AvalonHandlerInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -18,10 +20,11 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
 import java.util.List;
+import java.util.Map;
 
 @Configuration
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ErpAppConfig extends WebMvcConfigurationSupport {
-
     @Autowired
     private AvalonHandlerInterceptor avalonHandlerInterceptor;
 
@@ -68,6 +71,7 @@ public class ErpAppConfig extends WebMvcConfigurationSupport {
         SimpleModule simpleModule = new SimpleModule();
         simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
         simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
+        simpleModule.addAbstractTypeMapping(Map.class, RecordRow.class);
         objectMapper.registerModule(simpleModule);
 
         jackson2HttpMessageConverter.setObjectMapper(objectMapper);

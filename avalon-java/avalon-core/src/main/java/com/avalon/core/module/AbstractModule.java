@@ -35,6 +35,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
@@ -102,6 +105,10 @@ public abstract class AbstractModule {
         return null;
     }
 
+    public String[] getVue() {
+        return null;
+    }
+
     /**
      * 模块图标
      *
@@ -122,11 +129,12 @@ public abstract class AbstractModule {
             if (ObjectUtils.isNotEmpty(moduleServiceList)) {
                 return moduleServiceList;
             }
-            AbstractServiceList serviceList = context.getServiceList();
+            Hashtable<String, AbstractService> serviceClassServiceNameDic = context.getServiceClassServiceNameDic();
 
-            for (AbstractService abstractService : serviceList) {
-                if (abstractService.getClass().getName().startsWith(getClass().getPackageName())) {
-                    moduleServiceList.add(abstractService);
+            for (Map.Entry<String, AbstractService> serviceName : serviceClassServiceNameDic.entrySet()) {
+                AbstractService serviceBean = serviceName.getValue();
+                if (serviceName.getKey().startsWith(getClass().getPackageName())) {
+                    moduleServiceList.add(serviceBean);
                 }
             }
         }
@@ -187,7 +195,7 @@ public abstract class AbstractModule {
 
                 if (!getModuleInstall(dependModule)) { // 未安装
                     context.invokeServiceMethod("base.module", "install",
-                            new ArrayList<Object>(),
+                            new ArrayList<Integer>(),
                             RecordRow.build().put("name", dependModule));
                 }
             }
@@ -201,8 +209,13 @@ public abstract class AbstractModule {
                 continue;
             }
             service.createTable();
-            PrimaryKey serviceId = service.insertTableInfo(key);
-            service.insertFieldInfo(serviceId);
+            if (StringUtils.isEmpty(service.getInherit()) || !service.getServiceName().equals(service.getInherit())) { // 新模型
+                PrimaryKey serviceId = service.insertTableInfo(key);
+                service.insertFieldInfo(serviceId);
+            } else { // 继承模型
+                Integer serviceId1 = getServiceId(service.getInherit());
+                service.insertFieldInfo(PrimaryKey.build(serviceId1));
+            }
         }
 
         loadResource();
@@ -245,7 +258,7 @@ public abstract class AbstractModule {
                     if (nodeName.equals("record")) { // 读取记录
                         Record record = createRecord(item);
                         NodeList fields = item.getChildNodes();
-                        Integer serviceId = getServiceId(record.getService());
+                        Integer sourceServiceId = getServiceId(record.getService());
                         for (int i1 = 0; i1 < fields.getLength(); i1++) {
                             if (item.getNodeType() != Node.ELEMENT_NODE) {
                                 continue;
@@ -254,13 +267,10 @@ public abstract class AbstractModule {
                             if (item1.getNodeName().equals("field")) {
                                 RecordRow fieldRow = createField(item1, record);
                                 record.setRow(fieldRow);
-                                if (fieldRow.containsKey("serviceId")) {
-                                    serviceId = fieldRow.getInteger("serviceId");
-                                }
                             }
                         }
                         record.getRow().put("moduleId", getModuleId(getModuleName()));
-                        upgradeRecord(serviceId, record.getId(), record.getService(),
+                        upgradeRecord(sourceServiceId, record.getId(), record.getService(),
                                 record.getRow());
                     } else if (nodeName.equals("update")) {
                         Record record = createRecord(item);
@@ -439,10 +449,15 @@ public abstract class AbstractModule {
             if (service instanceof TransientService) {
                 continue;
             }
-            Integer serviceId = getServiceId(service.getServiceName());
-            clearServiceField(serviceId);
-            deleteBaseServiceData(serviceId);
-            service.dropTable();
+            if (StringUtils.isEmpty(service.getInherit()) || !service.getServiceName().equals(service.getInherit())) { // 新模型
+                Integer serviceId = getServiceId(service.getServiceName());
+                clearServiceField(serviceId);
+                deleteBaseServiceData(serviceId);
+
+                service.dropTable();
+            } else { // 继承模型
+                service.dropTable();
+            }
         }
     }
 
@@ -469,7 +484,7 @@ public abstract class AbstractModule {
 
                 if (!getModuleInstall(dependModule)) { // 未安装
                     context.invokeServiceMethod("base.module", "install",
-                            new ArrayList<Object>(),
+                            new ArrayList<Integer>(),
                             RecordRow.build().put("name", dependModule));
                 } else {
                     Integer moduleId = getModuleId(dependModule);
@@ -477,7 +492,7 @@ public abstract class AbstractModule {
                         throw new AvalonException("模块:" + dependModule + "不存在");
                     }
 
-                    ArrayList<Object> objects = new ArrayList<>();
+                    ArrayList<Integer> objects = new ArrayList<>();
                     objects.add(moduleId);
                     context.invokeServiceMethod("base.module", "upgrade",
                             objects,

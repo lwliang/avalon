@@ -5,6 +5,7 @@
 
 package com.avalon.core.context;
 
+import com.avalon.core.antlr4.condition.ConditionManager;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.config.ApplicationConfig;
 import com.avalon.core.config.PulsarConfig;
@@ -42,10 +43,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component()
 @Data
@@ -55,6 +53,8 @@ public class Context {
     private ApplicationConfig applicationConfig;
     @Autowired
     private PulsarConfig pulsarConfig;
+    @Autowired
+    public ConditionManager conditionManager;
 
     /**
      * 系统初始化完成，true 准备好，false
@@ -77,15 +77,25 @@ public class Context {
         systemPrepared = prepared;
     }
 
-    private final static AbstractServiceList serviceList = new AbstractServiceList(); // 默认数据库的所有模型
+    private final static Set<String> serviceNameSet = new HashSet<>();
 
-    public AbstractServiceList getServiceList() {
-        return serviceList;
+    public void addServiceName(String serviceName) {
+        serviceNameSet.add(serviceName);
     }
 
-    public void addService(AbstractService service) {
-        serviceList.add(service);
+    public Set<String> getServiceNameSet() {
+        return serviceNameSet;
     }
+
+    private final static Hashtable<String, AbstractService> serviceClassServiceNameDic = new Hashtable<>(); // 类名，模型名
+
+    public void addServiceName(String serviceClass, AbstractService service) {
+        serviceClassServiceNameDic.put(serviceClass, service);
+    }
+    public Hashtable<String, AbstractService> getServiceClassServiceNameDic() {
+        return serviceClassServiceNameDic;
+    }
+
 
     private static ModuleList moduleList = new ModuleList();
 
@@ -439,7 +449,7 @@ public class Context {
 
             return (AbstractService) getAvalonApplicationContext().getBean(serviceName);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error(serviceName + "获取service bean失败", ex);
             return null;
         }
     }
@@ -550,20 +560,6 @@ public class Context {
         return expression.getValue(standardEvaluationContext);
     }
 
-    /**
-     * 调用服务方法
-     *
-     * @param serviceName
-     * @param methodName
-     * @param ids
-     * @param row
-     * @return
-     */
-    public Object invokeServiceMethod(String serviceName, String methodName, List<Object> ids, RecordRow row) {
-        AbstractService service = getServiceBean(serviceName);
-        return service.invokeMethod(methodName, ids, row);
-    }
-
     public Object invokeServiceMethod(String serviceName, String methodName, Object... args) {
         AbstractService service = getServiceBean(serviceName);
         return service.invokeMethod(serviceName, methodName, args);
@@ -578,14 +574,21 @@ public class Context {
         beanDefinition.setBeanClass(beanClass);
         beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON); // 可设置为 prototype 等
 
-        // 注册 Bean
+        // 注册 BeanDefinitionRegistry
         beanFactory.registerBeanDefinition(beanName, beanDefinition);
+        log.info("注册 bean definition {}, class name {}", beanName, beanClass.getName());
+    }
+
+    // 刷新容器，bean生效
+    public void refreshSpring() {
+        getAvalonApplicationContext().refresh();
     }
 
     public void removeBeanDefinition(String beanName) {
         // 获取 BeanFactory
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getAvalonApplicationContext().getBeanFactory();
-        // 注册 Bean
+
+        log.info("去除 bean definition {}", beanName);
         beanFactory.removeBeanDefinition(beanName);
     }
 
@@ -633,6 +636,17 @@ public class Context {
         ormMapper.getBeanServices().clear();
         ormMapper.clearSingletonServiceBean();
         installOrUpgrade(abstractModules);
+    }
+
+    /**
+     * 清空数据
+     *
+     * @param db 数据库
+     */
+    public void clearDB(String db) {
+        ORMMapper ormMapper = ormMapperMap.get(db);
+        if (ObjectUtils.isNull(ormMapper)) return;
+        ormMapperMap.remove(db);
     }
 
     public void dropDB(String db) {

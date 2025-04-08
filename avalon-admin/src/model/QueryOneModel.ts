@@ -6,7 +6,6 @@
 import ServiceModel from './ServiceModel'
 
 export default interface QueryOneModel extends ServiceModel {
-  fields: string
-  rpnCondition: string
-
+    fields: string
+    condition: string
 }

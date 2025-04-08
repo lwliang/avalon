@@ -12,7 +12,7 @@ import java.util.List;
 
 @Data
 public class ServiceInvokeParam {
+    private String serviceName;
     private String method;
-    private List<Object> ids;
-    private RecordRow param;
+    private List<Object> param;
 }

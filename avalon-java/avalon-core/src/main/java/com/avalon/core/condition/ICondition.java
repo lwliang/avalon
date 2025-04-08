@@ -20,18 +20,5 @@ public interface ICondition {
 
     String getSql(SelectBuilder builder);
 
-    /**
-     * 获得逆波兰字符串
-     *
-     * @return 逆波兰字符串
-     */
-    String getReversePolishNotation();
-
-    /**
-     * 解析逆波兰表达式
-     *
-     * @return condition
-     * @Param conStr 表达式
-     */
-    Condition parseReversePolishNotation(String conStr);
+    String getConditionString();
 }

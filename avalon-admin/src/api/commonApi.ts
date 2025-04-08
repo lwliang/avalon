@@ -20,7 +20,6 @@ export async function getModuleMenu(module: string) {
     }).then(data => {
         data = _.sortBy(data, ['sequence', 'id'])
         data = arrayToTree(data)
-        console.log(data)
         return data
     })
 }
@@ -29,14 +28,14 @@ export function getFieldsByServiceName(serviceName: string): Promise<any> {
     return getModelAllApi("id,label,name,isPrimaryKey,isAutoIncrement,isRequired,isReadonly,defaultValue," +
         "type,serviceId,isUnique,allowNull,minValue,maxValue,masterForeignKeyName,relativeForeignKeyName," +
         "relativeServiceName,manyServiceTable,relativeFieldName",
-        `(=,serviceId.name,${serviceName})`,
+        `('serviceId.name',=,'${serviceName}')`,
         "base.field")
 }
 
 export function getServiceByServiceName(serviceName: string): Promise<any> {
     const param: any = {
         fields: "id,label,name,tableName,moduleId,nameField,keyField,delegateField",
-        rpnCondition: `(=,name,${serviceName})`,
+        condition: `('name',=,'${serviceName}')`,
         serviceName: serviceName
     };
     param.order = `id desc`;
@@ -45,35 +44,35 @@ export function getServiceByServiceName(serviceName: string): Promise<any> {
 
 export function getActionView(serviceName: string, viewMode: string) {
     return getModelAllApi("id,name,viewMode,label,priority,arch,moduleId.id,moduleId.name",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,${viewMode}))`,
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'${viewMode}')`,
         'base.action.view')
 }
 
 export function getActionTreeView(serviceName: string) {
     return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,tree))`);
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'tree')`);
 }
 
 export function getActionFormView(serviceName: string) {
     return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,form))`);
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'form')`);
 }
 
 export function getActionKanbanView(serviceName: string) {
     return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,kanban))`);
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'kanban')`);
 }
 
 export function getActionSearchView(serviceName: string) {
     return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
-        `(&,(=,serviceId.name,${serviceName}),(=,viewMode,search))`);
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'search')`);
 }
 
-export async function exportExcel(serviceName: string, fields: string, rpnCondition: string, order: string) {
+export async function exportExcel(serviceName: string, fields: string, condition: string, order: string) {
     return postDownloadFileHttp(`/service/export/${serviceName}/excel`, {
         order,
         field: fields,
-        condition: rpnCondition
+        condition: condition
     }).then((response) => {
         // 创建一个 URL 对象
         const url = window.URL.createObjectURL(new Blob([response.data]));

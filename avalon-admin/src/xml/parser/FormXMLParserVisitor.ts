@@ -12,6 +12,8 @@ import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
 import {useUserInfoStore} from "../../global/store/userInfoStore.ts";
 import {ParserField} from "../model/ParserField.ts";
 import {dotToUnderscore, getJoinFirstField, hasJoin} from "../../util/fieldUtils.ts";
+import Form from "../../model/form/Form.ts";
+import {stringToBool} from "../../util/StringUtils.ts";
 
 const useService = useGlobalServiceDataStore();
 const useFieldDataStore = useGlobalFieldDataStore()
@@ -24,8 +26,9 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
     viewMode: string
     kanban: any
     tree: any
-    form: any
+    form: Form
     search: any
+    header: any;
     one2ManyFields: string[];
 
     private _stack: any[] = [] // 记录识别标签的深度
@@ -76,9 +79,10 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         this.service = service
         this.viewMode = ""
         this.kanban = {}
-        this.form = {}
+        this.form = {} as Form
         this.tree = {}
         this.search = {}
+        this.header = {}
     }
 
     visitDocument = async (ctx: DocumentContext) => {
@@ -95,6 +99,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             tree: this.tree,
             form: this.form,
             search: this.search,
+            header: this.header,
             one2ManyFields: this.one2ManyFields,
         }
     };
@@ -196,7 +201,15 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             } else if (tagName.trim().toLowerCase() == 'form') { // form
                 this.viewMode = 'form'
                 this.getTemplate().template = ""
-                await this.visitFormElement(ctx)
+                this.form.create = true
+                this.form.edit = true
+                await this.visitFormElement(ctx) // 读取form属性
+                if (typeof this.form.create == 'string') {
+                    this.form.create = stringToBool(this.form.create)
+                }
+                if (typeof this.form.edit == 'string') {
+                    this.form.edit = stringToBool(this.form.edit)
+                }
                 const key = await this.appendServiceKeyField()
                 if (key) {
                     this.addFields({name: key.name})
@@ -227,6 +240,25 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 this._push_field_stack(field);
                 await this.visitContent(ctx.content())
                 this._pop_field_stack();
+            } else if (tagName.trim().toLowerCase() == 'header') {
+                this.header.template = ''
+                await this.visitContent(ctx.content())
+            } else if (tagName.toLowerCase() == 'mybutton' || tagName.toLowerCase() == 'my-button') {
+                if (this._contain_stack('header')) { // 有header，在顶部显示
+                    this.header.template += `<${tagName}`
+                    this.visitorTagAttributeByHeader(ctx);
+                    this.header.template += ` @click="btnClickHandler"`
+                    this.header.template += ">"
+                    await this.visitContent(ctx.content())
+                    this.header.template += `</${tagName}>`
+                } else {
+                    this.getTemplate().template += `<${tagName}`
+                    this.visitorTagAttribute(ctx);
+                    this.getTemplate().template += ` @click="btnClickHandler"`
+                    this.getTemplate().template += ">"
+                    await this.visitContent(ctx.content())
+                    this.getTemplate().template += `</${tagName}>`
+                }
             } else {
                 this.getTemplate().template += `<${tagName}`
                 this.visitorTagAttribute(ctx);
@@ -329,10 +361,12 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 componentName = `MyXmlViewer`
             } else if (field.widget == 'chat') {
                 componentName = `ChatWindow`
+            } else if (field.widget == 'document') {
+                componentName = `DocumentList`
             }
         }
 
-        if (serviceField.type == FieldTypeEnum.One2manyField) { // 多对多
+        if (serviceField.type == FieldTypeEnum.One2manyField) { // 1对多
             if (!componentName) {
                 const relativeServiceName = serviceField.relativeServiceName;
                 const service = await useService.getServiceByNameAsync(relativeServiceName)
@@ -372,6 +406,15 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             return `<MyDatetime border="bottom" ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyDatetime>`
         } else {
             return `<MyInput ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}" border="bottom"></MyInput>`
+        }
+    }
+
+    private visitorTagAttributeByHeader(ctx: ElementContext) {
+        const attributeContexts = ctx.attribute_list();
+        for (let attributeContext of attributeContexts) {
+            const attrName = attributeContext.Name().getText()
+            let attrValue = attributeContext.STRING().getText()
+            this.header.template += ` ${attrName}=${attrValue}`
         }
     }
 
@@ -418,7 +461,11 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
 
     visitChardata = async (ctx: ChardataContext) => {
         if (ctx.TEXT()) {
-            this.kanban.template += ctx.TEXT()
+            if (this._contain_stack('header')) {
+                this.header.template += ctx.TEXT()
+            } else {
+                this.getTemplate().template += ctx.TEXT()
+            }
         }
     }
 

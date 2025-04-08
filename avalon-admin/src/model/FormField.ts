@@ -10,7 +10,7 @@ import {isObject} from "../util/typeUtils.ts";
 import {OperateTypeEnum} from "./enum-type/OperateTypeEnum.ts";
 import {useGlobalFieldDataStore} from "../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../global/store/serviceStore.ts";
-import {uploadImage, uploadVideo} from "../api/fileUploadApi.ts";
+import {uploadFile, uploadImage, uploadVideo} from "../api/fileUploadApi.ts";
 import Service from "./Service.ts";
 import {getDateTime, getDateTimeWithAll} from "../util/dateUtils.ts";
 
@@ -77,7 +77,7 @@ export default class FormField {
             }
         } else if (field.type == FieldTypeEnum.FileField) {
             if (value) {
-                const result = await uploadVideo(value)
+                const result = await uploadFile(value)
                 return result.url
             }
         } else {

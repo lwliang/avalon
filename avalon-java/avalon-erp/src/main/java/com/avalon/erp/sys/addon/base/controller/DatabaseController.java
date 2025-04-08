@@ -110,7 +110,7 @@ public class DatabaseController {
             context.addSystemState(SystemStateEnum.createDB);
             context.init(database);
             dbService.createDataBase();
-            context.invokeServiceMethod("base.module", "refreshModuleFromDisk", new ArrayList<>(), RecordRow.build());
+            context.invokeServiceMethod("base.module", "refreshModuleFromDisk", new ArrayList<Object>(), RecordRow.build());
         } catch (Exception e) {
             log.error("createDatabase:" + e.getMessage(), e);
             doDropDatabase(database);
@@ -130,7 +130,10 @@ public class DatabaseController {
     @GetMapping("drop/database/{database}")
     public void dropDatabase(@PathVariable("database") String database) throws AvalonException {
         context.addSystemState(SystemStateEnum.dropDB);
-        doDropDatabase(database);
-        context.clearSystemState(SystemStateEnum.dropDB);
+        try {
+            doDropDatabase(database);
+        } finally {
+            context.clearSystemState(SystemStateEnum.dropDB);
+        }
     }
 }

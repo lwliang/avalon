@@ -96,7 +96,7 @@ const searchChange = (field: Field, value: String) => {
     if (field.type == FieldTypeEnum.StringField ||
         field.type == FieldTypeEnum.TextField ||
         field.type == FieldTypeEnum.HtmlField) {
-        searchCondition = `(like,${field.name},"${value}")`
+        searchCondition = `('${field.name}',like,'${value}')`
     }
     if (searchCondition) {
         emit('conditionChange', searchCondition);

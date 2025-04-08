@@ -3,5 +3,18 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "target": "ES6",
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./src/types", "./node_modules/@types"],
+    "paths": {
+      "vue3-sfc-loader":[
+        "./node_modules/vue3-sfc-loader/dist/types/vue3-esm/index.d.ts"
+      ]
+    }
+  }
 }

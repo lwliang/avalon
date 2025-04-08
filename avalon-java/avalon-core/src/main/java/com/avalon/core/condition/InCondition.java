@@ -114,19 +114,12 @@ public class InCondition extends Condition {
     }
 
     @Override
-    public String getReversePolishNotation() {
-        return String.format("(%s,%s,%s)", getOp().getName(), getRealName(),
-                String.join(",", getValues().stream().map(Object::toString).toArray(String[]::new)));
-    }
-
-    @Override
-    protected Condition doParseReversePolishNotation(String[] values) {
-        List<Object> inValues = new ArrayList<>(Arrays.asList(values).subList(2, values.length));
-        return Condition.inCondition(values[1], inValues);
-    }
-
-    @Override
     public String toString() {
         return String.format(getOp().getValue(), getRealName(), ObjectUtils.toString(getValues()));
+    }
+
+    @Override
+    public String getConditionString() {
+        return String.format(getOp().getCondition(), getRealName(), ObjectUtils.toString(getValues()));
     }
 }

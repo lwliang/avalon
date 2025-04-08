@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios'
-import {getErpPrefix} from "./env.ts";
+import {getErpPrefix, getFilePrefix} from "./env.ts";
 import {goLogin} from "../util/routerUtils.ts";
 import MyNotification from "../components/notification/index.ts";
 
@@ -66,6 +66,16 @@ export function postHttp(url: string, params: any): Promise<any> {
 export function postDownloadFileHttp(url: string, params: any): Promise<any> {
     return new Promise((resolve, reject) => {
         axios.post(getErpPrefix() + url, params, {responseType: 'blob'}).then((res) => {
+            resolve(res)
+        }).catch((err) => {
+            reject(err)
+        })
+    })
+}
+
+export function postDownloadFileFromFileServer(url: string, params: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+        axios.post(getFilePrefix() + url, params, {responseType: 'blob'}).then((res) => {
             resolve(res)
         }).catch((err) => {
             reject(err)

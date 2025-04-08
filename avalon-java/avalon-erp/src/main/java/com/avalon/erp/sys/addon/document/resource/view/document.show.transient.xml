@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="document_document_show_form" service="base.action.view">
+        <field name="name">document show</field>
+        <field name="label">文件</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">document.show.transient</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false">
+                <header>
+                    <MyButton :rounded="true" type="primary" class="ml-2" action="uploadFile"
+                              action-type="object">上传文件
+                    </MyButton>
+                </header>
+                <sheet>
+                    <field name="documents" widget="document"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="document_document_show_action" service="base.action.window">
+        <field name="name">document show</field>
+        <field name="label">文件</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">document.show.transient</field>
+    </record>
+</avalon>

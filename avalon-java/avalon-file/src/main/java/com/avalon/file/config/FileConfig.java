@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class FileConfig {
-    private String dir = "./";
+    private String file = "./data";
+    private String image = "./image";
+    private String video = "./video";
     private PathModeEnums mode = PathModeEnums.date;
 }

@@ -19,6 +19,11 @@ public class HrUserService extends AbstractService {
     }
 
     @Override
+    public Boolean getNeedDefaultField() {
+        return false;
+    }
+
+    @Override
     public String getInherit() {
         return "base.user";
     }

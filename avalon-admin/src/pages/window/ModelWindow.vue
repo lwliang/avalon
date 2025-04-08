@@ -21,7 +21,7 @@ const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 
 if (route.fullPath.endsWith('/window')) {
     getModelAllApi("id,name,viewMode,label,serviceId,moduleId.id,moduleId.name",
-        `(=,serviceId.name,${serviceName.value})`,
+        `('serviceId.name',=,'${serviceName.value}')`,
         "base.action.window")
         .then(data => {
             if (data.length) {

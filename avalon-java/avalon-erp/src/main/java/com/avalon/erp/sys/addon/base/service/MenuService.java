@@ -5,9 +5,14 @@
 
 package com.avalon.erp.sys.addon.base.service;
 
+import com.avalon.core.condition.Condition;
+import com.avalon.core.exception.AvalonException;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
+import com.avalon.core.model.*;
+import com.avalon.core.model.Record;
 import com.avalon.core.service.AbstractTreeService;
+import com.avalon.core.util.FieldValue;
 import com.avalon.erp.sys.addon.base.model.enums.ActionTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

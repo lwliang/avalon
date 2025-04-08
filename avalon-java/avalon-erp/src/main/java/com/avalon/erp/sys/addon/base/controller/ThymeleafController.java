@@ -13,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.Set;
+
 @Controller
 @Slf4j
 public class ThymeleafController {
@@ -28,9 +30,9 @@ public class ThymeleafController {
     public ModelAndView getIndex() {
         ModelAndView modelAndView = new ModelAndView();
 
-        AbstractServiceList serviceList = context.getServiceList();
+        Set<String> serviceNameSet = context.getServiceNameSet();
 
-        modelAndView.addObject("serviceList", serviceList);
+        modelAndView.addObject("serviceList", serviceNameSet);
 
         modelAndView.setViewName("index");
         return modelAndView;

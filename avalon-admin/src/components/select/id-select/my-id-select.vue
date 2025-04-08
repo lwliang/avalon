@@ -78,7 +78,7 @@ const formatName = () => {
 const loadServiceOption = (name?: string) => {
     if (props.service && service.value) {
         getModelPageApi(`${service.value.keyField},${service.value.nameField}`,
-            `(like,${service.value.nameField},"${name ? name : ''}")`,
+            `('${service.value.nameField}',like,${name ? "'" + name + "'" : ''})`,
             props.service,
             1).then(pageInfo => {
             options.value.splice(0, options.value.length)

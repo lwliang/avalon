@@ -3,7 +3,7 @@
  * @date 2024/11/22
  */
 
-import {createApp} from 'vue'
+import {createApp, version} from 'vue'
 import {createPinia} from 'pinia'
 import router from './router'
 import './style.css'
@@ -46,6 +46,9 @@ import MyVideo from "./components/video/my-video.vue";
 import {ReconnectingWebSocket} from "./ws/WebScoket.ts";
 import {getToken} from "./cache/tokenStorage.ts";
 import ChatWindow from "./components/im/chat-window.vue";
+import DocumentList from "./components/document/document-list.vue";
+import RegistryPlugin from "./global/registry/registryPlugin.ts";
+import {registerActions} from './global/registry/actions'
 
 
 window.ReconnectingWebSocket = ReconnectingWebSocket;
@@ -62,6 +65,8 @@ if (import.meta.env.MODE === 'development') {
     log.setLevel('error')
 }
 
+
+console.log('Vue Version:', version); // 输出 Vue 版本
 
 const app = createApp(App)
 loadSvg(app)
@@ -100,6 +105,13 @@ app.component('MyDebug', MyDebug)
 app.component('MyXmlViewer', MyXmlViewer)
 app.component('MyVideo', MyVideo)
 app.component('ChatWindow', ChatWindow)
+app.component('DocumentList', DocumentList)
+
+// 使用注册表插件
+app.use(RegistryPlugin);
+// 动态注册动作
+const registry = app.config.globalProperties.$registry;
+registerActions(registry);
 
 // 全局变量
 app.config.globalProperties.$notify = MyNotification
@@ -107,3 +119,5 @@ app.config.globalProperties.$notify = MyNotification
 app.provide('getModuleIcon', getModuleIcon)
 
 app.mount('#app')
+
+export default app; // 导出实例
