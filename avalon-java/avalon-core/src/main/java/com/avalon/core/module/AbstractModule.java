@@ -97,14 +97,9 @@ public abstract class AbstractModule {
     }
 
     /**
-     * 模块依赖的js
-     *
-     * @return js路径
+     * 依赖的vue3组件
+     * @return 本地vue文件
      */
-    public String[] getWebJS() {
-        return null;
-    }
-
     public String[] getVue() {
         return null;
     }
@@ -120,6 +115,7 @@ public abstract class AbstractModule {
 
     private final AbstractServiceList moduleServiceList = new AbstractServiceList();
 
+    // 获取模块的所有模型类
     public AbstractServiceList getServiceList() {
         if (ObjectUtils.isNotEmpty(moduleServiceList)) {
             return moduleServiceList;
@@ -401,6 +397,7 @@ public abstract class AbstractModule {
         return context.getServiceBean("base.module").insert(row);
     }
 
+    // 根据模块名获取模块主键
     public Integer getModuleId(String moduleName) {
         AbstractService moduleService = context.getServiceBean("base.module");
         com.avalon.core.model.Record select = moduleService
@@ -442,6 +439,7 @@ public abstract class AbstractModule {
         }
     }
 
+    // 删除模块
     public void dropModule() {
         if (ObjectUtils.isNull(getServiceList())) return;
         uninstallResource(); // 删除表 之前 删除资源记录
@@ -476,6 +474,7 @@ public abstract class AbstractModule {
         serviceBean.delete(serviceId);
     }
 
+    // 升级模块
     public void upgradeModule() {
         String[] depends = depends();
         if (ObjectUtils.isNotEmpty(depends)) { // 有依赖模块

@@ -1670,6 +1670,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         }
     }
 
+    /*
+     删除数据库表
+     */
     public void dropTable() {
         if (StringUtils.isEmpty(getInherit())) { // 根模型 删除表示
             doDropSelfTable();
@@ -1703,12 +1706,17 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
             }
         }
     }
-
+    /*
+     数据库表是否存在
+     */
     public Boolean existTable() {
         StringBuilder sql = DataBaseTools.existTable(getService());
         return jdbcTemplate.executeScalar(sql, Integer.class) != 0;
     }
 
+    /*
+    数据库字段是否存在
+     */
     public Boolean existField(Field field) {
         StringBuilder sql = DataBaseTools.existField(getService(), field);
         log.debug("existField sql:{}", sql);
@@ -1720,6 +1728,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         return existField(field);
     }
 
+    /*
+    删除数据库字段
+     */
     public void dropField(String fieldName) {
         StringBuilder tableSql = DataBaseTools.dropTableFieldSql(getService(), fieldName);
         jdbcTemplate.execute(tableSql);
@@ -2144,21 +2155,6 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     }
 
     @Override
-    public Object invokeMethod(String methodName, List<Object> ids, RecordRow row) {
-        try {
-            Method method = this.getClass().getMethod(methodName, List.class, RecordRow.class);
-            return method.invoke(this.getService(), ids, row);
-        } catch (NoSuchMethodException e) {
-            throw new AvalonException(methodName + "不存在方法");
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            String message = e.getMessage();
-            if (e instanceof InvocationTargetException) {
-                message = ((InvocationTargetException) e).getTargetException().getMessage();
-            }
-            throw new AvalonException(message, e);
-        }
-    }
-
     public Object invokeMethod(String service, String methodName, Object... args) {
         try {
             AbstractService serviceBean = context.getServiceBean(service);

@@ -10,5 +10,5 @@ import com.avalon.core.model.RecordRow;
 import java.util.List;
 
 public interface IInvokeMethod {
-    Object invokeMethod(String methodName, List<Object> ids, RecordRow row);
+    Object invokeMethod(String service, String methodName, Object... args);
 }

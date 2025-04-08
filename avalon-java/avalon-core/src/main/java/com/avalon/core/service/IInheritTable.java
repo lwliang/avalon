@@ -41,6 +41,11 @@ public interface IInheritTable {
      */
     FieldList getDelegateInheritFields();
 
+    /**
+     * 获取委托模型下的所有字段
+     * @param delegateServiceName 委托继承模型
+     * @return 字段
+     */
     FieldList getDelegateInheritFields(String delegateServiceName);
 
     /**
