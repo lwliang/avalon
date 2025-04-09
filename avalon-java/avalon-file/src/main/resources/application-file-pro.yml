@@ -2,10 +2,15 @@ spring:
   profiles:
     host: localhost
 
+application:
+  multiDb: false
+
 pulsar:
   url: pulsar://${spring.profiles.host}:6650
   enable: false
 
 file:
-  dir: /data/
+  file: /data/
+  image: ./image/
+  video: /video/
   mode: date

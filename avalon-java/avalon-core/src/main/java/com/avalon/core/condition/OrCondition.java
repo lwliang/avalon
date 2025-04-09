@@ -59,28 +59,15 @@ public class OrCondition extends Condition {
     }
 
     @Override
+    public String getConditionString() {
+        return String.format(getOp().getCondition(),
+                leftCondition.toString(),
+                rightCondition.toString());
+    }
+
+    @Override
     protected void addFlatCondition(List<Condition> conditions) {
         leftCondition.addFlatCondition(conditions);
         rightCondition.addFlatCondition(conditions);
-    }
-
-    @Override
-    public String getReversePolishNotation() {
-        return String.format("(%s,%s,%s)", getOp().getName(),
-                leftCondition.getReversePolishNotation(),
-                rightCondition.getReversePolishNotation());
-    }
-
-    @Override
-    public Condition parseReversePolishNotation(String conStr) {
-        /**
-         * (|,(=,name,1),(|,(=,name,1),(<,id,5)))
-         * (|,(&,(=,name,1),(<,id,5)),(=,name,1))
-         */
-        String[] tokens = parseRPNToken(conStr);
-
-        Condition condition = Condition.parseRPN(tokens[1]);
-        Condition condition1 = Condition.parseRPN(tokens[2]);
-        return Condition.orCondition(condition, condition1);
     }
 }

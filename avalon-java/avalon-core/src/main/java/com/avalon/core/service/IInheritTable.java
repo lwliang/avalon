@@ -5,18 +5,54 @@
 
 package com.avalon.core.service;
 
+import com.avalon.core.field.Field;
+import com.avalon.core.field.FieldList;
+import com.avalon.core.model.DelegateInheritMap;
+
+import java.util.List;
+
 public interface IInheritTable {
     /**
-     * 是否继承
+     * 继承模式 getServiceName == getInherit 则是扩展，否则是继承
      *
-     * @return 是否继承
+     * @return 继承模型
      */
-    Boolean isInherit();
+    String getInherit();
 
     /**
-     * 获取继承表名
+     * 继承字段
      *
-     * @return 继承表名
+     * @return 继承字段
      */
-    String getInheritTable();
+    List<Field> getInheritFields();
+
+    /**
+     * 委托继承
+     * 格式 serviceName: field
+     *
+     * @return 继承模型
+     */
+    DelegateInheritMap getDelegateInherit();
+
+    /**
+     * 获取委托继承字段
+     *
+     * @return 字段列表
+     */
+    FieldList getDelegateInheritFields();
+
+    /**
+     * 获取委托模型下的所有字段
+     * @param delegateServiceName 委托继承模型
+     * @return 字段
+     */
+    FieldList getDelegateInheritFields(String delegateServiceName);
+
+    /**
+     * 判断是否是委托字段
+     *
+     * @param fieldName 字段名
+     * @return 是 否
+     */
+    boolean isDelegateInheritField(String fieldName);
 }

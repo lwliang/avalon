@@ -20,7 +20,7 @@ tabContext?.registerTab({
 </script>
 
 <template>
-    <div v-show="show" class="bg-white">
+    <div v-show="show" class="contents">
         <slot></slot>
     </div>
 </template>

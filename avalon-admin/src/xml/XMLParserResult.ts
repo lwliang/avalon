@@ -12,6 +12,7 @@ export interface XMLParserResult {
     tree: any,
     form: any,
     search: any,
+    header: any,
 }
 
 export function getTemplate(parseResult: XMLParserResult) {

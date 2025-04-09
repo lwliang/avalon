@@ -22,7 +22,7 @@ defineProps({
 </script>
 
 <template>
-    <font-awesome-icon :icon="[type,icon]" :size="size" :style="{fill:color}"/>
+    <font-awesome-icon class="bg-transparent" :icon="[type,icon]" :size="size" :style="{fill:color}"/>
 </template>
 
 <style scoped>

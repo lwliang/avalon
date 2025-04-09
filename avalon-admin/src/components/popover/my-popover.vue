@@ -4,11 +4,9 @@
  * @date 2024/11/22
  */
 import {ref, watch} from 'vue';
-import {arrow, autoUpdate, useFloating, offset, flip, shift, computePosition} from '@floating-ui/vue';
+import {arrow, useFloating, offset, flip, shift} from '@floating-ui/vue';
 import './my-popover.css'
-import {onClickOutside} from '@vueuse/core'
 import {optionType, popoverTrigger, popoverType} from "./my-popover.ts";
-import {onMounted} from "@vue/runtime-dom";
 
 
 const props = defineProps({
@@ -32,11 +30,6 @@ const props = defineProps({
 
 const emit = defineEmits(['itemSelect', 'popperShow', 'popperHide'])
 const popper_container = ref(null)
-onClickOutside(popper_container, () => {
-    if (props.trigger === 'click') {
-        show.value = false
-    }
-})
 
 
 const reference = ref<any>(null);
@@ -97,6 +90,12 @@ const optionClick = () => {
     show.value = false
 }
 
+const footerClick = () => {
+    if (props.trigger === 'click') {
+        show.value = false
+    }
+}
+
 const toggleHide = () => {
     if (show.value)
         show.value = false
@@ -115,49 +114,53 @@ defineExpose({
 </script>
 
 <template>
-    <div ref="popper_container" :class="['inline-block', 'relative',{'w-full':fullWidth}]">
-        <div :class="['inline-block',{'w-full':fullWidth}]" ref="reference" @click="showPopper"
+    <div id="popper_xx" ref="popper_container" :class="['inline-block', 'relative',{'w-full':fullWidth}]">
+        <div :class="['inline-block','z-40',{'w-full':fullWidth}]" ref="reference" @click="showPopper"
              @mouseenter="showMousePopper"
              @mouseleave="hideMousePopper">
             <slot></slot>
         </div>
-        <div v-if="show"
-             :class="{popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
-             ref="floating"
-             :style="[dynamicStyles,floatingStyles]"
-             @mouseenter="showMousePopper"
-             @mouseleave="hideMousePopper">
-            <div class="flex justify-center items-center flex-wrap">
-                <template v-if="$slots.option">
-                    <div class="w-full" @click="optionClick">
-                        <slot name="option"></slot>
-                    </div>
-                </template>
-                <template v-if="option">
-                    <div class="w-full cursor-pointer hover:bg-gray-300 px-4" v-for="(value,key) in option"
-                         :key="key"
-                         @click="itemSelectClick(key)">
-                        {{ value }}
-                    </div>
-                </template>
-                <template v-if="content">
-                    {{ content }}
-                </template>
-            </div>
-            <div class="flex justify-end">
-                <slot name="footer"></slot>
-            </div>
-            <div v-if="arrowShow" :class="{'arrow':true,'border-t':!placement.startsWith('top'),
+
+        <teleport to="body">
+            <div v-if="show"
+                 :class="{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
+                 ref="floating"
+                 :style="[dynamicStyles,floatingStyles]"
+                 @mouseenter="showMousePopper"
+                 @mouseleave="hideMousePopper">
+                <div class="flex justify-center items-center flex-wrap">
+                    <template v-if="$slots.option">
+                        <div class="w-full" @click="optionClick">
+                            <slot name="option"></slot>
+                        </div>
+                    </template>
+                    <template v-if="option">
+                        <div class="w-full cursor-pointer hover:bg-gray-300 px-4" v-for="(value,key) in option"
+                             :key="key"
+                             @click="itemSelectClick(key)">
+                            {{ value }}
+                        </div>
+                    </template>
+                    <template v-if="content">
+                        {{ content }}
+                    </template>
+                </div>
+                <div class="flex justify-end" @click="footerClick">
+                    <slot name="footer"></slot>
+                </div>
+                <div v-if="arrowShow" :class="{'arrow':true,'border-t':!placement.startsWith('top'),
             'border-l':!placement.startsWith('top'),
             'border-b':placement.startsWith('top'),
             'border-r':placement.startsWith('top')}"
-                 ref="floatingArrow"
-                 :style="{ position: 'absolute',
+                     ref="floatingArrow"
+                     :style="{ position: 'absolute',
                 left:  middlewareData.arrow?.x != null ? `${middlewareData.arrow.x}px` : '',
                 top:  middlewareData.arrow?.y != null ? `${middlewareData.arrow.y}px`: '',
                 [placement.startsWith('top') ? 'bottom' : 'top']:'-4px'}"
-            ></div>
-        </div>
+                ></div>
+            </div>
+        </teleport>
+
     </div>
 
 </template>

@@ -26,9 +26,6 @@ public class TestPulsarConsumer extends PulsarConsumer<MessageContent> {
         return "test-subscription_" + SystemUtil.getMACAddress().hashCode();
     }
 
-    @Autowired
-    private UserService userService;
-
     @Override
     protected void dealMessage(MessageContent msg) throws Exception {
         super.dealMessage(msg);

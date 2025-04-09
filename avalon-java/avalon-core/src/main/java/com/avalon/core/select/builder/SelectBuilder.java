@@ -14,6 +14,7 @@ import com.avalon.core.service.AbstractService;
 import com.avalon.core.tree.QueryNode;
 import com.avalon.core.util.FieldUtils;
 import com.avalon.core.util.ObjectUtils;
+import com.avalon.core.util.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -88,7 +89,12 @@ public class SelectBuilder {
         List<String> selects = new ArrayList<>();
         List<String> tables = new ArrayList<>();
         queryNodeTables(queryRoot, tables);
-        selects.add(queryRoot.getSelectField(aliasSupport));
+        String masterField = queryRoot.getSelectField(aliasSupport, true);
+        if (StringUtils.isEmpty(masterField)) {
+            masterField = queryRoot.getAlias(aliasSupport) + FieldUtils.getJoinDivision()
+                    + queryRoot.getService().getPrimaryKeyName();
+        }
+        selects.add(masterField);
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
         if (ObjectUtils.isNotNull(getDistinct()) && getDistinct()) {
@@ -199,10 +205,10 @@ public class SelectBuilder {
      * @param node 需要查询的根节点
      * @return
      */
-    private StringBuilder getCompleteSql(QueryNode node) {
+    private StringBuilder getCompleteSql(QueryNode node, boolean needAlias) {
         List<String> selects = new ArrayList<>();
         List<String> tables = new ArrayList<>();
-        queryNode(node, selects, tables);
+        queryNode(node, selects, tables, needAlias);
 
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
@@ -248,7 +254,7 @@ public class SelectBuilder {
         List<String> orderList = FieldUtils.getFieldList(orderBy);
         StringBuilder orderBySql = new StringBuilder();
         for (String s : orderList) {
-            String[] s1 = s.split(" ");
+            String[] s1 = s.split(" ", 2);
             String field = s1[0];
             String asc = "asc";
             if (s1.length > 1) {
@@ -273,12 +279,12 @@ public class SelectBuilder {
         }
     }
 
-    private void queryNode(QueryNode node, List<String> selects, List<String> tables) {
-        selects.add(node.getSelectField(aliasSupport));
+    private void queryNode(QueryNode node, List<String> selects, List<String> tables, boolean needAlias) {
+        selects.add(node.getSelectField(aliasSupport, needAlias));
         tables.add(node.getTable(aliasSupport));
 
         for (QueryNode queryNode : node.getQueryNodeList()) {
-            queryNode(queryNode, selects, tables);
+            queryNode(queryNode, selects, tables, needAlias);
         }
     }
 
@@ -287,13 +293,17 @@ public class SelectBuilder {
      *
      * @return
      */
-    protected QueryStatement getAllSql() {
+    protected QueryStatement getAllSql(boolean needAlias) {
         fieldValueStatement.clear();
-        StringBuilder completeSql = getCompleteSql(queryRoot);
+        StringBuilder completeSql = getCompleteSql(queryRoot, needAlias);
         QueryStatement queryStatement = new QueryStatement();
         queryStatement.setSql(completeSql);
         queryStatement.setValueStatement((FieldValueStatement) fieldValueStatement.clone());
         return queryStatement;
+    }
+
+    protected QueryStatement getAllSql() {
+        return getAllSql(true);
     }
 
     /**
@@ -301,6 +311,10 @@ public class SelectBuilder {
      */
     public QueryStatement getSql() {
         return getAllSql();
+    }
+
+    public QueryStatement getSql(boolean needAlias) {
+        return getAllSql(needAlias);
     }
 
     public void completeTable(Condition condition) {

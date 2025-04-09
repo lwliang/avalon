@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="im_service_host" service="base.config">
+        <field name="name">im.service_host</field>
+        <field name="value">http://localhost:8093/im</field>
+    </record>
+    <record id="im_service_ws" service="base.config">
+        <field name="name">im.service_ws</field>
+        <field name="value">http://localhost:6666</field>
+    </record>
+</avalon>

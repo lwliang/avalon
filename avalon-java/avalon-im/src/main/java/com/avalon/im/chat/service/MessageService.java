@@ -23,10 +23,22 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class MessageService extends AbstractService {
-    private final ChatListService chatListService;
+    @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
 
-    public MessageService(ChatListService chatListService) {
-        this.chatListService = chatListService;
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    private ChatListService getChatListService() {
+        return (ChatListService) getServiceBean("chat.chat.list");
+    }
+
+    public MessageService() {
+        super();
     }
 
     @Override
@@ -69,12 +81,12 @@ public class MessageService extends AbstractService {
             recordRow.put(timestamp, message.getTimestamp());
         }
         PrimaryKey key = insert(recordRow);
-        chatListService.insert(message.getFromUserId(),
+        getChatListService().insert(message.getFromUserId(),
                 message.getToUserId(),
                 message.getChatType(),
                 key.getLong(),
                 0); // 创建聊天列表 创建自己的聊天列表
-        chatListService.insert(message.getToUserId(),
+        getChatListService().insert(message.getToUserId(),
                 message.getFromUserId(),
                 message.getChatType(),
                 key.getLong(),

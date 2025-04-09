@@ -1,6 +1,7 @@
 .dialog-overlay {
     @apply fixed;
     @apply overflow-y-auto;
+    @apply z-20;
     top: 0;
     left: 0;
     right: 0;
@@ -10,9 +11,7 @@
 
 .dialog {
     @apply absolute;
-    @apply w-[500px];
-    @apply bg-white;
-    @apply p-4;
+    @apply bg-background;
     @apply rounded;
     transform: translate(-50%, -50%);
     top: 50%;

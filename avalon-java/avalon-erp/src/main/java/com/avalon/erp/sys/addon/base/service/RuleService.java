@@ -5,6 +5,7 @@
 
 package com.avalon.erp.sys.addon.base.service;
 
+import com.avalon.core.condition.Condition;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
 import com.avalon.core.service.AbstractService;
@@ -18,6 +19,7 @@ public class RuleService extends AbstractService {
     public String getServiceName() {
         return "base.rule";
     }
+
     public final Field domainForce = Fields.createText("domain");
     public final Field permRead = Fields.createBoolean("查询",
             false, true);
@@ -28,6 +30,8 @@ public class RuleService extends AbstractService {
     public final Field permUnlink = Fields.createBoolean("删除",
             false, true);
     public final Field active = Fields.createBoolean("有效", false,
+            true);
+    public final Field global = Fields.createBoolean("全局", false,
             true);
     public final Field serviceId = Fields.createMany2one("服务",
             "base.service");

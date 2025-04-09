@@ -6,11 +6,16 @@
 import './my-password.css'
 import FormField from "../../model/FormField.ts";
 import {watch} from "vue";
+import {borderStyleType} from "../icon/my-icon.ts";
 
 const props = defineProps({
     htmlId: String,
     htmlName: String,
     required: Boolean,
+    border: {
+        type: borderStyleType,
+        default: 'round'
+    }
 })
 
 const formField = defineModel({
@@ -40,7 +45,8 @@ defineExpose({validate})
 </script>
 
 <template>
-    <input :class="['form-input-control','rounded', {'form-input-control-error': !formField.isValidate}]"
+    <input :class="['form-input-control','rounded', {'form-input-control-error': !formField.isValidate,
+     'border':border == 'round', 'border-b':border == 'bottom'}]"
            v-if="formField"
            type="password" v-model="formField.value" :id="htmlId"
            :name="htmlName">

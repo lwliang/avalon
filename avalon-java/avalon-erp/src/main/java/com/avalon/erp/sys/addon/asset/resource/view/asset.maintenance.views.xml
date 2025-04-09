@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="asset_maintenance_view_form" service="base.action.view">
+        <field name="name">asset maintenance view form</field>
+        <field name="label">资产维护</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">asset.maintenance</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="assetId"/>
+                            <field name="maintenanceDate"/>
+                        </col>
+                        <col>
+                            <field name="cost"/>
+                            <field name="responsibleUserId"/>
+                        </col>
+                    </row>
+
+                    <notebook>
+                        <page label="备注">
+                            <field name="remark"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="asset_maintenance_view_tree" service="base.action.view">
+        <field name="name">asset maintenance view tree</field>
+        <field name="label">资产维护</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">asset.maintenance</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="assetId"/>
+                <field name="maintenanceDate"/>
+                <field name="cost"/>
+                <field name="responsibleUserId"/>
+                <field name="remark"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="asset_maintenance_action" service="base.action.window">
+        <field name="name">maintenance</field>
+        <field name="label">资产维护</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">asset.maintenance</field>
+    </record>
+</avalon>

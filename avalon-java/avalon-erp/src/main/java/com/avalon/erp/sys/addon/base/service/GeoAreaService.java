@@ -28,16 +28,9 @@ public class GeoAreaService extends AbstractService {
     }
 
     @Override
-    protected Field createNameField() {
-        return Fields.createString("名称");
-    }
-
-    protected final Field code = Fields.createBigIntegerField("区划代码",
-            true, false, true);
-
-    @Override
-    public Boolean getNeedDefaultKeyField() {
-        return false;
+    protected Field createPrimaryKeyField() {
+        return Fields.createBigIntegerField("区划代码",
+                true, false, true);
     }
 
     protected final Field level = Fields.createInteger("级别");//1省2市3区(县)4街道(镇)5社区(村)

@@ -164,7 +164,7 @@ public class ServiceController {
     @PostMapping("get/detail")
     public RecordRow getDetail(@RequestBody ServiceModelField param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(param.getServiceName());
-        Condition condition = Condition.parseRPN(param.getRpnCondition());
+        Condition condition = serviceBean.getCondition(param.getCondition());
 
         Record select = serviceBean.select(condition, FieldUtils.getFieldArray(param.getFields()));
 
@@ -186,7 +186,7 @@ public class ServiceController {
         AbstractService serviceBean = context.getServiceBean(serviceConditionPage.getServiceName());
 
         return serviceBean.select(serviceConditionPage.getOrder(),
-                Condition.parseRPN(serviceConditionPage.getRpnCondition()),
+                serviceBean.getCondition(serviceConditionPage.getCondition()),
                 FieldUtils.getFieldArray(serviceConditionPage.getFields()));
     }
 
@@ -199,7 +199,7 @@ public class ServiceController {
         }
         return serviceBean.selectPage(serviceModelPage.getPage(),
                 serviceModelPage.getOrder(),
-                Condition.parseRPN(serviceModelPage.getRpnCondition()),
+                serviceBean.getCondition(serviceModelPage.getCondition()),
                 FieldUtils.getFieldArray(serviceModelPage.getFields()));
     }
 

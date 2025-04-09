@@ -49,13 +49,17 @@ const router: Router = createRouter({
                         {
                             path: 'kanban',
                             component: () => import('../pages/window/action/kanban/kanban.vue')
+                        },
+                        {
+                            path: 'import',
+                            component: () => import('../pages/window/action/excel/import-excel.vue')
                         }
                     ]
                 }
             ]
         },
         {
-            path:'/:pathMatch(.*)*',
+            path: '/:pathMatch(.*)*',
             component: () => import('../pages/NotFound.vue')
         }
     ]

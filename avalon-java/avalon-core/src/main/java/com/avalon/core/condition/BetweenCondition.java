@@ -137,17 +137,12 @@ public class BetweenCondition extends Condition {
     }
 
     @Override
-    protected Condition doParseReversePolishNotation(String[] values) {
-        return Condition.betweenCondition(values[1], values[2], values[3]);
-    }
-
-    @Override
-    public String getReversePolishNotation() {
-        return String.format("(%s,%s,%s,%s)", getOp().getName(), getRealName(), begin, end);
-    }
-
-    @Override
     public String toString() {
         return String.format(getOp().getValue(), getRealName(), begin, end);
+    }
+
+    @Override
+    public String getConditionString() {
+        return String.format(getOp().getCondition(), getRealName(), begin, end);
     }
 }

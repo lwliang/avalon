@@ -55,6 +55,9 @@ public class FieldValue implements Serializable, IFieldFormat {
     }
 
     public Integer getInteger() {
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
         return Integer.parseInt(getString());
     }
 
@@ -71,6 +74,9 @@ public class FieldValue implements Serializable, IFieldFormat {
     }
 
     public BigDecimal getBigDecimal() {
+        if (value instanceof BigDecimal) {
+            return (BigDecimal) value;
+        }
         return new BigDecimal(getString().trim());
     }
 
@@ -78,11 +84,11 @@ public class FieldValue implements Serializable, IFieldFormat {
         if (value instanceof Date) {
             return (Date) value;
         }
-        if(value instanceof Long) {
+        if (value instanceof Long) {
             return new Date((Long) value);
         }
         if (value instanceof String) {
-            if(ObjectUtils.isNotNull(field) ) {
+            if (ObjectUtils.isNotNull(field)) {
                 return (Date) field.parse(value);
             }
         }
@@ -90,25 +96,37 @@ public class FieldValue implements Serializable, IFieldFormat {
     }
 
     public Timestamp getTimestamp() {
-        if(value instanceof Long) {
+        if (value instanceof Long) {
             return new Timestamp((Long) value);
         }
         return (Timestamp) value;
     }
 
     public Float getFloat() {
+        if (value instanceof Float) {
+            return (Float) value;
+        }
         return Float.parseFloat(getString().trim());
     }
 
     public Double getDouble() {
+        if (value instanceof Double) {
+            return (Double) value;
+        }
         return Double.parseDouble(getString().trim());
     }
 
     public Long getLong() {
+        if (value instanceof Long) {
+            return (Long) value;
+        }
         return Long.parseLong(getString());
     }
 
     public Boolean getBoolean() {
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
         return Boolean.parseBoolean(getString());
     }
 
@@ -204,7 +222,7 @@ public class FieldValue implements Serializable, IFieldFormat {
     public String toString() {
         if (ObjectUtils.isNotNull(value)) {
             Object sqlValue = getSqlValue(value);
-            if(ObjectUtils.isNull(sqlValue)) return null;
+            if (ObjectUtils.isNull(sqlValue)) return null;
             return sqlValue.toString();
         }
         return null;

@@ -7,6 +7,7 @@ package com.avalon.erp.sys.addon.base.controller;
 
 import com.avalon.core.exception.FieldCheckException;
 import com.avalon.core.exception.IAvalonException;
+import com.avalon.core.exception.PermissionException;
 import com.avalon.core.field.Field;
 import com.avalon.core.util.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -96,7 +97,9 @@ public class AvalonControllerAdvice implements ResponseBodyAdvice<Object> {
         }
         map.put("code", code);
         map.put("msg", ex.getMessage());
-        log.error(ex.getMessage(), ex);
+        if (!(ex instanceof PermissionException)) {
+            log.error(ex.getMessage(), ex);
+        }
         return map;
     }
 

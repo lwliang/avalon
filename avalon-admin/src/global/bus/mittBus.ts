@@ -7,12 +7,21 @@ import {getModelAllApi} from "../../api/modelApi.ts";
 import {useGlobalMenuDataStore} from "../store/menuStore.ts";
 import {useGlobalModuleDataStore} from "../store/moduleStore.ts";
 import {useGlobalServiceDataStore} from "../store/serviceStore.ts";
-import {useGlobalFieldDataStore} from "../store/fieldStore.ts";
 import {useUserInfoStore} from "../store/userInfoStore.ts"
 import mitt from "mitt";
 import {getUserDetail} from "../../api/loginApi.ts";
 import MenuModel from "../../model/MenuModel.ts";
 import {goModelWindow} from "../../util/routerUtils.ts";
+import {
+    getInstallModule,
+    getModuleStartJS,
+    getModuleStartJS_URL, getModuleStartVue, getModuleStartVue_URL, getModuleStartVue_URL_path,
+    getPermissionModule
+} from "../../api/moduleApi.ts";
+import Module from "../../model/Module.ts";
+import {loadScript} from "../../util/scriptUtils.ts";
+import app from '../../main.ts'
+import {render, h, createVNode} from 'vue';
 
 type MittEvent = {
     changeModule: { module: string, click?: boolean }
@@ -22,6 +31,7 @@ type MittEvent = {
     loadModule: void,
     loadService: void,
     loadField: void,
+    uploadFile: void
 }
 
 const mittBus = mitt<MittEvent>();
@@ -31,10 +41,7 @@ const mittBus = mitt<MittEvent>();
 * 以下是全局加载默认数据事件
 * */
 const handleLoginEvent = () => {
-    handleLoadMenuEvent();
     handleLoadModuleEvent();
-    handleLoadServiceEvent();
-    handleLoadFieldEvent();
     loadUserInfo();
 }
 mittBus.on('login', handleLoginEvent);
@@ -73,24 +80,30 @@ mittBus.on('changeModule', async (args) => {
     }
 })
 
-const handleLoadMenuEvent = () => {
-    getModelAllApi("id,label,param,name,sequence,type,icon,objectAction,serviceId.id,serviceId.name" +
-        ",action.id,action.viewMode,action.label,action.serviceId.id," +
-        "action.serviceId.name,action.serviceId.moduleId.id,action.serviceId.moduleId.name",
-        "",
-        "base.menu").then(data => {
-        useGlobalMenuDataStore().setMenuStore(data)
-    })
-}
 
-mittBus.on('loadMenu', handleLoadMenuEvent)
+const handleLoadModuleEvent = async () => {
+    const data: Module[] = await getPermissionModule();
+    useGlobalModuleDataStore().setModuleStore(data);
 
-const handleLoadModuleEvent = () => {
-    getModelAllApi("id,label,name,icon,description,display,isInstall",
-        "",
-        "base.module").then(data => {
-        useGlobalModuleDataStore().setModuleStore(data);
-    })
+    const installModules = await getInstallModule()
+    for (const module of installModules) {
+        const moduleNames: string[] = await getModuleStartJS(module.name);
+        for (const str of moduleNames) { // js 文件内容
+            loadScript(getModuleStartJS_URL(module.name, str), null)
+        }
+    }
+
+    for (const module of installModules) {
+        const moduleNames: string[] = await getModuleStartVue(module.name);
+        for (const str of moduleNames) { // js 文件内容
+            // loadVueComponent(getModuleStartVue_URL_path(module.name, str)).then(component => {
+            //     if (component) {
+            //         console.log("component", component)
+            //         app.component('remote-component', component)
+            //     }
+            // })
+        }
+    }
 }
 
 mittBus.on('loadModule', handleLoadModuleEvent)
@@ -102,21 +115,34 @@ const handleLoadServiceEvent = () => {
         useGlobalServiceDataStore().setServiceStore(data);
     })
 }
-const handleLoadFieldEvent = () => {
-    getModelAllApi("id,label,name,isPrimaryKey,isAutoIncrement,isRequired,isReadonly,defaultValue," +
-        "type,serviceId,isUnique,allowNull,minValue,maxValue,masterForeignKeyName,relativeForeignKeyName," +
-        "relativeServiceName,manyServiceTable,relativeFieldName",
-        "",
-        "base.field").then(data => {
-        useGlobalFieldDataStore().setFieldStore(data);
-    })
-}
-mittBus.on('loadService', handleLoadServiceEvent)
-mittBus.on('loadField', handleLoadFieldEvent)
 
+mittBus.on('loadService', handleLoadServiceEvent)
 
 export const emitLogin = () => {
     mittBus.emit('login')
+}
+
+// 动态显示组件的函数
+function showDynamicComponentVNode(dynamicComponent: any, containerId = 'app') {
+    // 创建一个 DOM 容器
+    let container = document.getElementById(containerId);
+    if (!container) {
+        container = document.createElement('div');
+        container.id = containerId;
+        document.body.appendChild(container);
+    }
+
+    // 创建虚拟节点
+    const vnode = createVNode(dynamicComponent);
+
+    // 渲染到容器中
+    render(vnode, container);
+
+    // 提供销毁方法
+    return () => {
+        render(null, container); // 卸载组件
+        document.body.removeChild(container); // 移除容器
+    };
 }
 
 

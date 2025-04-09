@@ -13,6 +13,7 @@ import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.DateTimeUtils;
 import com.avalon.core.util.FieldUtils;
 import com.avalon.core.util.ObjectUtils;
+import com.avalon.core.util.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -21,6 +22,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -109,7 +111,7 @@ public class ExcelUtil {
         //1.创建一个工作簿  07XSSFWorkbook
         XSSFWorkbook workbook = new XSSFWorkbook();
         //2.创建一个工作表
-        Sheet sheet = workbook.createSheet("z账单");
+        Sheet sheet = workbook.createSheet(service.getLabel());
 
         renderHeaderRow(sheet, fields, service);
 
@@ -137,21 +139,8 @@ public class ExcelUtil {
             RecordRow recordRow = data.get(rowIndex);
             for (int colIndex = 0; colIndex < fields.size(); colIndex++) {
                 Cell cell = row.createCell(colIndex);
-                Field field = service.getField(fields.get(colIndex));
-                String joinDisplayString = FieldUtils.getJoinDisplayString(fields.get(colIndex));
-                if (recordRow.isNotNull(joinDisplayString)) {
-                    if (ObjectUtils.isNull(field)) {
-                        cell.setCellValue(recordRow.getString(joinDisplayString));
-                    } else {
-                        if (field instanceof IFieldFormat) {
-                            Object parse = field.getSqlValue(recordRow.getRawValue(joinDisplayString));
-                            cell.setCellValue(parse.toString());
-                        } else {
-                            cell.setCellValue(recordRow.getString(joinDisplayString));
-                        }
-                    }
-
-                }
+                String field = service.getField(fields.get(colIndex)).getName();
+                cell.setCellValue(recordRow.getString(field));
             }
         }
     }
@@ -170,12 +159,55 @@ public class ExcelUtil {
 
         for (int i = 0; i < fields.size(); i++) {
             Cell cell = row.createCell(i);
-            Field field = service.getField(fields.get(i));
-            if (ObjectUtils.isNull(field)) {
-                cell.setCellValue(fields.get(i));
-            } else {
-                cell.setCellValue(field.getLabel());
+            String field = fields.get(i);
+            String[] split = field.split("\\.");
+            String label = "";
+            String fieldStr = "";
+            for (String s : split) {
+                if (StringUtils.isNotEmpty(fieldStr)) {
+                    fieldStr = fieldStr + "." + s;
+                } else {
+                    fieldStr = s;
+                }
+
+                Field X = service.getField(fieldStr);
+                if (StringUtils.isEmpty(label)) {
+                    label = X.getLabel();
+                } else {
+                    label = label + "/" + X.getLabel();
+                }
+            }
+
+            cell.setCellValue(label);
+        }
+    }
+
+    /**
+     * 读取工作表的第一行
+     *
+     * @param sheet 工作表
+     */
+    public static List<String> readFirstRow(Sheet sheet) {
+        List<String> headerList = new ArrayList<>();
+        // 获取第一行（标题行）
+        Row firstRow = sheet.getRow(0);
+        if (ObjectUtils.isNotNull(firstRow)) {
+            // 遍历第一行的每个单元格
+            for (Cell cell : firstRow) {
+                // 根据单元格类型读取值
+                headerList.add(String.valueOf(getCellValue(cell)));
             }
         }
+        return headerList;
+    }
+
+    public static Object getCellValue(Cell cell) {
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue();
+            case NUMERIC -> cell.getNumericCellValue();
+            case BOOLEAN -> cell.getBooleanCellValue();
+            case FORMULA -> cell.getCellFormula();
+            default -> "";
+        };
     }
 }

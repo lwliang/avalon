@@ -3,12 +3,13 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import MyPopover from "../popover/my-popover.vue";
 import MyInput from "../input/my-input.vue";
 import {getHour, getMinute} from "../../util/dateUtils.ts";
 import FormField from "../../model/FormField.ts";
 import {ref} from "vue";
 import {popoverType} from "../popover/my-popover.ts";
+import {borderStyleType} from "../icon/my-icon.ts";
+import MyInnerPopover from "../popover/my-inner-popover.vue";
 
 const props = defineProps({
     htmlId: String,
@@ -19,6 +20,10 @@ const props = defineProps({
     placement: {
         type: popoverType,
         default: 'bottom'
+    },
+    border: {
+        type: borderStyleType,
+        default: 'round'
     }
 })
 
@@ -122,10 +127,10 @@ const sureTime = () => {
 </script>
 
 <template>
-    <MyPopover :placement="placement" trigger="click" width="182px">
+    <MyInnerPopover :placement="placement" trigger="click" width="182px">
         <template #default>
             <MyInput :inputWidth="props.inputWidth" v-model="formField" suffix-icon-style="far"
-                     suffix-icon="clock"></MyInput>
+                     suffix-icon="clock" :border="border"></MyInput>
         </template>
 
         <template #option>
@@ -169,7 +174,7 @@ const sureTime = () => {
                 </div>
             </div>
         </template>
-    </MyPopover>
+    </MyInnerPopover>
 </template>
 
 <style scoped>

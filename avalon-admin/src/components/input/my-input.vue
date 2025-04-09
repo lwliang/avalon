@@ -5,8 +5,8 @@
  */
 import './my-input.css'
 import FormField from "../../model/FormField.ts";
-import {watch} from "vue";
-import {iconStyleType} from "../icon/my-icon.ts";
+import {ref, watch} from "vue";
+import {borderStyleType, iconStyleType} from "../icon/my-icon.ts";
 import MyButton from "../button/my-button.vue";
 
 const props = defineProps({
@@ -36,12 +36,21 @@ const props = defineProps({
     inputWidth: {
         type: String,
         required: false
+    },
+    border: {
+        type: borderStyleType,
+        default: 'round'
+    },
+    placeholder: {
+        type: String,
+        default: ''
     }
 })
 
 const inputStyle = {
     width: props.inputWidth || undefined
 }
+const isFocus = ref(false)
 
 const emit = defineEmits(['rightBtnClick', 'valueChange'])
 
@@ -90,6 +99,7 @@ const valueChange = () => {
     emit('valueChange', formField.value.value)
 }
 
+
 defineExpose({validate})
 
 </script>
@@ -102,10 +112,14 @@ defineExpose({validate})
         </div>
         <input
             :style="[{'paddingLeft':  suffixIcon ? '30px' : '0.75rem'},inputStyle]"
-            :class="['form-input-control','flex-1', {'form-input-control-error': !formField.isValidate,'rounded-l':!!icon, 'rounded':!icon}]"
+            :class="['form-input-control','flex-1', {'form-input-control-error': !formField.isValidate,'rounded-l':!!icon, 'rounded':!icon,
+            'border':border == 'round', 'border-b':border == 'bottom'}]"
             v-if="formField"
             type="text"
             v-model="formField.value" :id="htmlId" :readonly="readonly"
+            :placeholder="placeholder"
+            @focus="isFocus = true"
+            @blur="isFocus = false"
             @change="valueChange"
             :name="htmlName">
         <MyButton @click="rightBtnClick" type="info" v-if="icon" :icon="icon" :icon-style="iconStyle" class="rounded-r"

@@ -22,6 +22,16 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MessageCustomService extends AbstractService {
     @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    @Override
     public String getServiceName() {
         return "chat.message.custom";
     }
@@ -30,6 +40,7 @@ public class MessageCustomService extends AbstractService {
     public String getLabel() {
         return "客服消息记录";
     }
+
     @Override
     public Boolean getNeedDefaultField() {
         return false;

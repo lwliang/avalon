@@ -18,9 +18,20 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MessageCustomTeamService extends AbstractService {
     @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    @Override
     public String getServiceName() {
         return "chat.message.custom.team";
     }
+
     @Override
     public Boolean getNeedDefaultField() {
         return false;

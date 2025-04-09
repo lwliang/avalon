@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_menu_view_tree" service="base.action.view">
+        <field name="name">base_menu_view_tree</field>
+        <field name="label">菜单</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.menu</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="label"/>
+                <field name="sequence"/>
+            </tree>
+        </field>
+    </record>
+
+</avalon>

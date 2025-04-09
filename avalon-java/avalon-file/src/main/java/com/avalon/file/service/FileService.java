@@ -5,6 +5,8 @@
 
 package com.avalon.file.service;
 
+import com.avalon.core.condition.Condition;
+import com.avalon.core.model.Record;
 import com.avalon.file.config.FileConfig;
 import com.avalon.file.util.PathUtil;
 import com.avalon.core.field.Field;
@@ -27,6 +29,21 @@ import java.nio.channels.FileChannel;
 @Service
 @Slf4j
 public class FileService extends AbstractService {
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public Boolean getNeedDefaultField() {
+        return false;
+    }
+
     @Autowired
     private FileConfig fileConfig;
 
@@ -58,7 +75,6 @@ public class FileService extends AbstractService {
      */
     public RecordRow saveFile(String fileName, String mime, byte[] content) throws FileIOException {
         try {
-
             RecordRow recordRow = new RecordRow();
             recordRow.put("originName", fileName);
             recordRow.put("mime", mime);
@@ -69,7 +85,7 @@ public class FileService extends AbstractService {
 
             String path = getContext().getBaseName() + File.separator + PathUtil.getPath(fileConfig.getMode());
 
-            createDir(fileConfig.getDir() + path);
+            createDir(fileConfig.getFile() + path);
 
             String fileExt = FileUtils.getFileExt(fileName);
             recordRow.put("ext", fileExt);//唯一值
@@ -77,18 +93,113 @@ public class FileService extends AbstractService {
             recordRow.put("name", uuidFileName);//唯一值
 
             String fullFileName = path + File.separator + uuidFileName;
-            File file = createFile(fileConfig.getDir() + fullFileName);
+            File file = createFile(fileConfig.getFile() + fullFileName);
             recordRow.put("filePath", fullFileName);//文件相对路径
 
             String url = getUrl(getContext().getBaseName(), first, second, uuidFileName);
             recordRow.put("url", url);//文件相对路径
             writeFile(file, content);
             insert(recordRow);
+            recordRow.put("size", content.length);
             return recordRow;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new FileIOException(e.getMessage());
         }
+    }
+
+    /**
+     * 保存文件
+     *
+     * @param fileName
+     * @param mime
+     * @param content
+     * @return
+     */
+    public RecordRow saveImageFile(String fileName, String mime, byte[] content) throws FileIOException {
+        try {
+            RecordRow recordRow = new RecordRow();
+            recordRow.put("originName", fileName);
+            recordRow.put("mime", mime);
+
+            String token = BCryptUtil.simpleUUID();
+            String first = PathUtil.getFirst(fileConfig.getMode());
+            String second = PathUtil.getSecond(fileConfig.getMode());
+
+            String path = getContext().getBaseName() + File.separator + PathUtil.getPath(fileConfig.getMode());
+
+            createDir(fileConfig.getImage() + path);
+
+            String fileExt = FileUtils.getFileExt(fileName);
+            recordRow.put("ext", fileExt);//唯一值
+            String uuidFileName = PathUtil.getUUIDFileName(token, fileName);
+            recordRow.put("name", uuidFileName);//唯一值
+
+            String fullFileName = path + File.separator + uuidFileName;
+            File file = createFile(fileConfig.getImage() + fullFileName);
+            recordRow.put("filePath", fullFileName);//文件相对路径
+
+            String url = getImageUrl(getContext().getBaseName(), first, second, uuidFileName);
+            recordRow.put("url", url);//文件相对路径
+            writeFile(file, content);
+            insert(recordRow);
+            recordRow.put("size", content.length);//大小
+            return recordRow;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new FileIOException(e.getMessage());
+        }
+    }
+
+    /**
+     * 保存文件
+     *
+     * @param fileName
+     * @param mime
+     * @param content
+     * @return
+     */
+    public RecordRow saveVideoFile(String fileName, String mime, byte[] content) throws FileIOException {
+        try {
+            RecordRow recordRow = new RecordRow();
+            recordRow.put("originName", fileName);
+            recordRow.put("mime", mime);
+
+            String token = BCryptUtil.simpleUUID();
+            String first = PathUtil.getFirst(fileConfig.getMode());
+            String second = PathUtil.getSecond(fileConfig.getMode());
+
+            String path = getContext().getBaseName() + File.separator + PathUtil.getPath(fileConfig.getMode());
+
+            createDir(fileConfig.getVideo() + path);
+
+            String fileExt = FileUtils.getFileExt(fileName);
+            recordRow.put("ext", fileExt);//唯一值
+            String uuidFileName = PathUtil.getUUIDFileName(token, fileName);
+            recordRow.put("name", uuidFileName);//唯一值
+
+            String fullFileName = path + File.separator + uuidFileName;
+            File file = createFile(fileConfig.getVideo() + fullFileName);
+            recordRow.put("filePath", fullFileName);//文件相对路径
+
+            String url = getVideoUrl(getContext().getBaseName(), first, second, uuidFileName);
+            recordRow.put("url", url);//文件相对路径
+            writeFile(file, content);
+            insert(recordRow);
+            recordRow.put("size", content.length);//大小
+            return recordRow;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new FileIOException(e.getMessage());
+        }
+    }
+
+    private String getImageUrl(String db, String first, String second, String uuidFileName) {
+        return "/image/down/" + db + "/" + first + "/" + second + "/" + uuidFileName;
+    }
+
+    private String getVideoUrl(String db, String first, String second, String uuidFileName) {
+        return "/video/down/" + db + "/" + first + "/" + second + "/" + uuidFileName;
     }
 
     private String getUrl(String db, String first, String second, String uuidFileName) {

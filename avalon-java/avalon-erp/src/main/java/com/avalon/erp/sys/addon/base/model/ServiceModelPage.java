@@ -18,5 +18,5 @@ public class ServiceModelPage extends ServiceModel {
     private String fields; // field,field field.field,field
     private String order;// field asc, field.field desc
     private Boolean isDistinct;
-    private String rpnCondition;
+    private String condition;
 }

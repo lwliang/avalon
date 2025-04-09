@@ -35,7 +35,7 @@ public class ObjectUtils {
         return List.of(value);
     }
 
-    public static String toString(List<Object> list) {
+    public static String toString(List<?> list) {
         StringBuilder stringBuffer = new StringBuilder();
         for (Object obj : list) {
             stringBuffer.append(obj.toString());

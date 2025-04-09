@@ -64,7 +64,7 @@ public class QueryNode implements IAliasRequire {
             if (!FieldUtils.isVirtualRelation(field1)) {
                 originalFields.add(fieldName);
                 fields.add(field1);
-                if(field1 instanceof Many2oneField) {
+                if (field1 instanceof Many2oneField) {
                     addTable(fieldName);
                 }
             } else {
@@ -88,7 +88,7 @@ public class QueryNode implements IAliasRequire {
     }
 
 
-    public String getSelectField(DefaultAliasSupport defaultAliasSupport) {
+    public String getSelectField(DefaultAliasSupport defaultAliasSupport, boolean needAlias) {
         StringBuilder selectFields = new StringBuilder();
         for (Field field : fields) {
             if (!selectFields.isEmpty()) {
@@ -99,20 +99,22 @@ public class QueryNode implements IAliasRequire {
                     .append(FieldUtils.getJoinDivision())
                     .append(field.getFieldName());
 
-            if (service.getContext().isMysql()) {
-                selectFields.append(" AS ")
-                        .append("'")
-                        .append(alias)
-                        .append(FieldUtils.getJoinDivision())
-                        .append(field.getFieldName())
-                        .append("'");
-            } else {
-                selectFields.append(" AS ")
-                        .append("\"")
-                        .append(alias)
-                        .append(FieldUtils.getJoinDivision())
-                        .append(field.getFieldName())
-                        .append("\"");
+            if (needAlias) {
+                if (service.getContext().isMysql()) {
+                    selectFields.append(" AS ")
+                            .append("'")
+                            .append(alias)
+                            .append(FieldUtils.getJoinDivision())
+                            .append(field.getFieldName())
+                            .append("'");
+                } else {
+                    selectFields.append(" AS ")
+                            .append("\"")
+                            .append(alias)
+                            .append(FieldUtils.getJoinDivision())
+                            .append(field.getFieldName())
+                            .append("\"");
+                }
             }
         }
         return selectFields.toString();
@@ -139,8 +141,10 @@ public class QueryNode implements IAliasRequire {
             Many2manyField relationField = ((Many2manyField) field);
             tables = " left join " +
                     getService().getServiceTableName() + " " + getAlias(defaultAliasSupport) +
-                    " on " + getAlias(defaultAliasSupport) + FieldUtils.getJoinDivision() + relationField.getMasterForeignSqlKeyName() +
-                    " = " + parentNode.getAlias(defaultAliasSupport) + FieldUtils.getJoinDivision() + parentNode.getService().getPrimaryKeyName();
+                    " on " + getAlias(defaultAliasSupport) + FieldUtils.getJoinDivision()
+                    + Fields.underscoreName(relationField.getMasterForeignKeyName())
+                    + " = " + parentNode.getAlias(defaultAliasSupport) + FieldUtils.getJoinDivision()
+                    + Fields.underscoreName(parentNode.getService().getPrimaryKeyName());
         }
         return tables;
     }

@@ -25,6 +25,7 @@ public class ActionWindowViewService extends AbstractService {
     protected final Field serviceName = Fields.createString("模型名称");
     protected final Field viewMode = Fields.createSelection("类型", ViewModeEnum.class, ViewModeEnum.tree);
     protected final Field arch = Fields.createText("xml");
+    public final Field moduleId = Fields.createMany2one("模块", "base.module");
 
     public final Field actionWindowId = Fields.createMany2one("窗口", "base.action.window");
 }

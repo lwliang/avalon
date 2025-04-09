@@ -12,7 +12,11 @@ button {
 }
 
 .btn-primary {
-    @apply bg-blue-500;
+    @apply bg-primary;
+}
+
+.btn-primary:not([link='true']):hover {
+    @apply bg-primary-hover;
 }
 
 .btn-rounded {
@@ -20,19 +24,35 @@ button {
 }
 
 .btn-danger {
-    @apply bg-red-500;
+    @apply bg-danger;
+}
+
+.btn-danger:not([link='true']):hover {
+    @apply bg-danger-hover;
 }
 
 .btn-success {
-    @apply bg-green-500;
+    @apply bg-success;
+}
+
+.btn-success:not([link='true']):hover {
+    @apply bg-success-hover;
 }
 
 .btn-info {
-    @apply bg-gray-500;
+    @apply bg-info;
+}
+
+.btn-info:not([link='true']):hover {
+    @apply bg-info-hover;
 }
 
 .btn-warning {
-    @apply bg-amber-500;
+    @apply bg-warning;
+}
+
+.btn-warning:not([link='true']):hover {
+    @apply bg-warning-hover;
 }
 
 .btn-link {
@@ -43,22 +63,42 @@ button {
 
 
 .btn-primary[link='true'] {
-    @apply text-blue-500;
+    @apply text-primary;
+}
+
+.btn-primary[link='true']:hover {
+    @apply text-primary-hover;
 }
 
 .btn-info[link='true'] {
-    @apply text-gray-500;
+    @apply text-info;
+}
+
+.btn-info[link='true']:hover {
+    @apply text-info-hover;
 }
 
 .btn-warning[link='true'] {
-    @apply text-amber-500;
+    @apply text-warning;
 }
 
+.btn-warning[link='true']:hover {
+    @apply text-warning-hover;
+}
+
+
 .btn-success[link='true'] {
-    @apply text-green-500;
+    @apply text-success;
+}
+
+.btn-success[link='true']:hover {
+    @apply text-success-hover;
 }
 
 .btn-danger[link='true'] {
-    @apply text-red-500;
+    @apply text-danger;
 }
 
+.btn-danger[link='true']:hover {
+    @apply text-danger-hover;
+}

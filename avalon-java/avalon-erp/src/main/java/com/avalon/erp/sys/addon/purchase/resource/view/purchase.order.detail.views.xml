@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="purchase_order_detail_view_form" service="base.action.view">
+        <field name="name">order detail</field>
+        <field name="label">采购订单明细</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">purchase.order.detail</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="productId"/>
+                            <field name="unitId"/>
+                            <field name="quantity"/>
+                            <field name="remark"/>
+                        </col>
+                        <col>
+                            <field name="price"/>
+                            <field name="amount"/>
+                            <field name="supplierId"/>
+                        </col>
+                    </row>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="purchase_order_detail_view_tree" service="base.action.view">
+        <field name="name">order detail</field>
+        <field name="label">采购订单明细</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">purchase.order.detail</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="productId"/>
+                <field name="unitId"/>
+                <field name="quantity"/>
+                <field name="price"/>
+                <field name="amount"/>
+                <field name="supplierId"/>
+                <field name="remark"/>
+            </tree>
+        </field>
+    </record>
+</avalon>

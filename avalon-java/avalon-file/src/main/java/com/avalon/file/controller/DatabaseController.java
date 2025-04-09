@@ -50,7 +50,7 @@ public class DatabaseController {
 
     @GetMapping("update/module/{moduleName}")
     public String updateModule(@PathVariable("moduleName") String moduleName) {
-        AbstractModule base = context.getModuleMap().getModule(moduleName);
+        AbstractModule base = context.getModule(moduleName);
         base.upgradeModule();
         return "OK";
     }
@@ -58,7 +58,7 @@ public class DatabaseController {
     @GetMapping("create/module/{moduleName}")
     public String createModule(@PathVariable("moduleName") String moduleName) {
         context.setUserId(SystemConstant.ADMIN);
-        AbstractModule base = context.getModuleMap().getModule(moduleName);
+        AbstractModule base = context.getModule(moduleName);
         base.createModule();
         return "OK";
     }
@@ -66,7 +66,7 @@ public class DatabaseController {
     @GetMapping("drop/module/{moduleName}")
     public String dropModule(@PathVariable("moduleName") String moduleName) {
 
-        AbstractModule base = context.getModuleMap().getModule(moduleName);
+        AbstractModule base = context.getModule(moduleName);
         base.dropModule();
         return "OK";
     }

@@ -36,7 +36,7 @@ const sureClick = () => {
 <template>
     <teleport to="body">
         <div class="dialog-overlay" :class="zIndex" v-if="show">
-            <div class="dialog">
+            <div class="dialog w-[500px] p-4">
                 <div class="dialog-header flex">
                     <div class="dialog-title flex-1">
                         {{ title }}

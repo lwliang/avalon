@@ -43,8 +43,21 @@ export function goModelWindow(module: string, service: string, actionWindow: any
     })
 }
 
+export function goModelImport(module: string, service: string, actionWindow: any) {
+    router.push({
+        path: `/model/${module}/${service}/window/import`,
+        query: actionWindow
+    })
+}
+
 export function goModelForm(module: string, service: string, id: any) {
     router.push({
+        path: `/model/${module}/${service}/window/form`,
+        query: {id}
+    })
+}
+export function replaceModelForm(module: string, service: string, id: any) {
+    router.replace({
         path: `/model/${module}/${service}/window/form`,
         query: {id}
     })

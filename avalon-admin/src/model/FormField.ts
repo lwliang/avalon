@@ -10,7 +10,7 @@ import {isObject} from "../util/typeUtils.ts";
 import {OperateTypeEnum} from "./enum-type/OperateTypeEnum.ts";
 import {useGlobalFieldDataStore} from "../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../global/store/serviceStore.ts";
-import {uploadFile} from "../api/fileUploadApi.ts";
+import {uploadFile, uploadImage, uploadVideo} from "../api/fileUploadApi.ts";
 import Service from "./Service.ts";
 import {getDateTime, getDateTimeWithAll} from "../util/dateUtils.ts";
 
@@ -48,8 +48,8 @@ export default class FormField {
         if (field.type == FieldTypeEnum.One2manyField) {
             if (!value) return value;
             const fields = await useFieldDataStore.getFieldByServiceNameAsync(field.relativeServiceName);
-            const keyField = useFieldDataStore.getPrimaryKeyFieldByServiceName(field.relativeServiceName)
-            return this._getOne2ManyValue(value, originValue, field.relativeServiceName, fields, keyField)
+            const relativeService = await useServiceDataStore.getServiceByNameAsync(field.relativeServiceName)
+            return this._getOne2ManyValue(value, originValue, field.relativeServiceName, fields, relativeService)
         } else if (field.type == FieldTypeEnum.Many2oneField) {
             if (isObject(value)) {
                 const service = useServiceDataStore.getServiceByName(field.relativeServiceName);
@@ -67,6 +67,16 @@ export default class FormField {
             return getDateTimeWithAll(value);
         } else if (field.type == FieldTypeEnum.ImageField) {
             if (value) {
+                const result = await uploadImage(value)
+                return result.url
+            }
+        } else if (field.type == FieldTypeEnum.VideoField) {
+            if (value) {
+                const result = await uploadVideo(value)
+                return result.url
+            }
+        } else if (field.type == FieldTypeEnum.FileField) {
+            if (value) {
                 const result = await uploadFile(value)
                 return result.url
             }
@@ -76,13 +86,13 @@ export default class FormField {
     }
 
     async _getOne2ManyValue(value: any, originValue: any,
-                            service: string, fields: Field[], keyField: Field) {
+                            service: string, fields: Field[], relativeService: Service) {
         const result: any[] = []
 
         // 新增 和 修改
         for (let valueElement of value) {
             const row: any = {}
-            if (keyField.name in valueElement && typeof valueElement[keyField.name] == 'symbol') { // 新增记录
+            if (relativeService.keyField in valueElement && typeof valueElement[relativeService.keyField] == 'symbol') { // 新增记录
                 for (const key in valueElement) {
                     const field = fields.find(x => x.name == key)
                     if (!field) continue
@@ -93,7 +103,7 @@ export default class FormField {
                 continue;
             }
 
-            const origin = originValue.find((y: any) => y[keyField.name] == valueElement[keyField.name])
+            const origin = originValue.find((y: any) => y[relativeService.keyField] == valueElement[relativeService.keyField])
             for (const key in valueElement) {
                 const field = fields.find(x => x.name == key)
 
@@ -105,7 +115,7 @@ export default class FormField {
             }
             if (Object.keys(row).length) {
                 row['op'] = OperateTypeEnum.update
-                row[keyField.name] = valueElement[keyField.name]
+                row[relativeService.keyField] = valueElement[relativeService.keyField]
                 result.push(row)
             }
         }
@@ -113,10 +123,10 @@ export default class FormField {
         // 删除
         if (originValue) {
             for (let originValueElement of originValue) {
-                const e = value.find((v: any) => v[keyField.name] == originValueElement[keyField.name]);
+                const e = value.find((v: any) => v[relativeService.keyField] == originValueElement[relativeService.keyField]);
                 if (!e) { // 不存在
                     const row: any = {}
-                    row[keyField.name] = originValueElement[keyField.name]
+                    row[relativeService.keyField] = originValueElement[relativeService.keyField]
                     row['op'] = OperateTypeEnum.delete
                     result.push(row)
                 }

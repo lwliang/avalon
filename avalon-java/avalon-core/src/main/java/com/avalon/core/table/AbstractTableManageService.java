@@ -13,13 +13,13 @@ import com.avalon.core.enums.ServiceOperateEnum;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.exception.FieldCheckException;
 import com.avalon.core.field.Field;
+import com.avalon.core.field.FieldList;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.*;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.FieldValue;
 import com.avalon.core.util.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -287,7 +287,7 @@ public abstract class AbstractTableManageService implements ITableManage, Applic
     }
 
     @Override
-    public List<Field> getFields() {
+    public FieldList getFields() {
         ITableService firstTableService = getFirstTableService();
         return firstTableService.getFields();
     }

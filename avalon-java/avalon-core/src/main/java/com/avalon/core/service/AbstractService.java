@@ -7,6 +7,7 @@ package com.avalon.core.service;
 
 import com.avalon.core.condition.Condition;
 import com.avalon.core.context.Context;
+import com.avalon.core.context.SystemConstant;
 import com.avalon.core.db.AutoKeyPreparedStatement;
 import com.avalon.core.db.AvalonPreparedStatement;
 import com.avalon.core.db.DataBaseTools;
@@ -14,6 +15,7 @@ import com.avalon.core.db.DynamicJdbcTemplate;
 import com.avalon.core.enums.ServiceOperateEnum;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.exception.FieldCheckException;
+import com.avalon.core.exception.PermissionException;
 import com.avalon.core.field.*;
 import com.avalon.core.log.IAvalonServiceLog;
 import com.avalon.core.log.ServiceLog;
@@ -21,11 +23,11 @@ import com.avalon.core.model.Record;
 import com.avalon.core.model.*;
 import com.avalon.core.alias.DefaultAliasSupport;
 import com.avalon.core.alias.IAliasRequire;
-import com.avalon.core.module.AbstractModule;
+import com.avalon.core.permission.ElevatePermissionEnum;
+import com.avalon.core.permission.PermissionEnum;
 import com.avalon.core.select.builder.QueryStatement;
 import com.avalon.core.select.builder.SelectBuilder;
 import com.avalon.core.select.builder.SelectPageBuilder;
-import com.avalon.core.select.builder.SelectTreeBuilder;
 import com.avalon.core.tree.QueryNode;
 import com.avalon.core.tree.SelectOneModel;
 import com.avalon.core.tree.SelectOneTree;
@@ -51,8 +53,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
 @Lazy
-public abstract class AbstractService implements IAvalonService, IAliasRequire {
-
+public abstract class AbstractService implements IAvalonService, IAliasRequire, ICheckPermission, IExtendFieldService, IExportImportService {
     public final static String CREATE_TIME = "createTime";
     public final static String CREATOR = "creator";
     public final static String UPDATE_TIME = "updateTime";
@@ -60,6 +61,10 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
     public final static String NAME = "name";
     public final static String ID = "id";
     public final static String OPERATE = "op";//系统使用的字段，子类不能使用
+
+    public Condition getCondition(String script) {
+        return context.conditionManager.interpreter(script);
+    }
 
     /**
      * 获取当前事物id
@@ -79,9 +84,10 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             if (this instanceof IUserService) {
                 return getServiceName();
             }
-            IUserService userService = Context.getAvalonApplicationContextInstance().getBean(IUserService.class);
+            IUserService userService = (IUserService) context.getClassBean(IUserService.class);
             return userService.getServiceName();
         } catch (Exception ex) {
+            log.error("getUserServiceName:{}", this.getClass().getName());
             log.error(ex.getMessage(), ex);
             return "base.user";
         }
@@ -311,7 +317,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
                     }
 
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    log.debug(this.getClass() + " postConstruct方法 error->" + e.getMessage());
+                    log.debug("{} postConstruct方法 error->{}", this.getClass(), e.getMessage());
                 }
             }
         });
@@ -339,91 +345,48 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
     }
 
     private void setFieldService(Field field) {
-        try {
-            Method setService = null;
-            Class<?> cls = field.getClass();
-            while (cls != Object.class) {//将变量名设置为字段名
-                try {
-                    setService = cls.getDeclaredMethod("setService", AbstractService.class);
-                    break;
-                } catch (NoSuchMethodException e) {
-                    cls = cls.getSuperclass();
-                }
-            }
+        field.setService(this);
+    }
 
-            if (setService != null) {
-                setService.setAccessible(true);
-                setService.invoke(field, this);
-            }
+    @Override
+    public List<Field> getInheritFields() {
+        FieldList fields = (FieldList) getFields().clone();
+        return fields.stream().filter(field -> !isDefaultField(field.getName())).collect(Collectors.toList());
+    }
 
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            log.debug(this.getClass() + " postConstruct方法 error->" + e.getMessage());
-        }
+    /**
+     * 是不是默认字段
+     *
+     * @param fieldName
+     * @return
+     */
+    public boolean isDefaultField(String fieldName) {
+        return CREATE_TIME.equals(fieldName) || CREATOR.equals(fieldName)
+                || UPDATE_TIME.equals(fieldName) || UPDATER.equals(fieldName)
+                || NAME.equals(fieldName) || ID.equals(fieldName);
     }
 
     @PostConstruct
     public void postConstruct() { // post中不能执行getService方法
-        if (!isLazyLoadField()) {
-            loadField();
-        }
         if (log.isDebugEnabled()) {
             log.debug("service init->" + getServiceName() + ",class->" + this.getClass().getName());
         }
         try {
-            if (context.getAvalonApplicationContext().isActive()) {
-                String firstBeanName = context.getFirstBeanName(this.getClass());
-                if (StringUtils.isNotEmpty(firstBeanName) && StringUtils.isNotEmpty(getServiceTableName())) {
-                    context.registerAlias(firstBeanName, getServiceName());
-                    log.debug("registerAlias service {} -> {}", firstBeanName, getServiceName());
-                }
-            }
+            id.setName(ID);
+            id.setService(this);
         } catch (AvalonException e) {
             log.error("bean 注册别名失败,错误信息->" + e.getMessage());
             log.error(e.getMessage(), e);
         }
-
-        String moduleName = getModuleName();
-
-        if (StringUtils.isNotEmpty(moduleName)) {
-            context.putModule(moduleName, this);
-        } else {
-            context.putModule("tool", this);
+        loadField(); // 初始化字段名称，可以使用 字段生成条件
+        if (!getClass().getName().contains("$Enhanced_")) { // 非动态类 不同数据库，会生成不同的实例，导致重复
+            context.addServiceName(getServiceName());
+            if (StringUtils.isEmpty(context.getBaseName()) || context.getBaseName().equals(context.getDefaultDatabase())) { // 只保存最基础的
+                context.addServiceName(this.getClass().getName(), this);
+            }
         }
     }
 
-    /**
-     * 获取模块
-     *
-     * @param moduleName
-     * @return AbstractModule
-     */
-    protected AbstractModule getModule(String moduleName) {
-        if (context.containsModule(moduleName)) {
-            return context.getModuleByPackageName(moduleName);
-        }
-
-        Set<Class> scan = ClassUtils.scan(moduleName);
-        if (scan.isEmpty()) {
-            throw new AvalonException("模块" + moduleName + "未注册");
-        }
-        for (Class cl : scan) {
-            if (!AbstractModule.class.isAssignableFrom(cl)) continue;// AbstractModule 是cl的superclass
-            context.getAvalonApplicationContext().getBean(cl);
-            return context.getModuleByPackageName(moduleName);
-        }
-        throw new AvalonException("模块" + moduleName + "未注册");
-    }
-
-    protected String getModuleName() {
-        Package modulePackage = getClass().getPackage(); //xxx.service
-        String moduleName;
-
-        moduleName = modulePackage.getName();
-        int i = moduleName.lastIndexOf("service");
-        moduleName = moduleName.substring(0, i - 1); //xxx
-        this.module = getModule(moduleName);
-        return this.module.getModuleName();
-    }
 
     private FieldHashMap fieldMap;
 
@@ -501,7 +464,13 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             AbstractService serviceBean = field.getRealService();
             return serviceBean.getField(FieldUtils.getJoinFirstFieldString(name));
         } else {
-            return getFieldMap().get(name);
+            if (getFieldMap().containsKey(name)) {
+                return getFieldMap().get(name);
+            }
+            Field field = getExtendField().find(name);
+            if (ObjectUtils.isNotNull(field)) return field;
+
+            return getDelegateInheritFields().find(name);
         }
     }
 
@@ -848,6 +817,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     public Integer delete(Condition condition, String serviceName) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.unlink)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的删除权限,请联系管理员");
+        }
         AbstractService serviceBean = getServiceBean(serviceName);
 
         Record record = serviceBean.select("", condition,
@@ -881,8 +853,23 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     public Integer delete(RecordRow row) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.unlink)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的删除权限,请联系管理员");
+        }
         Integer id = (Integer) getPrimaryKeyValue(row);
         checkDelete(row);
+
+        // 先更新委托模型
+        DelegateInheritMap delegateInherit = getDelegateInherit();
+        if (ObjectUtils.isNotEmpty(delegateInherit)) {
+            for (Map.Entry<String, String> delegateService : delegateInherit.entrySet()) {
+                if (row.containsKey(delegateService.getValue())) {
+                    Integer delegateId = row.getInteger(delegateService.getValue());
+                    getServiceBean(delegateService.getKey()).delete(delegateId);
+                    row.remove(delegateService.getValue()); // 不需要更新
+                }
+            }
+        }
 
         FieldHashMap relationFieldMap = getRelationFieldMap();
         for (Map.Entry<String, Field> fieldEntry : relationFieldMap.entrySet()) {//处理子表
@@ -920,8 +907,17 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
     }
 
     protected void checkDelete(RecordRow recordRow) throws AvalonException {
-
+        if (needCheckRecordRule() && !getContext().hasTemporaryElevate(ElevatePermissionEnum.recordRule)) {
+            Condition condition = getRecordRule(Condition.equalCondition(getPrimaryKeyName(),
+                            recordRow.getRawValue(getPrimaryKeyField())),
+                    PermissionEnum.unlink);
+            Integer idCount = selectCount(condition);
+            if (!idCount.equals(1)) {
+                throw new PermissionException("不满足记录规则,无法删除");
+            }
+        }
     }
+
 
     public Integer deleteMulti(List<Integer> ids) throws AvalonException {
         Integer count = 0;
@@ -939,7 +935,54 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         return count;
     }
 
+    @Override
+    public RecordRow create(RecordRow defaultRow) throws AvalonException {
+        RecordRow recordRow = RecordRow.build();
+        if (getNeedDefaultField()) {
+            if (!recordRow.containsKey(CREATE_TIME)) {
+                recordRow.put(CREATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
+            }
+            if (!recordRow.containsKey(CREATOR)) {
+                Integer userId = context.getUserId();
+                if (ObjectUtils.isNotNull(userId)) {
+                    recordRow.put(CREATOR, new RecordColumn(context.getUserId()));
+                }
+            }
+        }
+
+        //增加默认值
+        RecordRow defaultValueAll = this.getDefaultValueAll();
+
+        defaultValueAll.forEach(((name, value) -> {
+            if (ObjectUtils.isNotNull(value.getValue())) {
+                if (!recordRow.containsKey(name)) {
+                    recordRow.put(name, value);
+                } else {
+
+                    if (ObjectUtils.isNull(recordRow.get(name))) {
+                        recordRow.put(name, value);
+                        return;
+                    }
+
+                    if (ObjectUtils.isEmpty(recordRow.get(name).getValue())) {
+                        recordRow.put(name, value);
+                    }
+                }
+            }
+        }));
+
+        if (ObjectUtils.isNotEmpty(defaultRow)) {
+            recordRow.putAll(defaultRow);
+        }
+
+        return recordRow;
+    }
+
     public PrimaryKey insert(RecordRow recordRow) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.create)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的创建权限,请联系管理员");
+        }
+
         if (getNeedDefaultField()) {
             if (!recordRow.containsKey(CREATE_TIME)) {
                 recordRow.put(CREATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
@@ -977,6 +1020,17 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         // 判断是否可以保存
         checkInsert(recordRow);
 
+        DelegateInheritMap delegateInherit = getDelegateInherit();
+        if (ObjectUtils.isNotEmpty(delegateInherit)) {
+            for (Map.Entry<String, String> delegateService : delegateInherit.entrySet()) {
+                if (recordRow.containsKey(delegateService.getValue())) {
+                    RecordRow delegateRecordRow = recordRow.getRecordRow(delegateService.getValue());
+                    PrimaryKey delegatePrimaryId = getServiceBean(delegateService.getKey()).insert(delegateRecordRow);
+                    recordRow.put(delegateService.getValue(), delegatePrimaryId.getValue());
+                }
+            }
+        }
+
         FieldValueStatement fieldValueStatement = new FieldValueStatement();
         StringBuilder sql = DataBaseTools.insertSql(getService(), recordRow,
                 fieldValueStatement);//返回主键
@@ -997,10 +1051,8 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         }
 
         recordRow.put(getPrimaryKeyName(), masterId);
-        insertLog(recordRow);
-        checkAfterInsert(recordRow);
-        FieldHashMap relationFieldMap = getRelationFieldMap();
 
+        FieldHashMap relationFieldMap = getRelationFieldMap();
         for (Map.Entry<String, Field> fieldEntry : relationFieldMap.entrySet()) {//处理子表
             String key = fieldEntry.getKey();
             RelationField field = (RelationField) fieldEntry.getValue();
@@ -1034,6 +1086,8 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             }
         }
 
+        insertLog(recordRow);
+        checkAfterInsert(recordRow);
         return PrimaryKey.build(masterId);
     }
 
@@ -1067,7 +1121,15 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     protected void checkAfterInsert(RecordRow recordRow) throws AvalonException {
-
+        if (needCheckRecordRule() && !getContext().hasTemporaryElevate(ElevatePermissionEnum.recordRule)) { // 临时提升记录权限
+            Condition condition = getRecordRule(Condition.equalCondition(getPrimaryKeyName(),
+                            recordRow.getRawValue(getPrimaryKeyField())),
+                    PermissionEnum.create);
+            Integer idCount = selectCount(condition);
+            if (!idCount.equals(1)) {
+                throw new PermissionException("不满足记录规则,无法创建");
+            }
+        }
     }
 
     private void checkUniqueField(RecordRow recordRow) throws AvalonException {
@@ -1132,7 +1194,15 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     protected void checkAfterUpdate(RecordRow recordRow) throws AvalonException {
-
+        if (needCheckRecordRule() && !getContext().hasTemporaryElevate(ElevatePermissionEnum.recordRule)) {
+            Condition condition = getRecordRule(Condition.equalCondition(getPrimaryKeyName(),
+                            recordRow.getRawValue(getPrimaryKeyField())),
+                    PermissionEnum.write);
+            Integer idCount = selectCount(condition);
+            if (!idCount.equals(1)) {
+                throw new PermissionException("不满足记录规则,无法更新");
+            }
+        }
     }
 
     /**
@@ -1145,6 +1215,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
     protected void checkUpdate(RecordRow recordRow) throws AvalonException {
         checkUniqueField(recordRow);
     }
+
 
     public List<Object> insertMulti(Record record) throws AvalonException {
         ArrayList<Object> ids = new ArrayList<>();
@@ -1163,6 +1234,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @throws AvalonException
      */
     public Integer update(RecordRow recordRow, Condition condition) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.write)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的写入权限,请联系管理员");
+        }
         if (getNeedDefaultField()) {
             recordRow.put(UPDATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
             recordRow.put(UPDATER, new RecordColumn(context.getUserId()));
@@ -1176,7 +1250,11 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         return jdbcTemplate.update(avalonPreparedStatement);
     }
 
+
     public Integer update(RecordRow recordRow) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.write)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的修改权限,请联系管理员");
+        }
         if (getNeedDefaultField()) {
             recordRow.put(UPDATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
             recordRow.put(UPDATER, new RecordColumn(context.getUserId()));
@@ -1184,13 +1262,26 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         checkBeforeUpdate(recordRow);
         // 判断是否可以更新
         checkUpdate(recordRow);
+
+        // 先更新委托模型
+        DelegateInheritMap delegateInherit = getDelegateInherit();
+        if (ObjectUtils.isNotEmpty(delegateInherit)) {
+            for (Map.Entry<String, String> delegateService : delegateInherit.entrySet()) {
+                if (recordRow.containsKey(delegateService.getValue())) {
+                    RecordRow delegateRecordRow = recordRow.getRecordRow(delegateService.getValue());
+                    getServiceBean(delegateService.getKey()).update(delegateRecordRow);
+                    recordRow.remove(delegateService.getValue()); // 不需要更新
+                }
+            }
+        }
+
         FieldValueStatement fieldValueStatement = new FieldValueStatement();
         StringBuilder sql = DataBaseTools.updateSql(getService(), recordRow, fieldValueStatement);
 
         AvalonPreparedStatement avalonPreparedStatement =
                 new AutoKeyPreparedStatement(getService(), sql, fieldValueStatement);
         Integer count = jdbcTemplate.update(avalonPreparedStatement);
-        updateLog(recordRow);//记录日志
+
         FieldHashMap relationFieldMap = getRelationFieldMap();
         for (Map.Entry<String, Field> fieldEntry : relationFieldMap.entrySet()) {//处理子表
             String key = fieldEntry.getKey();
@@ -1244,6 +1335,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             }
         }
 
+        updateLog(recordRow);//记录日志
         checkAfterUpdate(recordRow);
         return count;
     }
@@ -1271,9 +1363,14 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         return primaryKey.getInteger();
     }
 
-    private List<Field> fieldList;
+    private FieldList fieldList;
 
-    public List<Field> getFields() {
+    /**
+     * 获取自身的字段列表
+     *
+     * @return 字段列表
+     */
+    public FieldList getFields() {
         if (!ObjectUtils.isNull(fieldList)) {
             return fieldList;
         }
@@ -1281,10 +1378,28 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             if (!ObjectUtils.isNull(fieldList)) {
                 return fieldList;
             }
-            fieldList = new ArrayList<>();
+            fieldList = new FieldList();
             for (Map.Entry<String, Field> item : getFieldMap().entrySet()) {
                 fieldList.add(item.getValue());
             }
+
+            return fieldList;
+        }
+    }
+
+    private FieldList fieldWithExtendList;
+
+    public FieldList getFieldWithExtend() {
+        if (!ObjectUtils.isNull(fieldWithExtendList) && flushExtendField) {
+            return fieldWithExtendList;
+        }
+        synchronized (this) {
+            if (!ObjectUtils.isNull(fieldWithExtendList) && flushExtendField) {
+                return fieldWithExtendList;
+            }
+            fieldWithExtendList = new FieldList();
+            fieldWithExtendList.addAll(getFields());
+            fieldList.addAll(getExtendField());
             return fieldList;
         }
     }
@@ -1299,41 +1414,72 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
 
     public abstract String getServiceName();
 
-    public String getServiceTableName() {
-        if (!isInherit()) {
-            return Fields.dot2UnderscoreName(getServiceName());
-        }
-        return Fields.dot2UnderscoreName(getInheritTable());
+    @Override
+    public String getInherit() {
+        return null;
     }
 
-    private String primaryKeyName;//
+    @Override
+    public DelegateInheritMap getDelegateInherit() {
+        return null;
+    }
 
+    private FieldList delegateInheritFields = new FieldList();
+
+    @Override
+    public FieldList getDelegateInheritFields() {
+        DelegateInheritMap delegateInherit = getDelegateInherit();
+        if (ObjectUtils.isEmpty(delegateInherit)) return new FieldList();
+
+        if (!delegateInheritFields.isEmpty()) {
+            return delegateInheritFields;
+        }
+        synchronized (this) {
+            if (!delegateInheritFields.isEmpty()) {
+                return delegateInheritFields;
+            }
+            for (Map.Entry<String, String> stringStringEntry : delegateInherit.entrySet()) {
+                String serviceNameDelegate = stringStringEntry.getKey();
+                AbstractService serviceBean = getServiceBean(serviceNameDelegate);
+                FieldList fields = serviceBean.getFields();
+                delegateInheritFields.addAll(fields);
+            }
+        }
+
+        return delegateInheritFields;
+    }
+
+    @Override
+    public FieldList getDelegateInheritFields(String delegateServiceName) {
+        DelegateInheritMap delegateInherit = getDelegateInherit();
+        if (ObjectUtils.isEmpty(delegateInherit)) return new FieldList();
+
+        AbstractService serviceBean = getServiceBean(delegateServiceName);
+        FieldList fields = serviceBean.getFields();
+
+        return fields;
+    }
+
+    @Override
+    public boolean isDelegateInheritField(String fieldName) {
+        FieldList delegateInheritFields1 = getDelegateInheritFields();
+        return !(delegateInheritFields1.find(fieldName) == null);
+    }
+
+    public String getServiceTableName() {
+        return Fields.dot2UnderscoreName(getServiceName());
+    }
 
     public String getPrimaryKeyName() {
-        if (!StringUtils.isEmpty(primaryKeyName)) {
-            return primaryKeyName;
-        }
-
-        synchronized (this) {
-            if (!StringUtils.isEmpty(primaryKeyName)) {
-                return primaryKeyName;
-            }
-            for (Map.Entry<String, Field> item : getFieldMap().entrySet()) {
-                if (item.getValue().isPrimaryKey()) {
-                    primaryKeyName = item.getKey();
-                    break;
-                }
-            }
-            return primaryKeyName;
-        }
+        return getPrimaryKeyField().getName();
     }
 
     public Type getPrimaryKeyType() {
-        return getFieldMap().get(getPrimaryKeyName()).getFieldType();
+        return id.getFieldType();
     }
 
     public Field getPrimaryKeyField() {
-        return getFieldMap().get(getPrimaryKeyName());
+        return id;
     }
 
     public List<String> clearRelationField(List<String> fields) {
@@ -1391,10 +1537,6 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * 创建数据库表
      */
     public void createTable() {
-        if (!isInherit()) { // 表继承，共用一张表，业务模型不同
-            doCreateTable();
-            return;
-        }
         if (existTable()) {
             upgradeTable();
             return;
@@ -1414,7 +1556,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         jdbcTemplate.execute(tableSql);
 
         // 创建关联表
-        List<Field> fields = getFields();
+        FieldList fields = getFields();
         for (Field field : fields) {
             if (field instanceof Many2manyField) {
                 Many2manyField manyField = (Many2manyField) field;
@@ -1429,9 +1571,67 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * @param serviceId 表id
      */
     public void insertFieldInfo(PrimaryKey serviceId) {
-        List<Field> fields = getFields();
+        FieldList fields = getFields();
         for (Field field : fields) {
-            field.insertFieldInfo(serviceId);
+            insertFieldInfo(serviceId, field);
+        }
+    }
+
+    protected void insertFieldInfo(PrimaryKey serviceId, Field field) {
+        AbstractService service = context.getServiceBean("base.field");
+        Condition condition = Condition.equalCondition("serviceId", serviceId.getValue())
+                .andEqualCondition("name", field.getName());
+        Record select = service.select(condition, "id");
+        RecordRow row = RecordRow.build();
+
+        if (!select.isEmpty()) {
+            row = select.get(0);
+        }
+
+        row.put("serviceId", serviceId.getValue());
+        row.put("name", field.getName());
+        row.put("label", field.getLabel());
+        row.put("isPrimaryKey", field.isPrimaryKey());
+        row.put("isRequired", field.isRequired());
+        row.put("isReadonly", field.isReadonly());
+        row.put("isAutoIncrement", field.isAutoIncrement());
+        row.put("isUnique", field.isUnique());
+        row.put("allowNull", field.allowNull());
+        row.put("type", field.getClassType());
+        row.put("sourceType", "system");
+        if (ObjectUtils.isNotEmpty(field.getDefaultValue())) {
+            row.put("defaultValue", field.getDefaultValue().getDefaultString());
+        }
+        if (field instanceof StringField) {
+            StringField stringField = (StringField) field;
+            row.put("maxValue", stringField.getMaxLength());
+            row.put("minValue", stringField.getMinLength());
+        }
+        if (FieldUtils.isNumber(field)) {
+            INumberField iNumberField = (INumberField) field;
+            row.put("maxValue", iNumberField.getMaxValue());
+            row.put("minValue", iNumberField.getMinValue());
+        }
+        if (field instanceof SelectionField) {
+            row.put("isMulti", ((SelectionField) field).getIsMulti());
+        }
+
+        if (field instanceof RelationField) {
+            RelationField relationField = ((RelationField) field);
+            row.put("relativeServiceName", relationField.getRelativeServiceName());
+            row.put("relativeFieldName", relationField.getRelativeFieldName());
+
+            if (field instanceof Many2manyField) {
+                Many2manyField many2manyField = (Many2manyField) field;
+                row.put("masterForeignKeyName", many2manyField.getMasterForeignKeyName());
+                row.put("relativeForeignKeyName", many2manyField.getRelativeForeignKeyName());
+                row.put("manyServiceTable", many2manyField.getTableSqlName());
+            }
+        }
+        if (select.isEmpty()) {
+            service.insert(row);
+        } else {
+            service.update(row);
         }
     }
 
@@ -1439,6 +1639,11 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      * 创建表记录信息
      */
     public PrimaryKey insertTableInfo(PrimaryKey moduleId) {
+        RecordRow row = createTableRecordRow(moduleId);
+        return context.getServiceBean("base.service").insert(row);
+    }
+
+    private RecordRow createTableRecordRow(PrimaryKey moduleId) {
         RecordRow row = RecordRow.build();
         row.put("moduleId", getPrimaryKeyValue(moduleId));
         row.put("name", getServiceName());
@@ -1446,7 +1651,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         row.put("label", getLabel());
         row.put("nameField", getNameField().getName());
         row.put("keyField", getPrimaryKeyName());
-        return context.getServiceBean("base.service").insert(row);
+        row.put("sourceType", "system");
+        row.put("delegateField", JacksonUtil.object2String(getDelegateInherit()));
+        return row;
     }
 
     public PrimaryKey upgradeTableInfo(PrimaryKey moduleId) {
@@ -1455,19 +1662,33 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         if (serviceInfo.isEmpty()) {
             return insertTableInfo(moduleId);
         } else {
-            RecordRow row = serviceInfo.get(0);
-            row.put("moduleId", getPrimaryKeyValue(moduleId));
-            row.put("name", getServiceName());
-            row.put("tableName", getServiceTableName());
-            row.put("label", getLabel());
-            row.put("nameField", getNameField().getName());
-            row.put("keyField", getPrimaryKeyName());
+            RecordRow row = createTableRecordRow(moduleId);
+            row.put("id", serviceInfo.get(0).getInteger("id"));
             context.getServiceBean("base.service").update(row);
-            return new PrimaryKey(row.getRawValue("id"));
+            Object rawValue = row.getRawValue("id");
+            return new PrimaryKey(rawValue);
         }
     }
 
+    /*
+     删除数据库表
+     */
     public void dropTable() {
+        if (StringUtils.isEmpty(getInherit())) { // 根模型 删除表示
+            doDropSelfTable();
+        } else {
+            String superService = getInherit();
+            if (getServiceName().equals(superService)) { // 相同模型，则拓展字段模型，否则创建新的模型字段
+                for (Field field : getInheritFields()) {
+                    dropField(field.getFieldName());
+                }
+            } else { // 继承全新模型字段
+                doDropSelfTable();
+            }
+        }
+    }
+
+    private void doDropSelfTable() {
         StringBuilder tableSql = DataBaseTools.dropTableSql(getService());
         jdbcTemplate.execute(tableSql);
         if (getContext().isPostgres()) { // postgresql
@@ -1477,7 +1698,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
                 jdbcTemplate.execute(new StringBuilder(postgresSequenceTable));
             }
         }
-        List<Field> fields = getFields();
+        FieldList fields = getFields();
         for (Field field : fields) {
             if (field instanceof Many2manyField) {
                 Many2manyField manyField = (Many2manyField) field;
@@ -1485,21 +1706,34 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             }
         }
     }
-
-    protected Boolean existTable() {
+    /*
+     数据库表是否存在
+     */
+    public Boolean existTable() {
         StringBuilder sql = DataBaseTools.existTable(getService());
         return jdbcTemplate.executeScalar(sql, Integer.class) != 0;
     }
 
-    protected Boolean existField(Field field) {
+    /*
+    数据库字段是否存在
+     */
+    public Boolean existField(Field field) {
         StringBuilder sql = DataBaseTools.existField(getService(), field);
         log.debug("existField sql:{}", sql);
         return jdbcTemplate.executeScalar(sql, Integer.class) != 0;
     }
 
-    protected Boolean existField(String fieldName) {
+    public Boolean existField(String fieldName) {
         Field field = getField(fieldName);
         return existField(field);
+    }
+
+    /*
+    删除数据库字段
+     */
+    public void dropField(String fieldName) {
+        StringBuilder tableSql = DataBaseTools.dropTableFieldSql(getService(), fieldName);
+        jdbcTemplate.execute(tableSql);
     }
 
     /**
@@ -1507,7 +1741,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
      */
     public void upgradeTable() {
         if (existTable()) {
-            List<Field> fields = getFields();
+            FieldList fields = getFields();
 
             for (Field field : fields) {
                 if (field.isPrimaryKey()) continue;
@@ -1516,14 +1750,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
                     continue;
                 }
                 if (field instanceof One2manyField || field instanceof One2oneField) continue;
-                StringBuilder sql = new StringBuilder();
-                if (existField(field)) {
-                    sql.append(DataBaseTools.modifyColumn(getService(), field));
-                } else {
-                    sql.append(DataBaseTools.addColumn(getService(), field));
-                }
-                log.debug("db {} upgradeTable sql:{}", context.getBaseName(), sql);
-                jdbcTemplate.execute(sql);
+                upgradeField(field);
             }
 
         } else {
@@ -1531,8 +1758,32 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         }
     }
 
-    public RecordRow getDefaultValueAll() {
+    public void upgradeExtendFieldTable() {
+        FieldList fields = getExtendField();
+        for (Field field : fields) {
+            if (field.isPrimaryKey()) continue;
+            if (field instanceof Many2manyField) {
+                ((Many2manyField) field).createTable();
+                continue;
+            }
+            if (field instanceof One2manyField || field instanceof One2oneField) continue;
 
+            upgradeField(field);
+        }
+    }
+
+    protected void upgradeField(Field field) {
+        StringBuilder sql = new StringBuilder();
+        if (existField(field)) {
+            sql.append(DataBaseTools.modifyColumn(getService(), field));
+        } else {
+            sql.append(DataBaseTools.addColumn(getService(), field));
+        }
+        log.debug("db {} upgradeTable sql:{}", context.getBaseName(), sql);
+        jdbcTemplate.execute(sql);
+    }
+
+    public RecordRow getDefaultValueAll() {
         RecordRow recordRow = new RecordRow();
         getFieldMap().forEach((s, field) -> {
             if (field.getName().equals(CREATE_TIME) ||
@@ -1674,42 +1925,6 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         return fieldFormatMap;
     }
 
-    /**
-     * @return
-     */
-    @Override
-    public Boolean isInherit() {
-        return false;
-    }
-
-    /**
-     * 每个子类需要实现该方法，返回实际的表名
-     *
-     * @return 表名
-     */
-    @Override
-    public String getInheritTable() {
-        Class<?> superclass = this.getClass().getSuperclass();// 获取父类
-        if (superclass.equals(AbstractService.class)) { // 如果父类是AbstractService, 则直接返回当前表名
-            return getServiceName();
-        }
-        AbstractService serviceBean = (AbstractService) getContext().getServiceBean(superclass); // 父类实例
-        return serviceBean.getInheritTable();
-    }
-
-    private AbstractModule module;
-
-    @Override
-    public AbstractModule getModule() {
-        return module;
-    }
-
-    @Override
-    public void setModule(AbstractModule module) {
-        this.module = module;
-        context.putModule(module.getModuleName(), this);
-    }
-
 
     /**  以下是查询接口 **/
 
@@ -1748,32 +1963,137 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
         return select("", condition, fields);
     }
 
+    protected Condition getRecordRule(Condition originCondition, PermissionEnum permissionEnum) {
+        try {
+            String methodName = "getReadRecordRule";
+            if (permissionEnum == PermissionEnum.create) {
+                methodName = "getCreateRecordRule";
+            } else if (permissionEnum == PermissionEnum.write) {
+                methodName = "getWriteRecordRule";
+            } else if (permissionEnum == PermissionEnum.unlink) {
+                methodName = "getUnlinkRecordRule";
+            }
+            Object ruleCondition = this.invokeMethod("base.group", methodName,
+                    context.getUserId(), getServiceName());
+            if (ObjectUtils.isNull(ruleCondition)) {
+                return originCondition;
+            }
+
+            if (ObjectUtils.isNotNull(originCondition)) {
+                return originCondition.andCondition((Condition) ruleCondition);
+            }
+
+            return (Condition) ruleCondition;
+        } catch (Exception e) {
+            log.error("Error occurred while getting read record rule", e);
+            return originCondition;
+        }
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return !SystemConstant.ADMIN.equals(context.getUserId());
+    }
+
+    @Override
+    public boolean needCheckRecordRule() {
+        return !SystemConstant.ADMIN.equals(context.getUserId());
+    }
+
+    /**
+     * 判断服务是否有对应的权限
+     *
+     * @param service        服务
+     * @param permissionEnum 权限
+     * @return
+     */
+    @Override
+    public boolean checkPermission(Integer userId, String service, PermissionEnum permissionEnum) {
+        if (!needCheckPermission()) {
+            return true;
+        }
+        return switch (permissionEnum) {
+            case read -> hasReadPermission(userId, service);
+            case write -> hasWritePermission(userId, service);
+            case create -> hasCreatePermission(userId, service);
+            case unlink -> hasUnlinkPermission(userId, service);
+        };
+    }
+
+    private boolean hasReadPermission(Integer userId, String serviceName) {
+        try {
+            if (getContext().hasTemporaryElevate(ElevatePermissionEnum.permission)) { // 临时提升权限
+                return true;
+            }
+            return (boolean) invokeMethod("base.group", "hasReadPermission", userId, serviceName);
+        } catch (Exception e) {
+            log.error("hasReadPermission", e);
+            return false;
+        }
+    }
+
+    private boolean hasWritePermission(Integer userId, String serviceName) {
+        try {
+            if (getContext().hasTemporaryElevate(ElevatePermissionEnum.permission)) { // 临时提升权限
+                return true;
+            }
+            return (boolean) invokeMethod("base.group", "hasWritePermission", userId, serviceName);
+        } catch (Exception e) {
+            log.error("hasWritePermission", e);
+            return false;
+        }
+    }
+
+    private boolean hasCreatePermission(Integer userId, String serviceName) {
+        try {
+            if (getContext().hasTemporaryElevate(ElevatePermissionEnum.permission)) { // 临时提升权限
+                return true;
+            }
+            return (boolean) invokeMethod("base.group", "hasCreatePermission", userId, serviceName);
+        } catch (Exception e) {
+            log.error("hasCreatePermission", e);
+            return false;
+        }
+    }
+
+    private boolean hasUnlinkPermission(Integer userId, String serviceName) {
+        try {
+            if (getContext().hasTemporaryElevate(ElevatePermissionEnum.permission)) { // 临时提升权限
+                return true;
+            }
+            return (boolean) invokeMethod("base.group", "hasUnlinkPermission", userId, serviceName);
+        } catch (Exception e) {
+            log.error("hasUnlinkPermission", e);
+            return false;
+        }
+    }
+
     @Override
     public Record select(String order, Condition condition, String... fields) throws AvalonException {
-        SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
-                fields,
-                condition,
-                order);
-        QueryStatement masterSql = selectBuilder.getMasterSql();
-        AvalonPreparedStatement avalonPrepareStatement = createAvalonPrepareStatement(masterSql.getSql(),
-                masterSql.getValueStatement());
-        Record record = jdbcTemplate.select(avalonPrepareStatement, selectBuilder);
-        List<Object> ids = record.getValues(getPrimaryKeyName());
-        for (QueryNode node : selectBuilder.getQueryRoot().getQueryNodeList()) {
-            if (ObjectUtils.isNotEmpty(node.getFields()) || !node.getQueryNodeList().isEmpty()) {
-                doQueryNode(node, ids, record);
-            }
-        }
-        return record;
+        return select(null, order, condition, fields);
     }
 
     @Override
     public Record select(Integer limit, String order, Condition condition, String... fields) throws AvalonException {
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.read)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的读权限,请联系管理员");
+        }
+
+        if (needCheckRecordRule() && !getContext().hasTemporaryElevate(ElevatePermissionEnum.recordRule)) { // 提示权限
+            condition = getRecordRule(condition, PermissionEnum.read);
+        }
+
         SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
                 fields,
                 condition,
                 order);
-        QueryStatement masterSql = selectBuilder.getMasterSql(limit);
+        QueryStatement masterSql = null;
+        if (ObjectUtils.isNotNull(limit)) {
+            masterSql = selectBuilder.getMasterSql(limit);
+        } else {
+            masterSql = selectBuilder.getMasterSql();
+        }
+
         AvalonPreparedStatement avalonPrepareStatement = createAvalonPrepareStatement(masterSql.getSql(),
                 masterSql.getValueStatement());
         Record record = jdbcTemplate.select(avalonPrepareStatement, selectBuilder);
@@ -1791,7 +2111,12 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
                                String order,
                                Condition condition,
                                String... fields) throws AvalonException {
-
+        if (!checkPermission(context.getUserId(), getServiceName(), PermissionEnum.read)) {
+            throw new PermissionException("您没有模型" + getServiceName() + "的读权限,请联系管理员");
+        }
+        if (needCheckRecordRule() && !getContext().hasTemporaryElevate(ElevatePermissionEnum.recordRule)) { // 提示权限
+            condition = getRecordRule(condition, PermissionEnum.read);
+        }
         Integer size = context.getApplicationConfig().getPageSize();
         if (ObjectUtils.isNotNull(pageParam.getPageSize())) {
             size = pageParam.getPageSize();
@@ -1830,10 +2155,17 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
     }
 
     @Override
-    public Object invokeMethod(String methodName, List<Object> ids, RecordRow row) {
+    public Object invokeMethod(String service, String methodName, Object... args) {
         try {
-            Method method = this.getClass().getMethod(methodName, List.class, RecordRow.class);
-            return method.invoke(this, ids, row);
+            AbstractService serviceBean = context.getServiceBean(service);
+            if (args.length != 0) {
+                Class<?>[] array = Arrays.stream(args).map(Object::getClass).toArray(Class[]::new);
+                Method method = serviceBean.getClass().getMethod(methodName, array);
+                return method.invoke(serviceBean, args);
+            } else {
+                Method method = serviceBean.getClass().getMethod(methodName);
+                return method.invoke(serviceBean);
+            }
         } catch (NoSuchMethodException e) {
             throw new AvalonException(methodName + "不存在方法");
         } catch (InvocationTargetException | IllegalAccessException e) {
@@ -1843,5 +2175,65 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire {
             }
             throw new AvalonException(message, e);
         }
+    }
+
+    /// 以下是拓展字段功能
+    @Override
+    public boolean needExtendField() {
+        return true;
+    }
+
+    protected FieldList extendFieldList = new FieldList();
+
+    @Override
+    public FieldList getExtendField() {
+        if (!flushExtendField) {
+            updateExtendField();
+            flushExtendField = true;
+        }
+        return extendFieldList;
+    }
+
+    private boolean flushExtendField = false;
+
+    /**
+     * 更新逻辑，是清空旧数据，重新加载最新的数据
+     */
+    @Override
+    public void updateExtendField() {
+        if (!needExtendField()) { // 不需要更新拓展字段
+            return;
+        }
+        if (flushExtendField) { // true 说明之前加载过，重新加载
+            flushExtendField = false;
+            return;
+        }
+        synchronized (this) {
+            extendFieldList.clear();
+            IExtendFieldSupportService serviceBean = (IExtendFieldSupportService) context.getServiceBean("base.field");
+            if (ObjectUtils.isNotNull(serviceBean)) {
+                FieldList extendField = serviceBean.getExtendField(getServiceName());
+                extendFieldList.addAll(extendField);
+            }
+        }
+    }
+
+    @Override
+    public Record exportExcel(String field, String condition, String order) {
+        Condition con = context.conditionManager.interpreter(condition);
+        SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
+                field.split(","),
+                con,
+                order);
+
+        QueryStatement sql = selectBuilder.getSql(false);
+        AvalonPreparedStatement avalonPrepareStatement = createAvalonPrepareStatement(sql.getSql(),
+                sql.getValueStatement());
+        return jdbcTemplate.select(avalonPrepareStatement);
+    }
+
+    @Override
+    public Integer importExcel(Record record) {
+        return insertMulti(record).size();
     }
 }

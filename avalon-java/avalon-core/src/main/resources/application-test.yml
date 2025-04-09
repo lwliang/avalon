@@ -3,12 +3,13 @@ application:
   date-format: yyyy-MM-dd
   time-format: HH:mm
   page-size: 80
+  multiDb: true
   dataSource:
-    host: ${spring.profiles.host}
+    host: localhost
     port: 5432
     class-type: org.postgresql.Driver
-    username: avalon
-    password: avalon
+    username: postgres
+    password: Lvx.c0m!
     max-pool-size: 200
     min-idle: 10
     connection-timeout: 20000

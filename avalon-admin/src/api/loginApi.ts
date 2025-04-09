@@ -5,6 +5,7 @@
 
 import {postErpHttp} from "./http.ts";
 import {getUserId} from "../cache/userStorage.ts";
+import {getModelDetailApi} from "./modelApi.ts";
 
 
 export function login(db: String, username: string, password: string) {
@@ -16,10 +17,5 @@ export function register(name: string, username: string, password: string) {
 }
 
 export function getUserDetail() {
-    return postErpHttp('/model/get/detail',
-        {
-            rnpCondition: `(id,=,${getUserId()})`,
-            fields: 'id,account,name',
-            serviceName: 'base.user'
-        })
+    return getModelDetailApi(getUserId(), 'id,account,name,avatar,debug', 'base.user')
 }

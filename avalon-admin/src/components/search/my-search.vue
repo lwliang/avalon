@@ -96,7 +96,7 @@ const searchChange = (field: Field, value: String) => {
     if (field.type == FieldTypeEnum.StringField ||
         field.type == FieldTypeEnum.TextField ||
         field.type == FieldTypeEnum.HtmlField) {
-        searchCondition = `(like,${field.name},"${value}")`
+        searchCondition = `('${field.name}',like,'${value}')`
     }
     if (searchCondition) {
         emit('conditionChange', searchCondition);
@@ -111,12 +111,12 @@ const searchChange = (field: Field, value: String) => {
         <div ref="reference">
             <div class="flex border items-center gap-2 px-2 py-1 rounded-xl overflow-hidden">
                 <MyIcon type="fas" icon="search" size="sm"></MyIcon>
-                <input placeholder="搜索..." class="text-sm" type="text" v-model="searchValue">
+                <input placeholder="搜索..." class="text-sm bg-background" type="text" v-model="searchValue">
                 <MyIcon type="fas" icon="caret-down" size="sm"></MyIcon>
             </div>
         </div>
         <div v-if="show"
-             :class="{popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
+             :class="{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
              ref="floating"
              :style="[floatingStyles]">
             <div class="text-sm">

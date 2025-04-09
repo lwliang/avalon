@@ -14,6 +14,8 @@ export enum FieldTypeEnum {
     FloatField = 'FloatField',
     HtmlField = 'HtmlField',
     ImageField = 'ImageField',
+    VideoField = 'VideoField',
+    FileField = 'FileField',
     IntegerField = 'IntegerField',
     Many2oneField = 'Many2oneField',
     Many2manyField = 'Many2manyField',

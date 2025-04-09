@@ -5,40 +5,125 @@ path {
     fill: inherit !important
 }
 
+/* 默认浅色模式 */
+:root {
+    --overlay-color: rgba(0, 0, 0, 0.5);
+
+    --color-background: #F5F7FA; /* 主背景色 */
+    --color-surface: #FFFFFF; /* 表面色 */
+    --color-border: #DDE2E8; /* 边框色 */
+    --color-text: #1A1A1A; /* 主文字色 */
+    --color-muted: #a6aab1; /* 次文字色 */
+
+    --color-primary: #3A7AFE; /* 主色 */
+    --color-primary-hover: #2A62D9; /* 主色悬停 */
+
+    --color-secondary: #5AC8FA; /* 辅助色 */
+    --color-secondary-hover: #47B2E4; /* 辅助色悬停 */
+
+    --color-success: #34C759; /* 成功 */
+    --color-success-hover: #28A745; /* 成功悬停 */
+
+    --color-warning: #FFCC00; /* 警告 */
+    --color-warning-hover: #E6B800; /* 警告悬停 */
+
+    --color-danger: #FF453A; /* 错误 */
+    --color-danger-hover: #C93A30; /* 错误悬停 */
+
+    --color-info: #909399; /* 信息 */
+    --color-info-hover: #b1b3b8; /* 信息悬停 */
+
+    --color-menu-hover: #E3E8F0; /* 菜单 hover 背景色（浅蓝灰色，略深于背景色 */
+    --color-select-hover: #E3E8F0; /* 下拉 hover 背景色（浅蓝灰色，略深于背景色 */
+
+    --color-pagination: #E3E8F0; /* 分页背景色 */
+    --color-pagination-hover: #D9DEE7; /* 分页 hover 背景色 */
+
+    --color-table-header: #D6E7FF; /*table 标题头色*/
+    --color-table-row-hover: #D6E7FF; /*table 行 hover 背景色*/
+    --color-table-striped: #DDE2E8; /*table 奇数行背景色*/
+}
+
+/* 深色模式 */
+:root[dark] {
+    --overlay-color: rgba(0, 0, 0, 0.5);
+    --color-background: #1F2933; /* 深色模式：主背景 */
+    --color-surface: #FFFFFF; /* 表面色 */
+    --color-border: #DDE2E8; /* 边框色 */
+    --color-text: #1A1A1A; /* 主文字色 */
+    --color-muted: #6B7280; /* 次文字色 */
+
+    --color-primary: #3A7AFE; /* 主色 */
+    --color-primary-hover: #2A62D9; /* 主色悬停 */
+
+    --color-secondary: #5AC8FA; /* 辅助色 */
+    --color-secondary-hover: #47B2E4; /* 辅助色悬停 */
+
+    --color-success: #34C759; /* 成功 */
+    --color-success-hover: #28A745; /* 成功悬停 */
+
+    --color-warning: #FFCC00; /* 警告 */
+    --color-warning-hover: #E6B800; /* 警告悬停 */
+
+    --color-danger: #FF453A; /* 错误 */
+    --color-danger-hover: #C93A30; /* 错误悬停 */
+
+    --color-info: #909399; /* 信息 */
+    --color-info-hover: #b1b3b8; /* 信息悬停 */
+
+    --color-menu-hover: #E3E8F0; /* 菜单 hover 背景色（浅蓝灰色，略深于背景色 */
+    --color-select-hover: #E3E8F0; /* 下拉 hover 背景色（浅蓝灰色，略深于背景色 */
+
+    --color-pagination: #E3E8F0; /* 分页背景色 */
+    --color-pagination-hover: #D9DEE7; /* 分页 hover 背景色 */
+
+    --color-table-header: #D6E7FF; /*table 标题头色*/
+    --color-table-row-hover: #D6E7FF; /*table 行 hover 背景色*/
+    --color-table-striped: #DDE2E8; /*table 奇数行背景色*/
+}
+
+* {
+
+}
+
 #app {
     @apply h-full;
 }
 
 input {
     outline: none;
+    @apply bg-background;
 }
 
 * {
     @apply box-border;
     @apply m-0;
     @apply p-0;
-    color: #212529;
+    @apply text-text;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, "Noto Sans", Arial, "Odoo Unicode Support Noto", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 
 .bgc {
-    background-color: #F4F4F5;
+    @apply bg-white;
 }
 
 .form-input-control {
-    border: 1px solid #CED4DA;;
-    @apply px-3 py-1.5;
-    @apply text-sm;
+    @apply text-sm py-1.5 pl-3;
+    outline: 0;
+}
+
+.form-input-control:hover {
+    border-color: var(--color-border);
 }
 
 .form-input-control:focus {
-    border-color: #b8a5b3;
+    border-color: var(--color-primary) !important;
     outline: 0;
 }
 
 .form-input-control-error {
-    border-color: #f56c6c;
+    border-color: var(--color-danger) !important;
     outline: 0;
 }
 
@@ -61,18 +146,22 @@ html, body {
     background-image: url("/background-light.svg");
 }
 
+body[login] {
+    @apply bg-background;
+    background-image: none;
+}
+
 .data-table {
     @apply box-border;
+    @apply w-full;
     @apply table-fixed;
     @apply border-collapse;
-    @apply w-full;
     @apply relative;
     border-spacing: 0;
 }
 
 .data-table th, td {
     @apply box-border;
-    @apply border-t border-b;
     @apply py-2;
     @apply px-2;
     @apply text-left;
@@ -80,35 +169,20 @@ html, body {
 }
 
 .data-table thead {
-    @apply border-t border-b;
 }
 
 .data-table thead th {
-    @apply border-t border-b;
     @apply box-border;
     @apply sticky;
     @apply top-0;
-    @apply bg-white;
     @apply z-10;
+    @apply bg-table-header;
 }
 
 .data-table tr:nth-child(even) {
-    background-color: var(--table-striped-bg);
+    @apply bg-table-striped;
 }
 
-:root {
-    --primary-color: #007bff;
-    --success-color: #28a745;
-    --info-color: #6c757d;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --light-color: #f8f9fa;
-    --dark-color: #343a40;
-    --overlay-color: rgba(0, 0, 0, 0.5);
-
-    --table-striped-bg: rgba(0, 0, 0, 0.01);
-    --table-active-color: #111827;
-    --table-active-bg: rgba(0, 0, 0, 0.05);
-    --table-hover-color: #374151;
-    --table-hover-bg: rgba(0, 0, 0, 0.055);
+.data-table tr:hover {
+    @apply bg-table-row-hover;
 }

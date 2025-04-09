@@ -14,10 +14,8 @@ import com.avalon.core.model.xml.Record;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.AbstractServiceList;
 import com.avalon.core.service.IServiceDataService;
-import com.avalon.core.util.FieldValue;
-import com.avalon.core.util.ObjectUtils;
-import com.avalon.core.util.StringUtils;
-import com.avalon.core.util.XmlDom4jUtils;
+import com.avalon.core.service.TransientService;
+import com.avalon.core.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Isolation;
@@ -30,15 +28,16 @@ import org.w3c.dom.NodeList;
 import javax.annotation.PostConstruct;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
@@ -65,14 +64,44 @@ public abstract class AbstractModule {
     /// 安装之后，是否显示在菜单中
     public abstract Boolean getDisplay();
 
-    private Boolean isInstall = false;
+    public String[] depends() {
+        return null;
+    }
 
-    public Boolean getIsInstall() {
+    /**
+     * 自动安装,true，则depends的模块已安装，则自动安装当前模块
+     *
+     * @return
+     */
+    public Boolean autoInstall() {
+        return false;
+    }
+
+    private boolean isInstall = false;
+
+    public boolean getIsInstall() {
         return isInstall;
     }
 
-    public void setIsInstall(Boolean isInstall) {
+    public void setIsInstall(boolean isInstall) {
         this.isInstall = isInstall;
+    }
+
+    /**
+     * 模块安装之后，允许js
+     *
+     * @return js路径
+     */
+    public String[] getStartJS() {
+        return null;
+    }
+
+    /**
+     * 依赖的vue3组件
+     * @return 本地vue文件
+     */
+    public String[] getVue() {
+        return null;
     }
 
     /**
@@ -84,8 +113,28 @@ public abstract class AbstractModule {
         return null;
     }
 
+    private final AbstractServiceList moduleServiceList = new AbstractServiceList();
+
+    // 获取模块的所有模型类
     public AbstractServiceList getServiceList() {
-        return context.getModuleMap().getModuleServiceList(getModuleName());
+        if (ObjectUtils.isNotEmpty(moduleServiceList)) {
+            return moduleServiceList;
+        }
+
+        synchronized (this) {
+            if (ObjectUtils.isNotEmpty(moduleServiceList)) {
+                return moduleServiceList;
+            }
+            Hashtable<String, AbstractService> serviceClassServiceNameDic = context.getServiceClassServiceNameDic();
+
+            for (Map.Entry<String, AbstractService> serviceName : serviceClassServiceNameDic.entrySet()) {
+                AbstractService serviceBean = serviceName.getValue();
+                if (serviceName.getKey().startsWith(getClass().getPackageName())) {
+                    moduleServiceList.add(serviceBean);
+                }
+            }
+        }
+        return moduleServiceList;
     }
 
 
@@ -135,15 +184,55 @@ public abstract class AbstractModule {
      * 创建模块
      */
     public void createModule() {
+        String[] depends = depends();
+        if (ObjectUtils.isNotEmpty(depends)) { // 有依赖模块
+            for (String dependModule : depends) {
+                if (StringUtils.isEmpty(dependModule)) continue;
+
+                if (!getModuleInstall(dependModule)) { // 未安装
+                    context.invokeServiceMethod("base.module", "install",
+                            new ArrayList<Integer>(),
+                            RecordRow.build().put("name", dependModule));
+                }
+            }
+        }
         if (ObjectUtils.isNull(getServiceList())) return;
         PrimaryKey key = upgradeModuleInfo();
         for (AbstractService service : getServiceList()) {
+            if (service instanceof TransientService) { // 即时模型 只生成模型数据
+                PrimaryKey serviceId = service.insertTableInfo(key);
+                service.insertFieldInfo(serviceId);
+                continue;
+            }
             service.createTable();
-            PrimaryKey serviceId = service.insertTableInfo(key);
-            service.insertFieldInfo(serviceId);
+            if (StringUtils.isEmpty(service.getInherit()) || !service.getServiceName().equals(service.getInherit())) { // 新模型
+                PrimaryKey serviceId = service.insertTableInfo(key);
+                service.insertFieldInfo(serviceId);
+            } else { // 继承模型
+                Integer serviceId1 = getServiceId(service.getInherit());
+                service.insertFieldInfo(PrimaryKey.build(serviceId1));
+            }
         }
 
         loadResource();
+    }
+
+    protected void uninstallResource() {
+        IServiceDataService serviceDataService = getServiceDataService();
+
+        if (ObjectUtils.isNull(serviceDataService)) return;
+
+        com.avalon.core.model.Record moduleRecord = serviceDataService.getModuleRecord(getModuleName());
+        if (moduleRecord.isEmpty()) return;
+
+        for (RecordRow recordRow : moduleRecord) {
+            if (recordRow.isNull("serviceId")) {
+                continue;
+            }
+            AbstractService serviceBean = getContext().getServiceBean(recordRow.getRecordRow("serviceId").getString("name"));
+            serviceBean.delete(recordRow.getInteger("sourceId")); // 直接删除记录
+            serviceDataService.deleteServiceData(recordRow.getInteger("id"));
+        }
     }
 
     // 加载资源文件，增加基本数据，无新增，有更新
@@ -165,6 +254,23 @@ public abstract class AbstractModule {
                     if (nodeName.equals("record")) { // 读取记录
                         Record record = createRecord(item);
                         NodeList fields = item.getChildNodes();
+                        Integer sourceServiceId = getServiceId(record.getService());
+                        for (int i1 = 0; i1 < fields.getLength(); i1++) {
+                            if (item.getNodeType() != Node.ELEMENT_NODE) {
+                                continue;
+                            }
+                            Node item1 = fields.item(i1);
+                            if (item1.getNodeName().equals("field")) {
+                                RecordRow fieldRow = createField(item1, record);
+                                record.setRow(fieldRow);
+                            }
+                        }
+                        record.getRow().put("moduleId", getModuleId(getModuleName()));
+                        upgradeRecord(sourceServiceId, record.getId(), record.getService(),
+                                record.getRow());
+                    } else if (nodeName.equals("update")) {
+                        Record record = createRecord(item);
+                        NodeList fields = item.getChildNodes();
                         Integer serviceId = null;
                         for (int i1 = 0; i1 < fields.getLength(); i1++) {
                             if (item.getNodeType() != Node.ELEMENT_NODE) {
@@ -174,13 +280,11 @@ public abstract class AbstractModule {
                             if (item1.getNodeName().equals("field")) {
                                 RecordRow fieldRow = createField(item1, record);
                                 record.setRow(fieldRow);
-                                if (fieldRow.containsKey("serviceId")) {
-                                    serviceId = fieldRow.getInteger("serviceId");
-                                }
                             }
                         }
-                        upgradeRecord(serviceId, record.getId(), record.getService(),
-                                record.getRow());
+                        Integer resourceId = getResourceId(getModuleName(), record.getId());
+                        record.getRow().put("id", resourceId);
+                        updateRecord(record.getService(), record.getRow());
                     } else if (nodeName.equals("menuitem")) { // 菜单 只识别三级
                         readMenuItem(item);
                     }
@@ -190,6 +294,11 @@ public abstract class AbstractModule {
             e.printStackTrace();
             throw new AvalonException("创建模块时发出错误: " + e.getMessage(), e);
         }
+    }
+
+    private Integer getResourceId(String moduleName, String id) {
+        IServiceDataService serviceBean = getServiceDataService();
+        return serviceBean.refId(moduleName, id);
     }
 
     // 识别菜单
@@ -257,7 +366,8 @@ public abstract class AbstractModule {
         if (StringUtils.isNotEmpty(parentMenuId)) { // 上级菜单
             row.put("parentId", refId(parentMenuId));
         }
-        upgradeRecord(0, row.getString("id"), "base.menu", row);
+
+        upgradeRecord(getServiceId("base.menu"), row.getString("id"), "base.menu", row);
         NodeList childNodes = item.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node item1 = childNodes.item(i);
@@ -287,6 +397,27 @@ public abstract class AbstractModule {
         return context.getServiceBean("base.module").insert(row);
     }
 
+    // 根据模块名获取模块主键
+    public Integer getModuleId(String moduleName) {
+        AbstractService moduleService = context.getServiceBean("base.module");
+        com.avalon.core.model.Record select = moduleService
+                .select(Condition.equalCondition("name", moduleName), "id");
+        if (select.isEmpty()) {
+            return null;
+        }
+        return select.get(0).getInteger("id");
+    }
+
+    public boolean getModuleInstall(String moduleName) {
+        AbstractService moduleService = context.getServiceBean("base.module");
+        com.avalon.core.model.Record select = moduleService
+                .select(Condition.equalCondition("name", getModuleName()), "id", "isInstall");
+        if (select.isEmpty()) {
+            return false;
+        }
+        return select.get(0).getBoolean("isInstall");
+    }
+
     protected PrimaryKey upgradeModuleInfo() {
         AbstractService moduleService = context.getServiceBean("base.module");
         log.info("upgradeModuleInfo class-> {}", moduleService.getClass().getName());
@@ -308,33 +439,84 @@ public abstract class AbstractModule {
         }
     }
 
-    protected void deleteModuleInfo() {
-        AbstractService serviceBean = context.getServiceBean("base.module");
-        if (ObjectUtils.isNotNull(serviceBean)) {
-            serviceBean.delete(Condition.equalCondition("name", getModuleName()));
-        }
-    }
-
-
+    // 删除模块
     public void dropModule() {
         if (ObjectUtils.isNull(getServiceList())) return;
-
+        uninstallResource(); // 删除表 之前 删除资源记录
         for (AbstractService service : getServiceList()) {
-            service.dropTable();
+            if (service instanceof TransientService) {
+                continue;
+            }
+            if (StringUtils.isEmpty(service.getInherit()) || !service.getServiceName().equals(service.getInherit())) { // 新模型
+                Integer serviceId = getServiceId(service.getServiceName());
+                clearServiceField(serviceId);
+                deleteBaseServiceData(serviceId);
+
+                service.dropTable();
+            } else { // 继承模型
+                service.dropTable();
+            }
         }
     }
 
+    // 删除模型下的所有字段数据
+    public void clearServiceField(Integer serviceId) {
+        AbstractService serviceBean = context.getServiceBean("base.field");
+        com.avalon.core.model.Record fields = serviceBean.select(Condition.equalCondition("serviceId", serviceId), "id");
+        for (RecordRow field : fields) {
+            serviceBean.delete(field.getInteger("id"));
+        }
+    }
+
+    // 删除模型记录
+    public void deleteBaseServiceData(Integer serviceId) {
+        AbstractService serviceBean = context.getServiceBean("base.service");
+        serviceBean.delete(serviceId);
+    }
+
+    // 升级模块
     public void upgradeModule() {
+        String[] depends = depends();
+        if (ObjectUtils.isNotEmpty(depends)) { // 有依赖模块
+            for (String dependModule : depends) {
+                if (StringUtils.isEmpty(dependModule)) continue;
+
+                if (!getModuleInstall(dependModule)) { // 未安装
+                    context.invokeServiceMethod("base.module", "install",
+                            new ArrayList<Integer>(),
+                            RecordRow.build().put("name", dependModule));
+                } else {
+                    Integer moduleId = getModuleId(dependModule);
+                    if (ObjectUtils.isNull(moduleId)) {
+                        throw new AvalonException("模块:" + dependModule + "不存在");
+                    }
+
+                    ArrayList<Integer> objects = new ArrayList<>();
+                    objects.add(moduleId);
+                    context.invokeServiceMethod("base.module", "upgrade",
+                            objects,
+                            RecordRow.build().put("name", dependModule));
+                }
+            }
+        }
         PrimaryKey moduleId = upgradeModuleInfo();
         if (ObjectUtils.isNull(getServiceList())) return;
         AbstractService serviceBean = context.getServiceBean("base.service");
         for (AbstractService service : getServiceList()) {
+            if (service instanceof TransientService) {
+                continue;
+            }
             service.upgradeTable();
             service.upgradeTableInfo(moduleId);
             if (ObjectUtils.isNotNull(serviceBean)) {
                 FieldValue fieldValue = serviceBean.getFieldValue("id",
                         Condition.equalCondition("name", service.getServiceName()));
-                PrimaryKey serviceId = PrimaryKey.build(fieldValue);
+                PrimaryKey serviceId;
+                if (fieldValue.isNull()) { // 新模型
+                    serviceId = service.insertTableInfo(moduleId);
+                } else {
+                    serviceId = PrimaryKey.build(fieldValue);
+                }
                 service.insertFieldInfo(serviceId);
             }
         }
@@ -370,6 +552,7 @@ public abstract class AbstractModule {
         NamedNodeMap attributes = item.getAttributes();
         for (int i = 0; i < attributes.getLength(); i++) {
             Node attribute = attributes.item(i);
+            String nodeName = attribute.getNodeName();
             String nodeValue = attribute.getNodeValue();
             Object value = item.getTextContent();
             if ("ref_serviceId".equals(nodeValue)) { // 逻辑写死
@@ -384,11 +567,36 @@ public abstract class AbstractModule {
             } else if ("arch".equals(nodeValue)) {
                 value = getInnerXml(item);
             }
+            if ("refId".equals(nodeName)) {
+                value = getResourceId(getModuleName(), value.toString());
+            } else if ("ref".equals(nodeName)) {
+                value = nodeValue;
+                nodeValue = nodeName;
+            }
 
             row.put(nodeValue, value);
         }
 
+        if (row.containsKey("inheritId")) {
+            if (row.containsKey("ref")) {
+                row.put("inheritId", computeInheritId(row.getString("ref"), getModuleName()));
+                row.remove("ref");
+            }
+        }
+
         return row;
+    }
+
+    /**
+     * @param ref    继承的id
+     * @param module 模块
+     */
+    private Integer computeInheritId(String ref, String module) {
+        if (FieldUtils.hasJoinSelect(ref)) {
+            module = FieldUtils.getJoinFirstTableString(ref);
+            ref = FieldUtils.getJoinFirstFieldString(ref);
+        }
+        return refId(module, ref);
     }
 
     protected String getInnerXml(Node element) {
@@ -425,57 +633,67 @@ public abstract class AbstractModule {
     }
 
     protected Integer getModelDataSourceId(String moduleName, String id) {
-        IServiceDataService serviceBean = getContext().getServiceBean(IServiceDataService.class);
+        IServiceDataService serviceBean = getServiceDataService();
         return serviceBean.refId(moduleName, id);
+    }
+
+    private IServiceDataService getServiceDataService() {
+        try {
+            return (IServiceDataService) getContext().getServiceBean("base.service.data");
+        } catch (Exception e) {
+            log.error("getServiceDataService", e);
+            return null;
+        }
     }
 
     protected void insertRecord(String moduleName, Integer dstServiceId,
                                 String id, String serviceName, RecordRow row) {
         IServiceDataService serviceBean = null;
-        try {
-            serviceBean = getContext().getServiceBean(IServiceDataService.class);
-        } finally {
 
-        }
+        serviceBean = getServiceDataService();
+
         if (ObjectUtils.isNull(serviceBean)) return;
 
         serviceBean.insert(moduleName, dstServiceId, id, serviceName, row);
     }
 
     protected Integer refId(String id) {
-        IServiceDataService serviceBean = null;
-        try {
-            serviceBean = getContext().getServiceBean(IServiceDataService.class);
-            return serviceBean.refId(getModuleName(), id);
-        } finally {
-
-        }
+        return refId(getModuleName(), id);
     }
 
+    protected Integer refId(String module, String id) {
+        IServiceDataService serviceBean = null;
 
+        serviceBean = getServiceDataService();
+        return serviceBean.refId(module, id);
+    }
+
+    /**
+     * 刷新数据，有两种情况，一种是直接更新数据，一种是更新页面，同时更新数据
+     *
+     * @param dstServiceId 模型id
+     * @param id           xml id
+     * @param serviceName  模型名称
+     * @param row          数据
+     */
     protected void upgradeRecord(Integer dstServiceId, String id, String serviceName, RecordRow row) {
         IServiceDataService serviceBean = null;
-        try {
-            serviceBean = getContext().getServiceBean(IServiceDataService.class);
-            Integer refId = serviceBean.refId(getModuleName(), id);
-            if (ObjectUtils.isNull(refId)) {
-                insertRecord(getModuleName(), dstServiceId, id, serviceName, row);
-            } else {
-                row.put(getContext().getServiceBean(serviceName).getPrimaryKeyName(), refId);
-                updateRecord(serviceName, row);
-            }
-        } finally {
 
+        serviceBean = getServiceDataService();
+        Integer refId = serviceBean.refId(getModuleName(), id);
+        if (ObjectUtils.isNull(refId)) {
+            insertRecord(getModuleName(), dstServiceId, id, serviceName, row);
+        } else {
+            row.put(getContext().getServiceBean(serviceName).getPrimaryKeyName(), refId);
+            updateRecord(serviceName, row);
         }
     }
 
     protected void updateRecord(String serviceName, RecordRow row) {
         IServiceDataService serviceBean = null;
-        try {
-            serviceBean = getContext().getServiceBean(IServiceDataService.class);
-        } finally {
 
-        }
+        serviceBean = getServiceDataService();
+
         if (ObjectUtils.isNull(serviceBean)) return;
 
         serviceBean.update(serviceName, row);

@@ -21,11 +21,16 @@ public class ServiceAccessService extends AbstractService {
     public String getServiceName() {
         return "base.service.access";
     }
+
+    @Override
+    public Field getNameField() {
+        return getField("serviceId.name");
+    }
+
     public final Field serviceId = Fields.createMany2one("服务",
             "base.service");
     public final Field groupId = Fields.createMany2one("用户组",
             "base.group");
-    public final Field active = Fields.createBoolean("有效");
     public final Field permRead = Fields.createBoolean("查询",
             false, true);
     public final Field permWrite = Fields.createBoolean("编辑",

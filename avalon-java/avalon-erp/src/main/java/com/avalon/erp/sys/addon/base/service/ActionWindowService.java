@@ -25,6 +25,7 @@ public class ActionWindowService extends AbstractService {
     public final Field label = Fields.createString("名称");
     public final Field serviceId = Fields.createMany2one("服务",
             "base.service");
+    public final Field moduleId = Fields.createMany2one("模块", "base.module");
 
     public final Field viewMode = Fields.createSelection("类型",
             ViewModeEnum.class, true);

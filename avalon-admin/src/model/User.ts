@@ -9,7 +9,8 @@ export default interface User {
     nickName: string
     phone: string
     sex: string
-    avatar: string
+    avatar: string,
+    debug: boolean,
     birthday: string,
     account: string
 }

@@ -24,9 +24,6 @@ const serviceStore = useGlobalServiceDataStore()
 
 const moduleName = ref<string>(route.params.module as string)
 const serviceName = ref<string>(route.params.service as string)
-const serviceId = ref<number>(serviceStore.getServiceIdByName(serviceName.value) as number)
-const serviceFields = serviceFieldStore.getFieldByServiceId(serviceId.value)
-const primaryKeyField = serviceFieldStore.getPrimaryKeyFieldByServiceId(serviceId.value)
 
 const view = ref<ActionView | undefined>(undefined)
 getActionKanbanView(serviceName.value).then(data => {
@@ -92,15 +89,10 @@ watch(() => [moduleName.value, serviceName.value, template_fields.value.length],
 
 
 const btnClick = (actionType: string, action: string, fields: any) => {
-    const ids: any = []
-    if (fields.id) {
-        ids.push(fields.id)
-    }
-
     const param = {
+        serviceName: serviceName.value,
         method: action,
-        ids,
-        param: fields
+        param: [[fields.id], fields]
     }
     if (serviceName.value) {
         invokeMethod(serviceName.value, param).then(data => {
@@ -141,7 +133,7 @@ const handlePageChange = (dir: string) => {
         </div>
     </div>
     <div class="flex flex-wrap p-1">
-        <div v-for="item in record" :key="item.id" class="flex bg-white p-3 border rounded m-2 w-[400px]">
+        <div v-for="item in record" :key="item.id" class="flex p-3 border rounded m-2 w-[400px]">
             <kanbanTemplate v-if="xmlTemplate" :template="xmlTemplate" :fields="item"
                             @btnClick="btnClick"></kanbanTemplate>
         </div>

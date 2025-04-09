@@ -12,5 +12,5 @@ export default interface ServiceConditionPage {
     fields: string
     order: string
     isDistinct: boolean
-    rpnCondition: string
+    condition: string
 }

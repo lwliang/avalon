@@ -7,7 +7,6 @@ import './my-id-select.css'
 import {ref, watch} from "vue";
 import FormField from "../../../model/FormField.ts";
 import {InputExpose} from "../../../global/input/InputExpose.ts";
-import MyPopover from "../../popover/my-popover.vue";
 import {onMounted} from "@vue/runtime-dom";
 import {getModelPageApi} from "../../../api/modelApi.ts";
 import {useGlobalFieldDataStore} from "../../../global/store/fieldStore.ts";
@@ -16,6 +15,8 @@ import Service from "../../../model/Service.ts";
 import {PopperAPI} from "../../popover/my-popover.ts";
 import {useDebounceFn} from '@vueuse/core'
 import MyIcon from "../../icon/my-icon.vue";
+import MyInnerPopover from "../../popover/my-inner-popover.vue";
+import {borderStyleType} from "../../icon/my-icon.ts";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -25,7 +26,11 @@ const props = defineProps({
     htmlName: String,
     required: Boolean,
     readonly: Boolean,
-    service: String
+    service: String,
+    border: {
+        type: borderStyleType,
+        default: 'round'
+    }
 })
 const service = ref<Service>()
 const emit = defineEmits(['rightBtnClick'])
@@ -73,7 +78,7 @@ const formatName = () => {
 const loadServiceOption = (name?: string) => {
     if (props.service && service.value) {
         getModelPageApi(`${service.value.keyField},${service.value.nameField}`,
-            `(like,${service.value.nameField},"${name ? name : ''}")`,
+            `('${service.value.nameField}',like,${name ? "'" + name + "'" : ''})`,
             props.service,
             1).then(pageInfo => {
             options.value.splice(0, options.value.length)
@@ -134,11 +139,12 @@ defineExpose<InputExpose>({validate})
 
 <template>
     <div class="flex relative">
-        <MyPopover placement="bottom" trigger="click" full-width ref="popperSelect" @popperShow="popperShow">
+        <MyInnerPopover placement="bottom" trigger="click" full-width ref="popperSelect" @popperShow="popperShow">
             <template v-slot:default>
                 <div class="inline-flex w-full relative">
                     <input
-                        :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate}]"
+                        :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,
+                        'border':border == 'round', 'border-b':border == 'bottom'}]"
                         style="padding-right: 25px"
                         v-if="labelField"
                         type="text"
@@ -152,9 +158,9 @@ defineExpose<InputExpose>({validate})
 
             </template>
             <template v-slot:option>
-                <div class="max-h-[400px] overflow-y-auto flex flex-col w-full">
+                <div class="flex flex-col w-full">
                     <div v-for="(value,index) in options" :key="index"
-                         class="w-full cursor-pointer hover:bg-gray-300 px-4"
+                         class="w-full cursor-pointer hover:bg-select-hover px-4"
                          @click="optionSelectClick(value)">
                         {{ value[service?.nameField as string] }}
                     </div>
@@ -163,7 +169,7 @@ defineExpose<InputExpose>({validate})
                     </div>
                 </div>
             </template>
-        </MyPopover>
+        </MyInnerPopover>
     </div>
 
 

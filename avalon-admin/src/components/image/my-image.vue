@@ -15,6 +15,10 @@ const props = defineProps({
     },
     width: String,
     height: String,
+    radius: {
+        type: Number,
+        default: 0
+    }
 })
 
 // const getImageUrl = () => {
@@ -31,7 +35,8 @@ const props = defineProps({
 </script>
 
 <template>
-    <img :src="src" :alt="alt" :width="width" :height="height">
+    <img :style="{'border-radius':radius + 'px', height:`${height}px`}" :src="src" :alt="alt" :width="width"
+         :height="height">
 </template>
 
 <style scoped>

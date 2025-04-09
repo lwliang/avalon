@@ -55,7 +55,7 @@ public class ExternalModule extends AbstractModule implements IExternalModule {
     }
 
     @Override
-    public Boolean getIsInstall() {
+    public boolean getIsInstall() {
         return isInstall;
     }
 

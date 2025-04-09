@@ -3,6 +3,8 @@ server:
   servlet:
     context-path: /erp
 spring:
+  banner:
+    location: banner.txt
   profiles:
     active: dev,erp-dev
   application:

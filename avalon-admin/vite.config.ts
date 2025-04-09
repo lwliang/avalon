@@ -24,7 +24,16 @@ export default defineConfig({
             '/file': {
                 target: 'http://localhost:8091',
                 changeOrigin: true
-            }
+            },
+            '/im': {
+                target: 'http://localhost:8093',
+                changeOrigin: true
+            },
+            '/ws': {
+                target: 'ws://localhost:6666/', // 目标 WebSocket 服务器地址
+                ws: true, // 开启 WebSocket 代理功能
+                changeOrigin: true, // 是否修改请求头中的 Origin
+            },
         }
     }
 })

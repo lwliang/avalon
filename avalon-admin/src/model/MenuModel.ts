@@ -12,6 +12,7 @@ export default interface MenuModel {
     "type": "object" | "action",
     "sequence": number,
     "objectAction": string,
+    "moduleId": any,
     serviceId: {
         id: number,
         name: string

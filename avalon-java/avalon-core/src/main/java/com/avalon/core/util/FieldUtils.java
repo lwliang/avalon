@@ -274,6 +274,12 @@ public class FieldUtils {
                 || field instanceof ImageField;
     }
 
+    public static boolean isDateOrTime(com.avalon.core.field.Field field) {
+        return field instanceof DateField
+                || field instanceof TimeField
+                || field instanceof DateTimeField;
+    }
+
     /**
      * 是否是关联字段
      *

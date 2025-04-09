@@ -52,6 +52,7 @@ const loginClick = () => {
         setUserId(res.id)
         setToken(res.token)
         emitLogin();
+        document.body.setAttribute('login', '')
         router.push({
             path: '/model'
         })
@@ -75,48 +76,50 @@ const goDatabaseManagerClick = () => {
 </script>
 
 <template>
-    <div class="w-full flex justify-center py-12">
-        <div class="w-[300px] bg-white p-4">
-            <div>
-                <my-image class="mx-auto" src="logo.png"></my-image>
-            </div>
-            <MyDivider margin="1rem auto"></MyDivider>
-            <div class="pb-2" v-if="allDBS.length">
-                <my-label class="my-2" htmlFor="account">数据库</my-label>
-                <MyInput ref="db_input" v-model="db" htmlId="db" htmlName="db" :readonly="true" right-content="选择"
-                         @rightBtnClick="goDatabaseManagerClick"
-                         :required="true" icon="database" icon-style="fas" icon-color="#FFF"></MyInput>
-            </div>
-            <div class="pb-2">
-                <my-label class="my-2" htmlFor="account">账户</my-label>
-                <MyInput ref="account_input" v-model="account" htmlId="account" htmlName="account"
-                         :required="true"></MyInput>
-                <div v-show="!account.isValidate" class="absolute text-danger">请填写账号</div>
-            </div>
-            <div class="pb-2">
-                <my-label class="my-2" html-for="password">密码</my-label>
-                <MyPassword ref="password_input" v-model="password" htmlId="password" htmlName="password"
-                            :required="true"></MyPassword>
-                <div v-show="!password.isValidate" class="text-danger absolute">请填写密码</div>
-            </div>
-            <div class="py-4" v-if="login_error">
-                <div class="alter-danger px-4 py-5 rounded">错误的登录名/密码</div>
-            </div>
-            <div class="pt-4">
-                <MyButton class="w-full" @click="loginClick" rounded>登录</MyButton>
-            </div>
-            <div class="flex justify-between pt-4">
-                <MyButton is-link @click="goRegisterClick">还没有账户?</MyButton>
-                <MyButton is-link @click="goResetPasswordClick">重置密码</MyButton>
-            </div>
-            <div class="pt-8">
-                <MyDivider></MyDivider>
-            </div>
+    <div class="w-full h-full bg">
+        <div class="w-full flex justify-center py-12">
+            <div class="w-[300px] bg-background p-4">
+                <div>
+                    <my-image class="mx-auto" src="/logo.png"></my-image>
+                </div>
+                <MyDivider margin="1rem auto"></MyDivider>
+                <div class="pb-2" v-if="allDBS.length">
+                    <my-label class="my-2" htmlFor="account">数据库</my-label>
+                    <MyInput ref="db_input" v-model="db" htmlId="db" htmlName="db" :readonly="true" right-content="选择"
+                             @rightBtnClick="goDatabaseManagerClick"
+                             :required="true" icon="database" icon-style="fas" icon-color="#FFF"></MyInput>
+                </div>
+                <div class="pb-2">
+                    <my-label class="my-2" htmlFor="account">账户</my-label>
+                    <MyInput ref="account_input" v-model="account" htmlId="account" htmlName="account"
+                             :required="true"></MyInput>
+                    <div v-show="!account.isValidate" class="absolute text-danger">请填写账号</div>
+                </div>
+                <div class="pb-2">
+                    <my-label class="my-2" html-for="password">密码</my-label>
+                    <MyPassword ref="password_input" v-model="password" htmlId="password" htmlName="password"
+                                :required="true"></MyPassword>
+                    <div v-show="!password.isValidate" class="text-danger absolute">请填写密码</div>
+                </div>
+                <div class="py-4" v-if="login_error">
+                    <div class="alter-danger px-4 py-5 rounded">错误的登录名/密码</div>
+                </div>
+                <div class="pt-4">
+                    <MyButton class="w-full" @click="loginClick" rounded>登录</MyButton>
+                </div>
+                <div class="flex justify-between pt-4">
+                    <MyButton is-link @click="goRegisterClick">还没有账户?</MyButton>
+                    <MyButton is-link @click="goResetPasswordClick">重置密码</MyButton>
+                </div>
+                <div class="pt-8">
+                    <MyDivider></MyDivider>
+                </div>
 
-            <div class="flex justify-center pt-4 h-auto items-center">
-                <MyButton is-link @click="goDatabaseManagerClick">管理数据库</MyButton>
-                <MyDivider margin="0 0.25rem" vertical height="10px"></MyDivider>
-                <MyButton is-link>由Avalon提供支持</MyButton>
+                <div class="flex justify-center pt-4 h-auto items-center">
+                    <MyButton is-link @click="goDatabaseManagerClick">管理数据库</MyButton>
+                    <MyDivider margin="0 0.25rem" vertical height="10px"></MyDivider>
+                    <MyButton is-link>由Avalon提供支持</MyButton>
+                </div>
             </div>
         </div>
     </div>
@@ -127,5 +130,9 @@ const goDatabaseManagerClick = () => {
     color: #842029;
     background-color: #f8d7da;
     border-color: #f5c2c7;
+}
+
+.bg {
+    background-image: url("/background-light.svg");
 }
 </style>

@@ -14,25 +14,15 @@ import java.lang.reflect.Type;
 import java.sql.Types;
 
 public class StringField extends Field {
-
-    private Integer size = SIZE_DEFAULT;//数据库记录的长度
     private Integer maxLength = SIZE_DEFAULT;
     private Integer minLength = 0;
 
     public final static Integer SIZE_DEFAULT = 255;
 
     public Integer getSize() {
-        return size;
+        return maxLength;
     }
 
-    protected void setSize(Integer size) {
-        this.size = size;
-        if (ObjectUtils.isNull(this.getMaxLength())) {
-            this.setMaxLength(this.size);
-        } else if (this.getMaxLength().compareTo(this.size) > 0) {
-            this.setMaxLength(this.size);
-        }
-    }
 
     public Integer getMaxLength() {
         return maxLength;
@@ -52,7 +42,6 @@ public class StringField extends Field {
 
     public StringField(Builder builder) {
         super(builder);
-        setSize(builder.size);
         setMaxLength(builder.maxLength);
         setMinLength(builder.minLength);
     }
@@ -135,7 +124,7 @@ public class StringField extends Field {
                        Integer size, Integer maxLength, Integer minLength,
                        Boolean isPrimaryKey, Boolean isAutoIncrement) {
         super(label, isRequired, isReadonly, defaultValue, isPrimaryKey, isAutoIncrement);
-        this.setSize(size);
+        this.maxLength = size;
         this.setMinLength(minLength);
         this.setMaxLength(maxLength);
         this.setIsUnique(isUnique);
@@ -147,7 +136,6 @@ public class StringField extends Field {
     }
 
     public static class Builder extends Field.Builder<Builder> implements IStringFieldBuilder<Builder> {
-        private Integer size = SIZE_DEFAULT;
         private Integer maxLength = SIZE_DEFAULT;
         private Integer minLength = 0;
 
@@ -219,12 +207,6 @@ public class StringField extends Field {
         @Override
         public Builder setMinLength(Integer minLength) {
             this.minLength = minLength;
-            return this;
-        }
-
-        @Override
-        public Builder setSize(Integer size) {
-            this.size = size;
             return this;
         }
 

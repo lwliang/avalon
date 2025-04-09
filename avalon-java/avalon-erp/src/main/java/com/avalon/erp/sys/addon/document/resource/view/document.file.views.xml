@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="document_document_file_form" service="base.action.view">
+        <field name="name">document file</field>
+        <field name="label">文件</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">document.file</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="documents" widget="document"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="document_document_file_tree" service="base.action.view">
+        <field name="name">document file</field>
+        <field name="label">文档</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">document.file</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="id"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+</avalon>

@@ -72,10 +72,10 @@ public class Record extends ArrayList<RecordRow> implements Serializable {
         return this.stream().filter((recordRow -> recordRow.getRawValue(field).equals(value))).findFirst().orElse(null);
     }
 
-    public List<Object> getValues(String field) {
-        List<Object> values = new ArrayList<>();
+    public <T> List<T> getValues(String field) {
+        List<T> values = new ArrayList<>();
         this.forEach((recordRow -> {
-            Object rawValue = recordRow.getRawValue(field);
+            T rawValue = recordRow.getRawValue(field);
             if (!values.contains(rawValue)) {
                 values.add(rawValue);
             }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="im_chat_view_form" service="base.action.view">
+        <field name="name">im chat</field>
+        <field name="label">聊天</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">im.chat</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="memberIds" widget="chat"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="im_chat_action" service="base.action.window">
+        <field name="name">im chat</field>
+        <field name="label">聊天</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">im.chat</field>
+    </record>
+</avalon>

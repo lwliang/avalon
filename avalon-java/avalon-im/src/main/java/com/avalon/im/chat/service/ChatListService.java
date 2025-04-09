@@ -25,6 +25,16 @@ public class ChatListService extends AbstractService {
         return "chat.chat.list";
     }
 
+    @Override
+    public boolean needCheckRecordRule() {
+        return false;
+    }
+
+    @Override
+    public boolean needCheckPermission() {
+        return false;
+    }
+
     public final Field fromUserId = Fields.createInteger("发送人");
     public final Field chatType = Fields.createSelection("聊天类型", ChatTypeEnum.class);
     public final Field toUserId = Fields.createInteger("聊天id"); // 单聊是用户id，群聊则是群id
@@ -39,7 +49,7 @@ public class ChatListService extends AbstractService {
     public void clearUnReadCount(int id) {
         RecordRow row = RecordRow.build();
         row.put("id", id);
-        row.put(unReadCount, 0);
+        row.put("unReadCount", 0);
         update(row);
     }
 
@@ -52,7 +62,7 @@ public class ChatListService extends AbstractService {
             recordRow = select.get(0);
             RecordRow row = RecordRow.build();
             row.put("id", recordRow.getInteger("id"));
-            row.put(unReadCount, 0);
+            row.put("unReadCount", 0);
             update(row);
         }
     }
@@ -71,16 +81,16 @@ public class ChatListService extends AbstractService {
             if (!select.isEmpty()) {
                 recordRow = select.get(0);
                 recordRow.put("unReadCount", recordRow.getInteger("unReadCount") + unReadCount);
-                recordRow.put(lastMsgId, msgId);
-                recordRow.put(lastMsgDate, DateTimeUtils.getCurrentDate());
+                recordRow.put("lastMsgId", msgId);
+                recordRow.put("lastMsgDate", DateTimeUtils.getCurrentDate());
                 update(recordRow);
             } else {
                 recordRow = RecordRow.build();
                 recordRow.put("fromUserId", fromUserId);
                 recordRow.put("toUserId", toUserId);
                 recordRow.put("chatType", chatType);
-                recordRow.put(lastMsgId, msgId);
-                recordRow.put(lastMsgDate, DateTimeUtils.getCurrentDate());
+                recordRow.put("lastMsgId", msgId);
+                recordRow.put("lastMsgDate", DateTimeUtils.getCurrentDate());
                 recordRow.put("unReadCount", unReadCount);
                 recordRow.put("top", false);
                 insert(recordRow);

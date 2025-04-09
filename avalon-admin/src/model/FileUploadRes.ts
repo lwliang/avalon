@@ -3,11 +3,13 @@
  * @date 2024/11/22
  */
 
-interface FileUploadRes {
-  originName: string
-  url: string
+export default interface FileUploadRes {
+    originName: string
+    url: string,
+    size: number,
+    mine: string
 }
 
 export function isFileUploadRes(object: any): object is FileUploadRes {
-  return 'originName' in object && 'url' in object
+    return 'originName' in object && 'url' in object
 }

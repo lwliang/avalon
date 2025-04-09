@@ -42,7 +42,7 @@ const goDatabaseManagerClick = ()=>{
 
 <template>
     <div class="w-full flex justify-center py-12">
-        <div class="w-[300px] bg-white p-4">
+        <div class="w-[300px] p-4">
             <div>
                 <my-image class="mx-auto" src="logo.png"></my-image>
             </div>

@@ -26,73 +26,75 @@ const route = useRoute();
 const serviceName = ref<string>(route.params.service as string)
 
 if (!routeStore.module) {
-    const module = 'base'
-    menuStore.setModuleMenu(module).then((menus: any) => {
-        const menu = getActionMenu(menus);
-        if (menu) {
-            goModelWindow(menu.action.serviceId.moduleId.name,
-                menu.action.serviceId.name,
-                {})
-        }
-    })
+  const module = 'base'
+  menuStore.setModuleMenu(module).then((menus: any) => {
+    const menu = getActionMenu(menus);
+    if (menu) {
+      goModelWindow(menu.action.serviceId.moduleId.name,
+          menu.action.serviceId.name,
+          {})
+    }
+  })
 }
 
 const getActionMenu = (menus: MenuModel[]) => {
-    for (let menu of menus) {
-        if (menu.children && menu.children.length) {
-            return getActionMenu(menu.children);
-        }
-
-        if (menu.type == 'action') {
-            return menu
-        }
+  for (let menu of menus) {
+    if (menu.children && menu.children.length) {
+      return getActionMenu(menu.children);
     }
+
+    if (menu.type == 'action') {
+      return menu
+    }
+  }
 }
 
 const moduleClick = (module: Module) => {
-    moduleStore.setCurrentModule(module);
-    mittBus.emit('changeModule', {module: module.name, click: true})
+  moduleStore.setCurrentModule(module);
+  mittBus.emit('changeModule', {module: module.name, click: true})
 }
 
 const menuClick = (menu: MenuModel) => {
-    if (menu.type == 'action') {
-        goModelWindow(menu.action.serviceId.moduleId.name,
-            menu.action.serviceId.name,
-            {})
-    } else {
-        const param = {
-            method: menu.objectAction,
-            ids: [],
-            param: {}
-        }
-        invokeMethod(menu.serviceId.name, param).then(data => {
-            proxy?.$notify.success("提示", "操作成功");
-        })
+  if (menu.type == 'action') {
+    goModelWindow(menu.moduleId.name,
+        menu.action.serviceId.name,
+        {})
+  } else {
+    const param = {
+      serviceName: menu.serviceId.name,
+      method: menu.objectAction,
+      param: [[], {}]
     }
+    invokeMethod(menu.serviceId.name, param).then(data => {
+      proxy?.$notify.success("提示", "操作成功");
+    })
+  }
 }
 </script>
 
 <template>
-    <div class="flex h-full bg-white">
-        <div class="w-[100px] flex flex-col items-center border-r overflow-y-auto">
-            <ModuleMenu @moduleClick="moduleClick"></ModuleMenu>
-        </div>
-        <div class="flex-1 flex flex-col ">
-            <div class="h-[46px] flex items-center">
-                <div class="pl-4 flex-1">
-                    <MyMenu @menuClick="menuClick"></MyMenu>
-                </div>
-                <div class="pr-4">
-                    <UserInfo></UserInfo>
-                </div>
-            </div>
-            <div class="flex-1 overflow-y-auto">
-                <div class="h-full ">
-                    <router-view :key="route.fullPath"></router-view>
-                </div>
-            </div>
-        </div>
+  <div class="flex h-full">
+    <div class="w-[80px] flex flex-col items-center border-r overflow-y-auto flex-shrink-0">
+      <ModuleMenu @moduleClick="moduleClick"></ModuleMenu>
     </div>
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="h-[46px] flex items-center w-full overflow-y-auto">
+        <div class="pl-4 flex-1 overflow-x-auto">
+          <div class="">
+            <MyMenu @menuClick="menuClick"></MyMenu>
+          </div>
+        </div>
+        <div class="pr-4 flex-shrink-0">
+          <UserInfo></UserInfo>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto">
+        <div class="h-full ">
+          <router-view :key="route.fullPath"></router-view>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>

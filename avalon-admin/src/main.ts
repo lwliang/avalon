@@ -3,7 +3,7 @@
  * @date 2024/11/22
  */
 
-import {createApp} from 'vue'
+import {createApp, version} from 'vue'
 import {createPinia} from 'pinia'
 import router from './router'
 import './style.css'
@@ -27,7 +27,7 @@ import MyTabPanel from "./components/tabs/my-tab-panel.vue";
 import MySubTree from './pages/window/action/form/my-sub-tree.vue';
 import MyOverlay from "./components/overlay/my-overlay.vue";
 import MyFormModel from "./components/model/form-model/my-form-model.vue";
-import MyUpload from "./components/upload/my-upload.vue";
+import MyImageUpload from "./components/upload/my-image-upload.vue";
 import MyPassword from "./components/password/my-password.vue";
 import MyDate from "./components/date/my-date.vue";
 import MyCheck from "./components/check/my-check.vue";
@@ -38,8 +38,21 @@ import MyTime from "./components/time/my-time.vue";
 import MyDatetime from "./components/datetime/my-datetime.vue";
 import MySearch from "./components/search/my-search.vue";
 import MyPagination from "./components/pagination/my-pagination.vue";
+import MyAvatar from "./components/avatar/my-avatar.vue";
+import MyDebug from "./components/debug/my-debug.vue";
+import MyXmlViewer from "./components/xml-viewer/my-xml-viewer.vue";
+import MyVideoUpload from "./components/upload/my-video-upload.vue";
+import MyVideo from "./components/video/my-video.vue";
+import {ReconnectingWebSocket} from "./ws/WebScoket.ts";
+import {getToken} from "./cache/tokenStorage.ts";
+import ChatWindow from "./components/im/chat-window.vue";
+import DocumentList from "./components/document/document-list.vue";
+import RegistryPlugin from "./global/registry/registryPlugin.ts";
+import {registerActions} from './global/registry/actions'
 
 
+window.ReconnectingWebSocket = ReconnectingWebSocket;
+window.getToken = getToken
 window.console.log = log.info
 window.console.debug = log.debug
 window.console.info = log.info
@@ -53,6 +66,8 @@ if (import.meta.env.MODE === 'development') {
 }
 
 
+console.log('Vue Version:', version); // 输出 Vue 版本
+
 const app = createApp(App)
 loadSvg(app)
 
@@ -60,6 +75,7 @@ app.use(createPinia())
 app.use(router)
 app.component('MyButton', MyButton)
 app.component('MyImage', MyImage)
+app.component('MyAvatar', MyAvatar)
 app.component('MyLabel', MyLabel)
 app.component('MyInput', MyInput)
 app.component('MyIcon', MyIcon)
@@ -73,7 +89,8 @@ app.component('MyTabPanel', MyTabPanel)
 app.component('MySubTree', MySubTree)
 app.component('MyOverlay', MyOverlay)
 app.component('MyFormModel', MyFormModel)
-app.component('MyUpload', MyUpload)
+app.component('MyImageUpload', MyImageUpload)
+app.component('MyVideoUpload', MyVideoUpload)
 app.component('MyPassword', MyPassword)
 app.component('MyDate', MyDate)
 app.component('MyCheck', MyCheck)
@@ -84,6 +101,17 @@ app.component('MyTime', MyTime)
 app.component('MyDatetime', MyDatetime)
 app.component('MySearch', MySearch)
 app.component('MyPagination', MyPagination)
+app.component('MyDebug', MyDebug)
+app.component('MyXmlViewer', MyXmlViewer)
+app.component('MyVideo', MyVideo)
+app.component('ChatWindow', ChatWindow)
+app.component('DocumentList', DocumentList)
+
+// 使用注册表插件
+app.use(RegistryPlugin);
+// 动态注册动作
+const registry = app.config.globalProperties.$registry;
+registerActions(registry);
 
 // 全局变量
 app.config.globalProperties.$notify = MyNotification
@@ -91,3 +119,5 @@ app.config.globalProperties.$notify = MyNotification
 app.provide('getModuleIcon', getModuleIcon)
 
 app.mount('#app')
+
+export default app; // 导出实例

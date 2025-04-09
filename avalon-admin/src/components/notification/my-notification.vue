@@ -51,20 +51,20 @@ const icon = computed(() => {
 const iconColor = computed(() => {
     switch (props.type) {
         case 'info':
-            return 'var(--info-color)'
+            return 'var(--color-info)'
         case 'success':
-            return 'var(--success-color)'
+            return 'var(--color-success)'
         case 'warning':
-            return 'var(--warning-color)'
+            return 'var(--color-warning)'
         case 'error':
-            return 'var(--danger-color)'
+            return 'var(--color-danger)'
         default:
-            return 'var(--success-color)'
+            return 'var(--color-success)'
     }
 })
 
 const closeClick = () => {
-    if(timer) {
+    if (timer) {
         clearTimeout(timer);
         timer = null;
     }

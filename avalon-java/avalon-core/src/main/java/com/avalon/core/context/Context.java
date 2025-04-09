@@ -5,29 +5,37 @@
 
 package com.avalon.core.context;
 
+import com.avalon.core.antlr4.condition.ConditionManager;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.config.ApplicationConfig;
 import com.avalon.core.config.PulsarConfig;
 import com.avalon.core.db.DataSourceUtil;
 import com.avalon.core.db.DynamicDataSource;
 import com.avalon.core.db.DynamicJdbcTemplate;
+import com.avalon.core.enums.SystemStateEnum;
 import com.avalon.core.exception.AvalonException;
+import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.module.AbstractModule;
-import com.avalon.core.module.ModuleHashMap;
+import com.avalon.core.module.ModuleList;
+import com.avalon.core.orm.ClassPoolManager;
+import com.avalon.core.orm.ORMMapper;
+import com.avalon.core.permission.ElevatePermissionEnum;
 import com.avalon.core.redis.IRedisLock;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.AbstractServiceList;
 import com.avalon.core.service.ExternalService;
-import com.avalon.core.util.FieldValue;
-import com.avalon.core.util.ObjectUtils;
-import com.avalon.core.util.SnowflakeIdWorker3rd;
-import com.avalon.core.util.StringUtils;
+import com.avalon.core.util.*;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.NotFoundException;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -35,9 +43,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component()
 @Data
@@ -47,6 +53,8 @@ public class Context {
     private ApplicationConfig applicationConfig;
     @Autowired
     private PulsarConfig pulsarConfig;
+    @Autowired
+    public ConditionManager conditionManager;
 
     /**
      * 系统初始化完成，true 准备好，false
@@ -69,42 +77,42 @@ public class Context {
         systemPrepared = prepared;
     }
 
-    private final static AbstractServiceList serviceList = new AbstractServiceList();
+    private final static Set<String> serviceNameSet = new HashSet<>();
 
-    public AbstractServiceList getServiceList() {
-        return serviceList;
+    public void addServiceName(String serviceName) {
+        serviceNameSet.add(serviceName);
     }
 
-    public void putService(AbstractService service) {
-        serviceList.add(service);
+    public Set<String> getServiceNameSet() {
+        return serviceNameSet;
     }
 
-    private static ModuleHashMap moduleHashMap = new ModuleHashMap();
+    private final static Hashtable<String, AbstractService> serviceClassServiceNameDic = new Hashtable<>(); // 类名，模型名
 
-    public static ModuleHashMap getModuleHashMap() {
-        return moduleHashMap;
+    public void addServiceName(String serviceClass, AbstractService service) {
+        serviceClassServiceNameDic.put(serviceClass, service);
+    }
+    public Hashtable<String, AbstractService> getServiceClassServiceNameDic() {
+        return serviceClassServiceNameDic;
     }
 
-    public ModuleHashMap getModuleMap() {
-        return moduleHashMap;
-    }
 
-    public AbstractModule getModuleByName(String moduleName) {
-        return moduleHashMap.getModule(moduleName);
-    }
+    private static ModuleList moduleList = new ModuleList();
 
     public void addModule(AbstractModule module) {
-        moduleHashMap.addModule(module);
+        moduleList.add(module);
     }
 
-    public void putModule(AbstractModule module, AbstractService service) {
-        moduleHashMap.put(module.getModuleName(), service);
+    public ModuleList getModuleList() {
+        return moduleList;
     }
 
-    public void putModule(String moduleName, AbstractService service) {
-        putService(service);
-        moduleHashMap.put(moduleName, service);
+    public static final Map<String, ORMMapper> ormMapperMap = new Hashtable<>(); // 数据库对应的ORM
+
+    public ORMMapper getORMMapper() {
+        return ormMapperMap.get(getBaseName());
     }
+
 
     @Autowired
     @Lazy
@@ -133,11 +141,11 @@ public class Context {
         }
     }
 
-    public void init(String database) {
+    public synchronized void init(String database) {
         log.info("init database {}", database);
+        database = database.toLowerCase();
         Map<String, Object> map = createThreadMap();
         map.put("databaseName", database);
-        applicationConfig.getDataSource().setDatabase(database);
         map.put("databaseConfig", applicationConfig.getDataSource());
         THREAD_LOCAL_CONTEXT.set(map);
         map.put("uuid", SnowflakeIdWorker3rd.getInstance().nextId());
@@ -145,6 +153,21 @@ public class Context {
         if (!bean.contains(database)) {
             DataSourceUtil.addDataSourceToDynamic(database, applicationConfig.getDataSource());
         }
+
+
+        if (getApplicationConfig().getMultiDb()) {
+            if (!database.equals(getDefaultDatabase())) {
+                if (!ormMapperMap.containsKey(database)) {
+                    synchronized (Context.class) {
+                        if (!ormMapperMap.containsKey(database)) {
+                            ORMMapper ormMapper = initORM(database);
+                            ormMapperMap.put(database, ormMapper);
+                        }
+                    }
+                }
+            }
+        }
+
         avalonEvaluationContext = new AvalonEvaluationContext();
         standardEvaluationContext = new StandardEvaluationContext(avalonEvaluationContext);
     }
@@ -181,7 +204,6 @@ public class Context {
      */
     public void recoverThreadMap(Map<String, Object> map) {
         THREAD_LOCAL_CONTEXT.set(map);
-        applicationConfig.getDataSource().setDatabase(map.get("databaseName").toString());
     }
 
     /**
@@ -201,6 +223,7 @@ public class Context {
 
     public String getToken() {
         Map<String, Object> map = createThreadMap();
+        if (!map.containsKey(SystemConstant.TOKEN)) return null;
         return map.get(SystemConstant.TOKEN).toString();
     }
 
@@ -209,6 +232,110 @@ public class Context {
         map.put("userId", userId);
         if (ObjectUtils.isNotNull(avalonEvaluationContext)) {
             avalonEvaluationContext.setUserId(userId);
+        }
+    }
+
+    private final String ElevatePermissionName = "elevatePermission";
+
+    /**
+     * 提示临时权限
+     *
+     * @param elevatePermission 权限类型
+     */
+    public void addTemporaryElevate(ElevatePermissionEnum elevatePermission) {
+        Map<String, Object> map = createThreadMap();
+        Map<ElevatePermissionEnum, Integer> elevatePermissionEnums = null;
+        if (map.containsKey(ElevatePermissionName)) {
+            elevatePermissionEnums = (Map<ElevatePermissionEnum, Integer>) map.get(ElevatePermissionName);
+        } else {
+            elevatePermissionEnums = new Hashtable<>();
+            map.put(ElevatePermissionName, elevatePermissionEnums);
+        }
+        Integer count = 0;
+        if (elevatePermissionEnums.containsKey(elevatePermission)) {
+            count = elevatePermissionEnums.get(elevatePermission);
+        }
+        count++;
+        elevatePermissionEnums.put(elevatePermission, count);
+    }
+
+    public void addSystemState(SystemStateEnum systemStateEnum) {
+        Map<String, Object> map = createThreadMap();
+
+        List<SystemStateEnum> systemStateEnums = null;
+        if (map.containsKey(SystemConstant.SYSTEM_STATE_NAME)) {
+            systemStateEnums = (List<SystemStateEnum>) map.get(SystemConstant.SYSTEM_STATE_NAME);
+        } else {
+            systemStateEnums = new ArrayList<>();
+            map.put(SystemConstant.SYSTEM_STATE_NAME, systemStateEnums);
+        }
+        systemStateEnums.add(systemStateEnum);
+    }
+
+    public void clearSystemState(SystemStateEnum systemStateEnum) {
+        Map<String, Object> map = createThreadMap();
+
+        List<SystemStateEnum> systemStateEnums = null;
+        if (map.containsKey(SystemConstant.SYSTEM_STATE_NAME)) {
+            systemStateEnums = (List<SystemStateEnum>) map.get(SystemConstant.SYSTEM_STATE_NAME);
+            systemStateEnums.remove(systemStateEnum);
+        }
+    }
+
+    public SystemStateEnum getSystemStateEnum() {
+        Map<String, Object> map = createThreadMap();
+
+        List<SystemStateEnum> systemStateEnums = null;
+        if (map.containsKey(SystemConstant.SYSTEM_STATE_NAME)) {
+            systemStateEnums = (List<SystemStateEnum>) map.get(SystemConstant.SYSTEM_STATE_NAME);
+            if (systemStateEnums.size() > 0) {
+                return systemStateEnums.get(systemStateEnums.size() - 1);
+            }
+        }
+        return SystemStateEnum.none;
+    }
+
+    /**
+     * 具有临时权限
+     *
+     * @param elevatePermission 权限类型
+     */
+    public boolean hasTemporaryElevate(ElevatePermissionEnum elevatePermission) {
+        Map<String, Object> map = createThreadMap();
+        Map<ElevatePermissionEnum, Integer> elevatePermissionEnums = null;
+        if (!map.containsKey(ElevatePermissionName)) {
+            return false;
+        }
+
+        elevatePermissionEnums = (Map<ElevatePermissionEnum, Integer>) map.get(ElevatePermissionName);
+
+        if (!elevatePermissionEnums.containsKey(elevatePermission)) {
+            return false;
+        }
+
+        return elevatePermissionEnums.get(elevatePermission) > 0;
+    }
+
+    /**
+     * 删除临时权限
+     *
+     * @param elevatePermission 权限类型
+     */
+    public void clearTemporaryElevate(ElevatePermissionEnum elevatePermission) {
+        Map<String, Object> map = createThreadMap();
+
+        if (!map.containsKey(ElevatePermissionName)) {
+            return;
+        }
+
+        Map<ElevatePermissionEnum, Integer> elevatePermissionEnums =
+                (Map<ElevatePermissionEnum, Integer>) map.get(ElevatePermissionName);
+
+        if (elevatePermissionEnums.containsKey(elevatePermission)) {
+            elevatePermissionEnums.put(elevatePermission, elevatePermissionEnums.get(elevatePermission) - 1);
+            if (elevatePermissionEnums.get(elevatePermission) <= 0) {
+                elevatePermissionEnums.remove(elevatePermission);
+            }
         }
     }
 
@@ -282,19 +409,11 @@ public class Context {
     }
 
     public <T> T getModule(Class<T> t) {
-        return getServiceBean(t);
+        return getClassBean(t);
     }
 
     public AbstractModule getModule(String moduleName) {
-        return getModuleHashMap().getModule(moduleName);
-    }
-
-    public AbstractModule getModuleByPackageName(String packageName) {
-        return getModuleHashMap().getModuleByPackageName(packageName);
-    }
-
-    public boolean containsModule(String packageName) {
-        return getModuleHashMap().containsModule(packageName);
+        return (AbstractModule) getAvalonApplicationContext().getBean(moduleName);
     }
 
     public Boolean containsBean(String beanName) {
@@ -310,7 +429,7 @@ public class Context {
         }
     }
 
-    public <T> T getServiceBean(Class<T> t) {
+    public <T> T getClassBean(Class<T> t) {
         return getAvalonApplicationContext().getBean(t);
     }
 
@@ -318,29 +437,19 @@ public class Context {
         return (ExternalService) getAvalonApplicationContext().getBean("external_service");
     }
 
-    public <T> T getServiceBean(Class<T> t, String serviceName) {
-        try {
-            return (T) getAvalonApplicationContext().getBean(serviceName);
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-            return null;
-        }
-    }
-
     public AbstractService getServiceBean(String serviceName) {
         try {
+            if (!(getSystemStateEnum() == SystemStateEnum.uninstallModule ||
+                    getSystemStateEnum() == SystemStateEnum.installModule ||
+                    getSystemStateEnum() == SystemStateEnum.upgradeModule ||
+                    getSystemStateEnum() == SystemStateEnum.createDB ||
+                    getSystemStateEnum() == SystemStateEnum.dropDB)) { // 在安装、卸载、升级模块时，不进行ORM
+                serviceName = getDbORM(getBaseName(), serviceName);
+            }
+
             return (AbstractService) getAvalonApplicationContext().getBean(serviceName);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-            return null;
-        }
-    }
-
-    public static AbstractService getServiceBeanInstance(String serviceName) {
-        try {
-            return (AbstractService) getAvalonApplicationContextInstance().getBean(serviceName);
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error(serviceName + "获取service bean失败", ex);
             return null;
         }
     }
@@ -384,8 +493,35 @@ public class Context {
         getAvalonApplicationContext().registerAlias(beanName, alias);
     }
 
+    /**
+     * 删除一个service
+     *
+     * @param beanName service 或者 service.name
+     */
+    public void removeSingleton(String beanName) {
+        try {
+            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getAvalonApplicationContext().getBeanFactory();
+            beanFactory.destroySingleton(beanName);
+        } catch (Exception e) {
+            log.error("removeSingleton error:" + e.getMessage(), e);
+        }
+    }
+
+
     public void registerSingleton(String beanName, AbstractService service) {
-        getAvalonApplicationContext().getBeanFactory().registerSingleton(beanName, service);
+        String newBeanName = getDbORM(getBaseName(), beanName);
+        if (!newBeanName.equals(beanName)) {
+            getORMMapper().addSingletonServiceBean(beanName, service);
+        }
+        getAvalonApplicationContext().getBeanFactory().registerSingleton(newBeanName, service);
+    }
+
+    public void registerSingleton(String beanName, Object service) {
+        String newBeanName = getDbORM(getBaseName(), beanName);
+        if (!newBeanName.equals(beanName)) {
+            getORMMapper().addSingletonServiceBean(beanName, service);
+        }
+        getAvalonApplicationContext().getBeanFactory().registerSingleton(newBeanName, service);
     }
 
     /**
@@ -424,17 +560,190 @@ public class Context {
         return expression.getValue(standardEvaluationContext);
     }
 
-    /**
-     * 调用服务方法
-     *
-     * @param serviceName
-     * @param methodName
-     * @param ids
-     * @param row
-     * @return
-     */
-    public Object invokeServiceMethod(String serviceName, String methodName, List<Object> ids, RecordRow row) {
+    public Object invokeServiceMethod(String serviceName, String methodName, Object... args) {
         AbstractService service = getServiceBean(serviceName);
-        return service.invokeMethod(methodName, ids, row);
+        return service.invokeMethod(serviceName, methodName, args);
+    }
+
+    public void registerBean(String beanName, Class<?> beanClass) {
+        // 获取 BeanFactory
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getAvalonApplicationContext().getBeanFactory();
+
+        // 创建 BeanDefinition
+        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+        beanDefinition.setBeanClass(beanClass);
+        beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON); // 可设置为 prototype 等
+
+        // 注册 BeanDefinitionRegistry
+        beanFactory.registerBeanDefinition(beanName, beanDefinition);
+        log.info("注册 bean definition {}, class name {}", beanName, beanClass.getName());
+    }
+
+    // 刷新容器，bean生效
+    public void refreshSpring() {
+        getAvalonApplicationContext().refresh();
+    }
+
+    public void removeBeanDefinition(String beanName) {
+        // 获取 BeanFactory
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getAvalonApplicationContext().getBeanFactory();
+
+        log.info("去除 bean definition {}", beanName);
+        beanFactory.removeBeanDefinition(beanName);
+    }
+
+    public boolean containBeanDefinition(String beanName) {
+        // 获取 BeanFactory
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getAvalonApplicationContext().getBeanFactory();
+        // 注册 Bean
+        return beanFactory.containsBean(beanName);
+    }
+
+    public String getDbORM(String db, String serviceName) {
+        if (getApplicationConfig().getMultiDb()) {
+            if (!db.equals(getDefaultDatabase())) {
+                if (ormMapperMap.containsKey(db)) {
+                    return ormMapperMap.get(db).getServiceNameWithDb(serviceName);
+                }
+            }
+            return serviceName;
+        }
+        return serviceName;
+    }
+
+    public void installOrUpgrade(List<AbstractModule> modules) {
+        ORMMapper ormMapper = ormMapperMap.get(getBaseName());
+        installOrUpgrade(ormMapper, modules);
+    }
+
+    public void uninstall(List<AbstractModule> modules) {
+        ORMMapper ormMapper = ormMapperMap.get(getBaseName());
+
+        ormMapper.getBeanServices().forEach((serviceName, serviceClass) -> {
+            if (containsBean(serviceName)) {
+                removeBeanDefinition(serviceName);
+            }
+        });
+        ormMapper.getSingletonBeanServices().forEach((serviceName, serviceBean) -> {
+            if (containsBean(serviceName)) {
+                removeSingleton(serviceName);
+            }
+        });
+
+        ormMapper.removeModule(modules);
+        ModuleList abstractModules = ormMapper.copyModule();
+        ormMapper.getModules().clear();
+        ormMapper.getBeanServices().clear();
+        ormMapper.clearSingletonServiceBean();
+        installOrUpgrade(abstractModules);
+    }
+
+    /**
+     * 清空数据
+     *
+     * @param db 数据库
+     */
+    public void clearDB(String db) {
+        ORMMapper ormMapper = ormMapperMap.get(db);
+        if (ObjectUtils.isNull(ormMapper)) return;
+        ormMapperMap.remove(db);
+    }
+
+    public void dropDB(String db) {
+        ORMMapper ormMapper = ormMapperMap.get(db);
+        if (ObjectUtils.isNull(ormMapper)) return;
+        ormMapperMap.remove(db);
+        ormMapper.getBeanServices().forEach((serviceName, serviceClass) -> {
+            if (containsBean(serviceName)) {
+                removeBeanDefinition(serviceName);
+            }
+        });
+        ormMapper.getSingletonBeanServices().forEach((serviceName, serviceBean) -> {
+            if (containsBean(serviceName)) {
+                removeSingleton(serviceName);
+            }
+        });
+
+    }
+
+    /**
+     * 升级或安装模块
+     *
+     * @param ormMapper 数据库
+     * @param modules   模块
+     */
+    public void installOrUpgrade(ORMMapper ormMapper, List<AbstractModule> modules) {
+        for (AbstractModule module : modules) {
+            ormMapper.addModule(module);
+        }
+
+        Map<String, Class<?>> rootServices = getAvalonApplicationContext().getDefaultORM().getRootServiceFromModule(modules);
+        Map<String, Class<?>> allServices = getAvalonApplicationContext().getDefaultORM().getAllServiceFromModule();
+        Map<String, List<Class<?>>> inheritServices = getAvalonApplicationContext().getDefaultORM()
+                .getInheritServiceFromModule(modules);
+
+        Map<String, Class<?>> inheritNewServices = getAvalonApplicationContext().getDefaultORM()
+                .getInheritNewServiceFromModule(modules);
+
+
+        // 注册模型bean
+        Map<String, Class<?>> beanServices = new Hashtable<>(rootServices);
+
+        ClassPool classPool = ClassPoolManager.createClassPool();
+        inheritServices.forEach((serviceName, services) -> {
+            Class<?> rootService = allServices.get(serviceName); // 根模型
+            try {
+                Class<?> enhancedClass = ClassPoolManager.createEnhancedClass(classPool, rootService, services);
+                beanServices.put(serviceName, enhancedClass);
+            } catch (NotFoundException | CannotCompileException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        inheritNewServices.forEach((serviceName, serviceClass) -> {
+            String[] split = serviceName.split("/");
+            String newServiceName = split[0];
+            String parentServiceName = split[1];
+            Class<?> rootService = beanServices.get(parentServiceName); // 根模型
+            try {
+                Class<?> enhancedClass = ClassPoolManager.createEnhancedClass(classPool, rootService, List.of(serviceClass));
+                beanServices.put(newServiceName, enhancedClass);
+            } catch (NotFoundException | CannotCompileException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        beanServices.forEach((serviceName, serviceClass) -> {
+            if (containsBean(ormMapper.getServiceNameWithDb(serviceName))) {
+                removeBeanDefinition(ormMapper.getServiceNameWithDb(serviceName));
+            }
+            registerBean(ormMapper.getServiceNameWithDb(serviceName), serviceClass);
+            ormMapper.addBeanService(serviceName, serviceClass);
+        });
+    }
+
+    public ORMMapper initORM(String db) {
+        log.info("init orm {}", db);
+        ORMMapper ormMapper = new ORMMapper();
+        ormMapper.setDb(db);
+        if (!(getSystemStateEnum() == SystemStateEnum.createDB ||
+                getSystemStateEnum() == SystemStateEnum.dropDB)) {// 在非安装或删除数据库情况下，执行
+            List<String> moduleStr = getAvalonApplicationContext().getDefaultORM()
+                    .getIModuleSupport().getInstalledModule(); // 获取已安装的模块
+            List<AbstractModule> modules = new ArrayList<>();
+            for (String module : moduleStr) {
+                AbstractModule moduleBean = getModule(module);
+                modules.add(moduleBean);
+            }
+
+            installOrUpgrade(ormMapper, modules);
+        }
+
+
+        return ormMapper;
+    }
+
+    public Record getDB() {
+        return jdbcTemplate.getDB();
     }
 }

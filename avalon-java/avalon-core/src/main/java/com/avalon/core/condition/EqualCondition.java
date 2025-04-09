@@ -58,16 +58,6 @@ public class EqualCondition extends Condition {
     }
 
     @Override
-    public String getReversePolishNotation() {
-        return super.getReversePolishNotation();
-    }
-
-    @Override
-    protected Condition doParseReversePolishNotation(String[] values) {
-        return Condition.equalCondition(values[1], values[2]);
-    }
-
-    @Override
     public String toString() {
         return super.toString();
     }

@@ -10,5 +10,6 @@ export default interface Service {
     "tableName": string
     "moduleId": number,
     nameField: string,
-    keyField: string
+    keyField: string,
+    delegateField: string
 }

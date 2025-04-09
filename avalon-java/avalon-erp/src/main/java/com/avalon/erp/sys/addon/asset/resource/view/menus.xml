@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_asset_asset_action" name="资产" action="asset_asset_action"/>
+    <menuitem id="menu_asset_category_action" name="资产类别" action="asset_category_action"/>
+    <menuitem id="menu_asset_transfer_action" name="资产转移" action="asset_transfer_action"/>
+    <menuitem id="menu_asset_depreciation_action" name="折旧表" action="asset_depreciation_action"/>
+    <menuitem id="menu_asset_discard_action" name="资产报废" action="asset_discard_action"/>
+    <menuitem id="menu_asset_maintenance_action" name="资产维护" action="asset_maintenance_action"/>
+</avalon>

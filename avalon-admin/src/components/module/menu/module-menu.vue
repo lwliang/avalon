@@ -19,12 +19,12 @@ const moduleItemClick = (module: Module) => {
 </script>
 
 <template>
-    <div class="flex flex-wrap p-1">
+    <div class="flex flex-col justify-start items-center py-3 h-full overflow-y-auto">
         <div v-for="(module,index) in modules" :key="index"
-             class="flex flex-col justify-center items-center m-2 cursor-pointer"
+             class="flex flex-col justify-center items-center cursor-pointer my-1"
              @click="moduleItemClick(module)">
-            <MyImage width="50" height="50" :src="getModuleIcon(module.name,module.icon)"></MyImage>
-            <div class="pb-0.5 mt-1">{{ module.label }}</div>
+            <MyImage width="35" height="35" :src="getModuleIcon(module.name,module.icon)"></MyImage>
+            <div class="pb-0.5 mt-1 text-sm">{{ module.label }}</div>
         </div>
     </div>
 </template>

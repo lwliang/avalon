@@ -15,19 +15,27 @@ export function getModelSelectionApi(serviceName: string, fields: string): Promi
 }
 
 
-export function getServiceFieldApi(serviceName: string): Promise<any> {
-    return postErpHttp(`/service/get/${serviceName}/fields`, {serviceName})
+export function getServiceFieldApi(serviceName: string, field?: string): Promise<any> {
+    const param: any = {serviceName}
+    if (field) {
+        param['field'] = field
+    }
+    return postErpHttp(`/service/get/${serviceName}/fields`, param)
 }
 
 export function addModelApi(value: Object, serviceName: string): Promise<any> {
     return postErpHttp(`/service/${serviceName}/add`, {serviceName, value})
 }
 
+export function createModelApi(value: Object, serviceName: string) {
+    return postErpHttp(`/service/${serviceName}/create`, {serviceName, value})
+}
+
 export function getModelDetailApi(id: number, fields: string, serviceName: string): Promise<any> {
     return postErpHttp(`/service/get/${serviceName}/detail`, {
         serviceName,
         fields,
-        rpnCondition: `(=,id,${id})`
+        condition: `('id',=,${id})`
     })
 }
 
@@ -36,7 +44,7 @@ export function editModelApi(value: Object, serviceName: string): Promise<any> {
 }
 
 export function getModelPageApi(fields: string,
-                                rpnCondition: string,
+                                condition: string,
                                 serviceName: string,
                                 pageNum: number,
                                 pageSize?: number): Promise<any> {
@@ -50,7 +58,7 @@ export function getModelPageApi(fields: string,
             fields,
             order: `${service.keyField} desc`,
             isDistinct: true,
-            rpnCondition
+            condition
         }
 
         return postErpHttp(`/service/get/${serviceName}/page`, param)
@@ -62,11 +70,15 @@ export function deleteModelApi(id: number, serviceName: string) {
     return postErpHttp(`/service/${serviceName}/delete`, {serviceName, id})
 }
 
+export function deleteMultiModelApi(ids: any[], serviceName: string) {
+    return postErpHttp(`/service/${serviceName}/delete`, {serviceName, ids})
+}
+
 export function getModelAllApi(fields: string,
-                               rpnCondition: string,
+                               condition: string,
                                serviceName: string) {
     const af = async () => {
-        const param: any = {fields, rpnCondition, serviceName};
+        const param: any = {fields, condition, serviceName};
         const serviceStore = useGlobalServiceDataStore();
         const service = await serviceStore.getServiceByNameAsync(serviceName)
         param.order = `${service.keyField} desc`;
@@ -76,6 +88,6 @@ export function getModelAllApi(fields: string,
 }
 
 
-export function invokeMethod(serviceName: string, param: ServiceInvokeParam) {
+export async function invokeMethod(serviceName: string, param: ServiceInvokeParam) {
     return postErpHttp(`/service/invoke/${serviceName}/method`, param)
 }

@@ -6,3 +6,7 @@
 export function isWhitespace(char: string) {
     return /^\s*$/.test(char)
 }
+
+export function stringToBool(str: string) {
+    return str.toLowerCase() === "true";
+}

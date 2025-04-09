@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="hr_staff_view_form" service="base.action.view">
+        <field name="name">hr_staff_view_form</field>
+        <field name="label">员工表单</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">hr.staff</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                            <field name="userId"/>
+                            <field name="orgId"/>
+                            <field name="jobId"/>
+                            <field name="code"/>
+                        </col>
+                        <col>
+                            <field name="partnerId.image"/>
+                            <field name="partnerId.phone"/>
+                            <field name="partnerId.email"/>
+                        </col>
+                    </row>
+                    <row>
+                        <col>
+                            <field name="partnerId.provinceId"/>
+                            <field name="partnerId.cityId"/>
+                            <field name="partnerId.districtId"/>
+                        </col>
+                        <col>
+                            <field name="partnerId.street"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="备注">
+                            <field name="partnerId.remark"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_staff_view_tree" service="base.action.view">
+        <field name="name">hr_staff_view_tree</field>
+        <field name="label">员工</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">hr.staff</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="partnerId.image"/>
+                <field name="code"/>
+                <field name="userId"/>
+                <field name="jobId"/>
+                <field name="orgId"/>
+                <field name="partnerId.parentId"/>
+                <field name="partnerId.type"/>
+                <field name="partnerId.phone"/>
+                <field name="partnerId.email"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="hr_staff_action" service="base.action.window">
+        <field name="name">staff</field>
+        <field name="label">员工</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">hr.staff</field>
+    </record>
+</avalon>

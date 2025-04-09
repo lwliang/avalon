@@ -21,6 +21,7 @@ import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.FieldUtils;
 import com.avalon.core.util.ObjectUtils;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Setter;
 
 import java.lang.reflect.Type;
 
@@ -34,6 +35,7 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
     private IFieldDefaultValue defaultValue;
     private Boolean isAutoIncrement = false;
     private String label = "";
+    @Setter
     private AbstractService service;
 
     private Boolean isExternalField = false;
@@ -98,6 +100,9 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
         if (ObjectUtils.isNotNull(builder.isUnique)) {
             this.isUnique = builder.isUnique;
         }
+        if (ObjectUtils.isNotNull(builder.service)) {
+            this.service = builder.service;
+        }
     }
 
     public Field(String label) {
@@ -130,10 +135,6 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
         return service;
     }
 
-    protected void setService(AbstractService service) {
-        this.service = service;
-    }
-
     public Field(String label,
                  Boolean isRequired,
                  Boolean isReadonly,
@@ -152,7 +153,7 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
         return propertyName;
     }
 
-    protected void setName(String propertyName) {
+    public void setName(String propertyName) {
         if (ObjectUtils.isNotEmpty(this.propertyName)) {
             return;
         }
@@ -273,62 +274,6 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
         return defaultAliasSupport.getAlias(this);
     }
 
-    public void insertFieldInfo(PrimaryKey serviceId) {
-        AbstractService service = getService().getServiceBean("base.field");
-        Condition condition = Condition.equalCondition("serviceId", serviceId.getValue())
-                .andEqualCondition("name", getName());
-        Record select = service.select(condition, "id");
-        RecordRow row = RecordRow.build();
-
-        if (!select.isEmpty()) {
-            row = select.get(0);
-        }
-
-        row.put("serviceId", serviceId.getValue());
-        row.put("name", getName());
-        row.put("label", getLabel());
-        row.put("isPrimaryKey", isPrimaryKey());
-        row.put("isRequired", isRequired());
-        row.put("isReadonly", isReadonly());
-        row.put("isAutoIncrement", isAutoIncrement());
-        row.put("isUnique", isUnique());
-        row.put("allowNull", allowNull());
-        row.put("type", getClassType());
-        if (ObjectUtils.isNotEmpty(getDefaultValue())) {
-            row.put("defaultValue", getDefaultValue().getDefaultString());
-        }
-        if (this instanceof StringField) {
-            StringField field = (StringField) this;
-            row.put("maxLength", field.getMaxLength());
-            row.put("minLength", field.getMinLength());
-        }
-        if (FieldUtils.isNumber(this)) {
-            INumberField field = (INumberField) this;
-            row.put("maxValue", field.getMaxValue());
-            row.put("minValue", field.getMinValue());
-        }
-        if (this instanceof SelectionField) {
-            row.put("isMulti", ((SelectionField) this).getIsMulti());
-        }
-
-        if (this instanceof RelationField) {
-            RelationField field = ((RelationField) this);
-            row.put("relativeServiceName", field.getRelativeServiceName());
-            row.put("relativeFieldName", field.getRelativeFieldName());
-
-            if (this instanceof Many2manyField) {
-                Many2manyField many2manyField = (Many2manyField) this;
-                row.put("masterForeignKeyName", many2manyField.getMasterForeignKeyName());
-                row.put("relativeForeignKeyName", many2manyField.getRelativeForeignKeyName());
-                row.put("manyServiceTable", many2manyField.getTableSqlName());
-            }
-        }
-        if (select.isEmpty()) {
-            service.insert(row);
-        } else {
-            service.update(row);
-        }
-    }
 
     public Boolean isMySql() {
         return getService().getContext().isMysql();
@@ -366,6 +311,8 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
         protected Boolean isReadonly = false;
         protected String fieldName = "";
         protected String label = "";
+        @Setter
+        protected AbstractService service;
 
         protected Boolean getIsUnique() {
             return isUnique;
@@ -403,5 +350,8 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
             return label;
         }
 
+        protected AbstractService getService() {
+            return service;
+        }
     }
 }
