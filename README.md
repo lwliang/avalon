@@ -118,7 +118,7 @@ username改为avalon，password改为avalon
 
 ### 4 、使用webStrom进行调试
 
-![image-20250407115830116](img/image-20250407115830116.png)
+![image-20250407115830116](img\image-20250407115830116.png)
 
 # 架构
 
@@ -132,7 +132,7 @@ username改为avalon，password改为avalon
 
 目录结构图
 
-![image-20250408105601698](img/image-20250408105601698.png)
+![image-20250408105601698](img\image-20250408105601698.png)
 
 # 模块目录
 
@@ -167,7 +167,7 @@ base(模块名)
 
 在avalon-erp/src/main/java/com/avalon/erp/addon包下创建house包
 
-![image-20250408112006350](img/image-20250408112006350.png)
+![image-20250408112006350](img\image-20250408112006350.png)
 
 ## 创建HouseModule模块类
 
@@ -210,7 +210,7 @@ public class HouseModule extends AbstractModule {
 
 ```
 
-![image-20250408112712305](img/image-20250408112712305.png)
+![image-20250408112712305](img\image-20250408112712305.png)
 
 ## 创建HouseService模型
 
@@ -244,13 +244,13 @@ public class HouseService extends AbstractService {
 }
 ```
 
-![image-20250408113116589](img/image-20250408113116589.png)
+![image-20250408113116589](img\image-20250408113116589.png)
 
 ## 创建视图资源包
 
 在house包下，创建resource/view包
 
-![image-20250408113450295](img/image-20250408113450295.png)
+![image-20250408113450295](img\image-20250408113450295.png)
 
 ## 创建HouseService视图文件
 
@@ -372,11 +372,11 @@ public class HouseModule extends AbstractModule {
 
 项目启动后，在登录页面，点击 管理数据库 按钮
 
-![image-20250408115700557](img/image-20250408115700557.png)
+![image-20250408115700557](img\image-20250408115700557.png)
 
 点击创建数据库按钮，输入demo，点击确认，等待一段时间，数据库会自动创建完毕
 
-![image-20250408115807706](img/image-20250408115807706.png)
+![image-20250408115807706](img\image-20250408115807706.png)
 
 ## 登录系统
 
@@ -384,23 +384,23 @@ public class HouseModule extends AbstractModule {
 
 默认管理员账户admin,密码是123456
 
-![image-20250408115936400](img/image-20250408115936400.png)
+![image-20250408115936400](img\image-20250408115936400.png)
 
 ## 刷新模块
 
 如果模块没有显示，则点击App菜单下的更新模块菜单，进行刷新模块，刷新后按F5刷新当前页面
 
-![image-20250408120036893](img/image-20250408120036893.png)
+![image-20250408120036893](img\image-20250408120036893.png)
 
-![image-20250408120133009](img/image-20250408120133009.png)
+![image-20250408120133009](img\image-20250408120133009.png)
 
 ## 安装租房模块
 
 点击安装即可
 
-![image-20250408120200173](img/image-20250408120200173.png)
+![image-20250408120200173](img\image-20250408120200173.png)
 
-![image-20250408120225317](img/image-20250408120225317.png)
+![image-20250408120225317](img\image-20250408120225317.png)
 
 恭喜已经完成house模块的开发
 
@@ -980,7 +980,7 @@ service对应base.action.window
 
 例子
 
-![image-20250408213235236](img/image-20250408213235236.png)
+![image-20250408213235236](img\image-20250408213235236.png)
 
 ## form
 
@@ -1016,7 +1016,7 @@ service对应base.action.window
 
 例子
 
-![image-20250408213359301](img/image-20250408213359301.png)
+![image-20250408213359301](img\image-20250408213359301.png)
 
 ## kanban
 
@@ -1064,7 +1064,7 @@ service对应base.action.window
 
 例子
 
-![image-20250408213149964](img/image-20250408213149964.png)
+![image-20250408213149964](img\image-20250408213149964.png)
 
 # 菜单
 
@@ -1148,6 +1148,233 @@ service对应base.action.window
         return row;
     }
 ```
+
+
+
+# HTTP 接口
+
+erp服务：http://localhost:8089/erp
+
+## 登录
+
+```json
+{
+url:/login
+method:post
+param:{
+	db:'avalon' // 数据库
+	username:'avalon',
+	password:'avalon'
+	}
+}
+```
+
+## 创建模型默认记录
+
+```json
+{
+url:/service/{serviceName}/create
+method:post
+param:{
+	value:{
+        "{fieldName}":value
+    	}
+	}
+}
+```
+
+## 新增模型记录
+
+```json
+{
+url:/service/{serviceName}/add
+method:post
+param:{
+	value:{
+        "{fieldName}":value
+    	}
+	}
+}
+```
+
+## 更新模型记录
+
+```json
+{
+url:/service/{serviceName}/update
+method:post
+param:{
+	value:{
+        "{fieldName}":value,
+        "one2ManyField":[
+            {
+                 "{fieldName}":value,
+                "op":"insert|delete|update"
+            }
+        	]
+    	}
+	}
+}
+```
+
+## 删除模型记录
+
+```json
+{
+url:/service/{serviceName}/delete
+method:post
+param:{
+	id:1
+	}
+}
+```
+
+## 查询模型详情
+
+```json
+{
+url:/get/{serviceName}/detail
+method:post
+param:{
+	fields:"id,name,many2One.id",
+    condition:"('a',=,2)",
+    order:"field asc, field.field desc"
+	}
+}
+```
+
+
+
+## 查询模型全部记录
+
+```json
+{
+url:/get/{serviceName}/all
+method:post
+param:{
+	fields:"id,name,many2One.id",
+    condition:"('a',=,2)",
+    order:"field asc, field.field desc"
+	}
+}
+```
+
+## 分页查询模型记录
+
+```json
+{
+url:/get/{serviceName}/page
+method:post
+param:{
+    page:{
+        pageNum:1,
+        pageSize:10
+    }
+	fields:"id,name,many2One.id",
+    condition:"('a',=,2)",
+    order:"field asc, field.field desc"
+	}
+}
+```
+
+## 获取模型的字段
+
+```json
+{
+url:/get/{serviceName}/fields
+method:post
+param:{
+    field:"" // 可选 label like
+}
+```
+
+## 获取模型的枚举字段取值范围
+
+```json
+{
+url:/get/{serviceName}/selection/map
+method:post
+param:{
+    fields:"" // 一个字段
+}
+```
+
+## 导出Excel文件
+
+```json
+{
+url:/export/{serviceName}/excel
+method:post
+param:{
+    field:"a,b" // 一个字段
+    condition:"('a',=,2)",
+    order:"field asc, field.field desc"
+}
+```
+
+## 读取excel的记录
+
+```json
+{
+url:/read/{serviceName}/excel
+method:post
+param:{
+    file:File
+}
+```
+
+## 导入模型记录
+
+```json
+{
+url:/import/{serviceName}/excel
+method:post
+param:{
+    headers:['fieldLabel1','field2'],
+    fields:['fieldName1','fieldName2']
+    data:[]
+}
+```
+
+# condition 
+
+## =|>|like|<|>=|<=|notLike|!=
+
+```json
+"('field',=,2|'a'|1.1)"
+```
+
+## between
+
+```json
+"('field',between,1,2)"
+```
+
+## in | notIn
+
+```json
+"('field',in,1,2,3)"
+```
+
+## 取反
+
+```json
+"!('field',=,2|'a'|1.1)"
+```
+
+## 交集
+
+```json
+"('field',=,2)&('field',=,2)"
+```
+
+## 并集
+
+```json
+"('field',=,2)|('field',=,2)"
+```
+
+
 
 
 
