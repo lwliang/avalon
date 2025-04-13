@@ -12,6 +12,14 @@ odoo java版 前后分离快速开发平台，基于开源技术栈精心打造�
 
 
 
+# 视频教程
+
+环境搭建与模块开发：https://www.bilibili.com/video/BV1xBdhYCEQW/?spm_id_from=333.1387.homepage.video_card.click&vd_source=6b5f63a07c8f986c5f54a14dcf2cbe1b
+
+ORM介绍：https://www.bilibili.com/video/BV1xBdhYCEeK/?spm_id_from=333.1387.homepage.video_card.click&vd_source=6b5f63a07c8f986c5f54a14dcf2cbe1b
+
+前端介绍：https://www.bilibili.com/video/BV1xBdhYCEKY/?spm_id_from=333.1387.homepage.video_card.click
+
 ## 开发环境准备
 
 ## 1、安装docker
@@ -949,7 +957,7 @@ service对应base.action.window
 <record id="base_user_action" service="base.action.window">
         <field name="name">user</field>
         <field name="label">用户</field>
-        <field name="viewMode">tree</field>
+        <field name="viewMode">tree,form,search</field>
         <field name="ref_serviceId">base.user</field>
 </record>
 ```
