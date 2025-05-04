@@ -8,17 +8,13 @@ odoo java版 前后分离快速开发平台，基于开源技术栈精心打造�
 
 ![wechat_group](./img/wechat_group.png)
 
+## 视频教程
 
+环境搭建与模块开发：[https://www.bilibili.com/video/BV1xBdhYCEQW/?spm_id_from=333.1387.homepage.video_card.click&vd_source=6b5f63a07c8f986c5f54a14dcf2cbe1b](https://gitee.com/link?target=https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1xBdhYCEQW%2F%3Fspm_id_from%3D333.1387.homepage.video_card.click%26vd_source%3D6b5f63a07c8f986c5f54a14dcf2cbe1b)
 
+ORM介绍：[https://www.bilibili.com/video/BV1xBdhYCEeK/?spm_id_from=333.1387.homepage.video_card.click&vd_source=6b5f63a07c8f986c5f54a14dcf2cbe1b](https://gitee.com/link?target=https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1xBdhYCEeK%2F%3Fspm_id_from%3D333.1387.homepage.video_card.click%26vd_source%3D6b5f63a07c8f986c5f54a14dcf2cbe1b)
 
-
-# 视频教程
-
-环境搭建与模块开发：https://www.bilibili.com/video/BV1xBdhYCEQW/?spm_id_from=333.1387.homepage.video_card.click&vd_source=6b5f63a07c8f986c5f54a14dcf2cbe1b
-
-ORM介绍：https://www.bilibili.com/video/BV1xBdhYCEeK/?spm_id_from=333.1387.homepage.video_card.click&vd_source=6b5f63a07c8f986c5f54a14dcf2cbe1b
-
-前端介绍：https://www.bilibili.com/video/BV1xBdhYCEKY/?spm_id_from=333.1387.homepage.video_card.click
+前端介绍：[https://www.bilibili.com/video/BV1xBdhYCEKY/?spm_id_from=333.1387.homepage.video_card.click](https://gitee.com/link?target=https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1xBdhYCEKY%2F%3Fspm_id_from%3D333.1387.homepage.video_card.click)
 
 ## 开发环境准备
 
@@ -126,7 +122,7 @@ username改为avalon，password改为avalon
 
 ### 4 、使用webStrom进行调试
 
-![image-20250407115830116](img\image-20250407115830116.png)
+![image-20250407115830116](img/image-20250407115830116.png)
 
 # 架构
 
@@ -140,7 +136,7 @@ username改为avalon，password改为avalon
 
 目录结构图
 
-![image-20250408105601698](img\image-20250408105601698.png)
+![image-20250408105601698](img/image-20250408105601698.png)
 
 # 模块目录
 
@@ -175,7 +171,7 @@ base(模块名)
 
 在avalon-erp/src/main/java/com/avalon/erp/addon包下创建house包
 
-![image-20250408112006350](img\image-20250408112006350.png)
+![image-20250408112006350](img/image-20250408112006350.png)
 
 ## 创建HouseModule模块类
 
@@ -218,7 +214,7 @@ public class HouseModule extends AbstractModule {
 
 ```
 
-![image-20250408112712305](img\image-20250408112712305.png)
+![image-20250408112712305](img/image-20250408112712305.png)
 
 ## 创建HouseService模型
 
@@ -252,13 +248,13 @@ public class HouseService extends AbstractService {
 }
 ```
 
-![image-20250408113116589](img\image-20250408113116589.png)
+![image-20250408113116589](img/image-20250408113116589.png)
 
 ## 创建视图资源包
 
 在house包下，创建resource/view包
 
-![image-20250408113450295](img\image-20250408113450295.png)
+![image-20250408113450295](img/image-20250408113450295.png)
 
 ## 创建HouseService视图文件
 
@@ -380,11 +376,11 @@ public class HouseModule extends AbstractModule {
 
 项目启动后，在登录页面，点击 管理数据库 按钮
 
-![image-20250408115700557](img\image-20250408115700557.png)
+![image-20250408115700557](img/image-20250408115700557.png)
 
 点击创建数据库按钮，输入demo，点击确认，等待一段时间，数据库会自动创建完毕
 
-![image-20250408115807706](img\image-20250408115807706.png)
+![image-20250408115807706](img/image-20250408115807706.png)
 
 ## 登录系统
 
@@ -392,23 +388,23 @@ public class HouseModule extends AbstractModule {
 
 默认管理员账户admin,密码是123456
 
-![image-20250408115936400](img\image-20250408115936400.png)
+![image-20250408115936400](img/image-20250408115936400.png)
 
 ## 刷新模块
 
 如果模块没有显示，则点击App菜单下的更新模块菜单，进行刷新模块，刷新后按F5刷新当前页面
 
-![image-20250408120036893](img\image-20250408120036893.png)
+![image-20250408120036893](img/image-20250408120036893.png)
 
-![image-20250408120133009](img\image-20250408120133009.png)
+![image-20250408120133009](img/image-20250408120133009.png)
 
 ## 安装租房模块
 
 点击安装即可
 
-![image-20250408120200173](img\image-20250408120200173.png)
+![image-20250408120200173](img/image-20250408120200173.png)
 
-![image-20250408120225317](img\image-20250408120225317.png)
+![image-20250408120225317](img/image-20250408120225317.png)
 
 恭喜已经完成house模块的开发
 
@@ -957,7 +953,7 @@ service对应base.action.window
 <record id="base_user_action" service="base.action.window">
         <field name="name">user</field>
         <field name="label">用户</field>
-        <field name="viewMode">tree,form,search</field>
+        <field name="viewMode">tree</field>
         <field name="ref_serviceId">base.user</field>
 </record>
 ```
@@ -988,7 +984,7 @@ service对应base.action.window
 
 例子
 
-![image-20250408213235236](img\image-20250408213235236.png)
+![image-20250408213235236](img/image-20250408213235236.png)
 
 ## form
 
@@ -1024,7 +1020,7 @@ service对应base.action.window
 
 例子
 
-![image-20250408213359301](img\image-20250408213359301.png)
+![image-20250408213359301](img/image-20250408213359301.png)
 
 ## kanban
 
@@ -1072,7 +1068,31 @@ service对应base.action.window
 
 例子
 
-![image-20250408213149964](img\image-20250408213149964.png)
+![image-20250408213149964](img/image-20250408213149964.png)
+
+## xtree视图
+
+将模型分为左右两部分，左边是树状列表，右边是form视图，可点击左边记录，然后再form视图中进行修改。树状列表支持拖拽
+
+配置
+
+```xml
+    <record id="hr_org_view_tree" service="base.action.view">
+        <field name="name">hr_org_view_tree</field>
+        <field name="label">组织</field>
+        <field name="viewMode">xtree</field>
+        <field name="ref_serviceId">hr.org</field>
+        <field name="arch" type="xml">
+            <xtree>
+                <parentField name="parentId"/> <!--上级字段-->
+                <nameField name="name"/> <!--显示字段-->
+                <childrenField name="childIds"/> <!--下级字段列表-->
+            </xtree>
+        </field>
+    </record>
+```
+
+![image-20250504134820996](img/image-20250504134820996.png)
 
 # 菜单
 
@@ -1166,7 +1186,6 @@ erp服务：http://localhost:8089/erp
 ## 登录
 
 ```json
-{
 url:/login
 method:post
 param:{
@@ -1174,7 +1193,6 @@ param:{
 	username:'avalon',
 	password:'avalon'
 	}
-}
 ```
 
 ## 创建模型默认记录
@@ -1386,6 +1404,121 @@ param:{
 
 
 
+# avalon-core配置文件
+
+## application-dev.yml
+
+```yml
+application:
+  datetime-format: yyyy-MM-dd HH:mm:ss # 系统日期时间格式，接口参数，返回值，数据库统一
+  date-format: yyyy-MM-dd # 系统日期格式，接口参数，返回值，数据库统一
+  time-format: HH:mm # 系统时间格式，接口参数，返回值，数据库统一
+  page-size: 80 # 前端默认分页大小
+  debug: true # 系统是否处于调试模式
+  multiDb: true # 支持多数据库
+  dataSource: # 数据库源
+    host: ${spring.profiles.host} # 服务器IP
+    port: 5432 # 端口号
+    class-type: org.postgresql.Driver # 数据库类型 org.postgresql.Driver是postgresql，com.mysql.cj.jdbc.Driver是mysql
+    username: odoo16 # 账户
+    password: odoo16 # 密码
+    max-pool-size: 200 # 连接池大小
+    min-idle: 10 
+    connection-timeout: 20000
+    idle-timeout: 25000
+    max-lifetime: 30000
+
+redis: # redis
+  config:
+    - key: redis-0 # 多源redis标志 一般一个不修改
+      hostName: ${spring.profiles.host} # IP
+      port: 6379 
+      password: 
+      database: 
+        - 0 # 第0个 对应 RedisDataBase0 类
+        - 1 # 第1个 对应 RedisDataBase1类
+# nacos配置
+spring:
+  cloud:
+    nacos:
+      discovery:
+        group: dev
+        username: nacos
+        password: nacos
+        server-addr: ${spring.profiles.host}:8848
+  jackson:
+    date-format: ${application.datetime-format}
+    time-zone: GMT+8
+
+# 消息队列配置
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+
+logging:
+  config: classpath:logback-spring-dev.xml
+
+```
+
+
+
+
+
+# avalon-file文件服务器
+
+## application.yml配置项
+
+```yml
+server:
+  port: 8091
+  servlet:
+    context-path: /file
+spring:
+  profiles:
+    active: dev,file-dev
+  application:
+    name: avalon-file
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 200MB  # 上传文件大小
+      max-request-size: 200MB 
+```
+
+## application-file-dev.yml配置项
+
+```yml
+spring:
+  profiles:
+    host: localhost
+
+application:
+  multiDb: false  # 不支持多数据库
+  cache-type: file  # file 本地文件存储，minio minio存储
+
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+
+# 本地文件存储配置
+file:
+  file: ./data/  #本地目录 支持相对路径与绝对路径
+  video: ./video/ # 视频存放路径
+  image: ./image/ # 图片存放路径
+  mode: date # 文件路径生成方式 date 日期方式 存储位置 {db}/YYYY/MM/{UUID}.ext,randon随机存储位置 {db}/{0...255}/{0...255}/{{uuid}}.exit
+
+# minio 存储配置
+minio:
+  endpoint: http://localhost:9000
+  accessKey: minioadmin
+  secretKey: minioadmin
+  mode: date
+```
+
+
+
+
+
 # web
 
 ## Form表单属性
@@ -1448,3 +1581,6 @@ param:{
     </record>
 ```
 
+## 快捷键
+
+Shift+Alt+H：跳转到Excalidraw绘画页面
