@@ -90,7 +90,7 @@ public class ConditionInterpreter extends ExpressionBaseVisitor<Condition> {
         if (ObjectUtils.isNull(identifier)) {
             return Condition.likeCondition(nameStr.getText().replaceAll("'", ""), "'" + visitValue(like) + "'");
         }
-        return Condition.likeCondition(identifier.getText(),"'" + visitValue(like) + "'");
+        return Condition.likeCondition(identifier.getText(), "'" + visitValue(like) + "'");
     }
 
     @Override
@@ -141,10 +141,14 @@ public class ConditionInterpreter extends ExpressionBaseVisitor<Condition> {
             return Integer.valueOf(ctx.getText());
         }
         if (ctx instanceof ExpressionParser.StringValueContext) {
-            return ctx.getText().replaceAll("'", "");
+            return ctx.getText().replaceAll("'", "").replaceAll("\"", "");
         }
         if (ctx instanceof ExpressionParser.BooleanValueContext) {
             return Boolean.valueOf(ctx.getText());
+        }
+
+        if (ctx instanceof ExpressionParser.NullValueContext) {
+            return null;
         }
 
         return ctx.getText();

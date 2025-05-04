@@ -61,8 +61,8 @@ public class OrCondition extends Condition {
     @Override
     public String getConditionString() {
         return String.format(getOp().getCondition(),
-                leftCondition.toString(),
-                rightCondition.toString());
+                leftCondition.getConditionString(),
+                rightCondition.getConditionString());
     }
 
     @Override

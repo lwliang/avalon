@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 path {
-    fill: inherit !important
+
 }
 
 /* 默认浅色模式 */

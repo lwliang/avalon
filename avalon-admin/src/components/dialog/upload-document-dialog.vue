@@ -198,7 +198,7 @@ const deleteFileClick = (index: number) => {
                                 <MyIcon icon="check" type="fas" color="#00FF00"></MyIcon>
                             </div>
                             <div class="flex-1">{{
-                                    file.file.webkitRelativePath ? file.file.webkitRelativePath : file.file.name
+                                    file.file?.webkitRelativePath ? file.file.webkitRelativePath : file.file?.name
                                 }}
                             </div>
                             <div @click="deleteFileClick(index)">

@@ -159,6 +159,18 @@ public interface ExpressionListener extends ParseTreeListener {
 	 */
 	void exitOperator(ExpressionParser.OperatorContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code NullValue}
+	 * labeled alternative in {@link ExpressionParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterNullValue(ExpressionParser.NullValueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code NullValue}
+	 * labeled alternative in {@link ExpressionParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitNullValue(ExpressionParser.NullValueContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code IdentifierValue}
 	 * labeled alternative in {@link ExpressionParser#value}.
 	 * @param ctx the parse tree

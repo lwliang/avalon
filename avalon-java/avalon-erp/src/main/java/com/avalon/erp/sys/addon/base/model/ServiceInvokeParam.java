@@ -14,5 +14,5 @@ import java.util.List;
 public class ServiceInvokeParam {
     private String serviceName;
     private String method;
-    private List<Object> param;
+    private RecordRow param;
 }

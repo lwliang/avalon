@@ -99,6 +99,13 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitOperator(ExpressionParser.OperatorContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code NullValue}
+	 * labeled alternative in {@link ExpressionParser#value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNullValue(ExpressionParser.NullValueContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code IdentifierValue}
 	 * labeled alternative in {@link ExpressionParser#value}.
 	 * @param ctx the parse tree

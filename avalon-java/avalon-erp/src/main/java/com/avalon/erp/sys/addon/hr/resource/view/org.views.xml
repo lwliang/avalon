@@ -12,18 +12,12 @@
                         <col>
                             <field name="code"/>
                             <field name="name"/>
-                            <field name="parentId"/>
                         </col>
                         <col>
                             <field name="type"/>
                             <field name="chargeUserId"/>
                         </col>
                     </row>
-                    <notebook>
-                        <page label="下级组织">
-                            <field name="childIds"/>
-                        </page>
-                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -32,23 +26,21 @@
     <record id="hr_org_view_tree" service="base.action.view">
         <field name="name">hr_org_view_tree</field>
         <field name="label">组织</field>
-        <field name="viewMode">tree</field>
+        <field name="viewMode">xtree</field>
         <field name="ref_serviceId">hr.org</field>
         <field name="arch" type="xml">
-            <tree>
-                <field name="code"/>
-                <field name="name"/>
-                <field name="type"/>
-                <field name="chargeUserId"/>
-                <field name="parentId"/>
-            </tree>
+            <xtree>
+                <parentField name="parentId"/>
+                <nameField name="name"/>
+                <childrenField name="childIds"/>
+            </xtree>
         </field>
     </record>
 
     <record id="hr_org_action" service="base.action.window">
         <field name="name">org</field>
         <field name="label">组织</field>
-        <field name="viewMode">tree</field>
+        <field name="viewMode">xtree</field>
         <field name="ref_serviceId">hr.org</field>
     </record>
 </avalon>

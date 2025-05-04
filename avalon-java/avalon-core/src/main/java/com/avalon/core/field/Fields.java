@@ -208,6 +208,12 @@ public class Fields {
         return new HtmlField(label);
     }
 
+    public static Field createDraw(String label) {
+        DrawField.Builder builder = DrawField.Builder.getInstance();
+        builder.setLabel(label);
+        return builder.build();
+    }
+
     public static HtmlField createHtml(String label, Integer length) {
         return new HtmlField(label, length);
     }

@@ -98,6 +98,7 @@ public abstract class AbstractModule {
 
     /**
      * 依赖的vue3组件
+     *
      * @return 本地vue文件
      */
     public String[] getVue() {
@@ -190,9 +191,9 @@ public abstract class AbstractModule {
                 if (StringUtils.isEmpty(dependModule)) continue;
 
                 if (!getModuleInstall(dependModule)) { // 未安装
+                    Integer moduleId = getModuleId(dependModule);
                     context.invokeServiceMethod("base.module", "install",
-                            new ArrayList<Integer>(),
-                            RecordRow.build().put("name", dependModule));
+                            RecordRow.build().put("name", dependModule).put("id", moduleId));
                 }
             }
         }
@@ -230,8 +231,10 @@ public abstract class AbstractModule {
                 continue;
             }
             AbstractService serviceBean = getContext().getServiceBean(recordRow.getRecordRow("serviceId").getString("name"));
-            serviceBean.delete(recordRow.getInteger("sourceId")); // 直接删除记录
-            serviceDataService.deleteServiceData(recordRow.getInteger("id"));
+            if (ObjectUtils.isNotNull(serviceBean)) {
+                serviceBean.delete(recordRow.getInteger("sourceId")); // 直接删除记录
+                serviceDataService.deleteServiceData(recordRow.getInteger("id"));
+            }
         }
     }
 
@@ -343,8 +346,9 @@ public abstract class AbstractModule {
                         row.remove("action");
                     }
                 }
-            } else if (nodeName.equals("serviceId")) {
+            } else if (nodeName.equals("ref_serviceId")) {
                 nodeValue = getServiceId(nodeValue.toString());
+                nodeName = "serviceId";
             }
             row.put(nodeName, nodeValue);
         }
@@ -445,6 +449,9 @@ public abstract class AbstractModule {
         uninstallResource(); // 删除表 之前 删除资源记录
         for (AbstractService service : getServiceList()) {
             if (service instanceof TransientService) {
+                Integer serviceId = getServiceId(service.getServiceName());
+                clearServiceField(serviceId);
+                deleteBaseServiceData(serviceId);
                 continue;
             }
             if (StringUtils.isEmpty(service.getInherit()) || !service.getServiceName().equals(service.getInherit())) { // 新模型
@@ -482,20 +489,17 @@ public abstract class AbstractModule {
                 if (StringUtils.isEmpty(dependModule)) continue;
 
                 if (!getModuleInstall(dependModule)) { // 未安装
+                    Integer moduleId = getModuleId(dependModule);
                     context.invokeServiceMethod("base.module", "install",
-                            new ArrayList<Integer>(),
-                            RecordRow.build().put("name", dependModule));
+                            RecordRow.build().put("name", dependModule).put("id", moduleId));
                 } else {
                     Integer moduleId = getModuleId(dependModule);
                     if (ObjectUtils.isNull(moduleId)) {
                         throw new AvalonException("模块:" + dependModule + "不存在");
                     }
 
-                    ArrayList<Integer> objects = new ArrayList<>();
-                    objects.add(moduleId);
                     context.invokeServiceMethod("base.module", "upgrade",
-                            objects,
-                            RecordRow.build().put("name", dependModule));
+                            RecordRow.build().put("name", dependModule).put("id", moduleId));
                 }
             }
         }
@@ -504,6 +508,8 @@ public abstract class AbstractModule {
         AbstractService serviceBean = context.getServiceBean("base.service");
         for (AbstractService service : getServiceList()) {
             if (service instanceof TransientService) {
+                PrimaryKey serviceId = service.insertTableInfo(moduleId);
+                service.insertFieldInfo(serviceId);
                 continue;
             }
             service.upgradeTable();

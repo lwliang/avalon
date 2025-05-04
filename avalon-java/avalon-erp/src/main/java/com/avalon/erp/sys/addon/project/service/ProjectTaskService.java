@@ -50,7 +50,7 @@ public class ProjectTaskService extends AbstractService {
     public Field sequence = Fields.createInteger("任务排序");
     public Field progress = Fields.createFloat("任务进度");
     public Field tagIds = Fields.createMany2many("任务标签",
-            "project.tags",
+            "project.tag",
             "project.task.project.tags.ref",
             "taskId",
             "tagId");

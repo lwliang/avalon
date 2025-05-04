@@ -65,7 +65,7 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         Record select = select(Condition.equalCondition("id", key.getInteger()), "serviceId.name");
         String targetService = select.get(0).getRecordRow("serviceId").getString("name");
         AbstractService serviceBean = getContext().getServiceBean(targetService);
-        if(ObjectUtils.isNotNull(serviceBean)) {
+        if (ObjectUtils.isNotNull(serviceBean)) {
             serviceBean.updateExtendField();
             serviceBean.upgradeExtendFieldTable();
         }
@@ -162,6 +162,9 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         } else if (HtmlField.class.getSimpleName().equals(type)) {
             return buildHtmlField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
                     allowNull, isAutoIncrement, minValue, maxValue);
+        } else if (DrawField.class.getSimpleName().equals(type)) {
+            return buildDrawField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
+                    allowNull, isAutoIncrement, minValue, maxValue);
         } else if (BooleanField.class.getSimpleName().equals(type)) {
             return buildBooleanField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
                     allowNull, isAutoIncrement);
@@ -256,6 +259,29 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
                                  String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
                                  BigDecimal minValue, BigDecimal maxValue) {
         TextField.Builder builder = new TextField.Builder();
+        builder.setFieldName(name);
+        builder.setLabel(label);
+        builder.setIsPrimaryKey(isPrimaryKey);
+        builder.setIsRequired(isRequired);
+        builder.setIsReadonly(isReadonly);
+        builder.setIsAutoIncrement(isAutoIncrement);
+
+        if (StringUtils.isNotEmpty(defaultValue)) {
+            builder.setDefaultValue(new StringFieldDefaultValue(defaultValue));
+        }
+
+        builder.setIsUnique(isUnique);
+        builder.setAllowNull(allowNull);
+        builder.setMinLength(minValue.intValue());
+        builder.setMaxLength(maxValue.intValue());
+        builder.setService(getContext().getServiceBean(service));
+        return builder.build();
+    }
+
+    private Field buildDrawField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
+                                 String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
+                                 BigDecimal minValue, BigDecimal maxValue) {
+        DrawField.Builder builder = new DrawField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
         builder.setIsPrimaryKey(isPrimaryKey);

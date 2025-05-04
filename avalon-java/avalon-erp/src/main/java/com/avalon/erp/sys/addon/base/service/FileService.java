@@ -21,6 +21,7 @@ public class FileService extends AbstractService {
 
     public final Field originName = Fields.createString("源文件名");//包含后缀
     public final Field url = Fields.createString("url");
+    protected final Field cacheType = Fields.createString("缓存类型");
     public final Field mime = Fields.createString("web文件类型", 100);
     public final Field ext = Fields.createString("文件扩展名", 20);
     public final Field filePath = Fields.createString("文件存放路径");

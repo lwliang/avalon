@@ -47,26 +47,15 @@ import {ReconnectingWebSocket} from "./ws/WebScoket.ts";
 import {getToken} from "./cache/tokenStorage.ts";
 import ChatWindow from "./components/im/chat-window.vue";
 import DocumentList from "./components/document/document-list.vue";
+import MyTree from "./components/tree/my-tree.vue";
 import RegistryPlugin from "./global/registry/registryPlugin.ts";
 import {registerActions} from './global/registry/actions'
+import MarkdownVue from "./components/markdown/markdown.vue";
+import ExcalidrawEditorVue from "./components/excalidraw/ExcalidrawVue.vue";
 
 
 window.ReconnectingWebSocket = ReconnectingWebSocket;
-window.getToken = getToken
-window.console.log = log.info
-window.console.debug = log.debug
-window.console.info = log.info
-window.console.warn = log.warn
-window.console.error = log.error
 
-if (import.meta.env.MODE === 'development') {
-    log.setLevel('debug')
-} else {
-    log.setLevel('error')
-}
-
-
-console.log('Vue Version:', version); // 输出 Vue 版本
 
 const app = createApp(App)
 loadSvg(app)
@@ -106,6 +95,9 @@ app.component('MyXmlViewer', MyXmlViewer)
 app.component('MyVideo', MyVideo)
 app.component('ChatWindow', ChatWindow)
 app.component('DocumentList', DocumentList)
+app.component('Markdown', MarkdownVue)
+app.component('Excalidraw', ExcalidrawEditorVue)
+app.component('MyTree', MyTree)
 
 // 使用注册表插件
 app.use(RegistryPlugin);
@@ -118,6 +110,21 @@ app.config.globalProperties.$notify = MyNotification
 
 app.provide('getModuleIcon', getModuleIcon)
 
+window.getToken = getToken
+window.console.log = log.info
+window.console.debug = log.debug
+window.console.info = log.info
+window.console.warn = log.warn
+window.console.error = log.error
+
+if (import.meta.env.MODE === 'development') {
+    log.setLevel('debug')
+} else {
+    log.setLevel('error')
+}
+
+
+console.log('Vue Version:', version); // 输出 Vue 版本
 app.mount('#app')
 
 export default app; // 导出实例

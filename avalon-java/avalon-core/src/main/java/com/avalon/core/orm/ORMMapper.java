@@ -10,6 +10,7 @@ import lombok.Setter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author lwlianghehe@gmail.com
@@ -29,7 +30,11 @@ public class ORMMapper {
 
 
     public void addModule(AbstractModule module) {
-        modules.add(module);
+        List<AbstractModule> collect = modules.stream().filter(
+                x -> x.getModuleName().equals(module.getModuleName())).collect(Collectors.toList());
+        if (collect.isEmpty()) {
+            modules.add(module);
+        }
     }
 
     public void removeModule(AbstractModule module) {

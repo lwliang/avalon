@@ -10,7 +10,7 @@ import {
     computed,
     createVNode,
     defineComponent,
-    getCurrentInstance,
+    getCurrentInstance, provide,
     ref,
     shallowRef
 } from "vue";
@@ -277,13 +277,13 @@ const createHeaderTemplateVNode = () => {
             param = {
                 serviceName: serviceName.value,
                 method: action,
-                param: [row_id.value]
+                param: {"id": row_id.value}
             }
         } else {
             param = {
                 serviceName: serviceName.value,
                 method: action,
-                param: []
+                param: {}
             }
         }
         if (serviceName.value) {
@@ -391,6 +391,13 @@ const update = async () => {
         proxy?.$notify.success("修改", "修改成功");
     })
 }
+
+const scrollValue = ref<{ scrollTop: number, scrollLeft: number }>({scrollLeft: 0, scrollTop: 0})
+provide('formScrollEvent', scrollValue)
+const onScrollClick = (e: any) => {
+    console.log("onScrollClick", e.target.scrollTop)
+    Object.assign(scrollValue.value, {scrollTop: e.target.scrollTop, scrollLeft: e.target.scrollLeft})
+}
 </script>
 
 <template>
@@ -408,7 +415,7 @@ const update = async () => {
         </div>
 
         <div class="w-full flex h-full box-border">
-            <div class="w-full overflow-x-auto" style="flex: 2">
+            <div class="w-full overflow-x-auto" style="flex: 2" @scroll="onScrollClick">
                 <component :is="template_component"/>
             </div>
             <div class="flex-1 h-full box-border hidden 2xl:block">

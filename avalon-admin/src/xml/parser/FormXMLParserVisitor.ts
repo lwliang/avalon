@@ -14,6 +14,7 @@ import {ParserField} from "../model/ParserField.ts";
 import {dotToUnderscore, getJoinFirstField, hasJoin} from "../../util/fieldUtils.ts";
 import Form from "../../model/form/Form.ts";
 import {stringToBool} from "../../util/StringUtils.ts";
+import XTreeXml from "../XTreeXml.ts";
 
 const useService = useGlobalServiceDataStore();
 const useFieldDataStore = useGlobalFieldDataStore()
@@ -23,9 +24,10 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
     fields: any[] // 保存原始字段
     fullFields: any[] // 全显示字段，包括 one2many,one2one字段 真正用于查询数据库的字段
     service: string
-    viewMode: string
+    viewMode: 'kanban' | 'search' | 'tree' | 'form' | 'xtree'
     kanban: any
     tree: any
+    xtree: XTreeXml
     form: Form
     search: any
     header: any;
@@ -77,12 +79,18 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         this.fullFields = [];
         this.one2ManyFields = [];
         this.service = service
-        this.viewMode = ""
+        this.viewMode = "tree"
         this.kanban = {}
         this.form = {} as Form
         this.tree = {}
         this.search = {}
         this.header = {}
+        this.xtree = {
+            parentField: '',
+            nameField: '',
+            childrenField: '',
+            template: ''
+        }
     }
 
     visitDocument = async (ctx: DocumentContext) => {
@@ -100,6 +108,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             form: this.form,
             search: this.search,
             header: this.header,
+            xtree: this.xtree,
             one2ManyFields: this.one2ManyFields,
         }
     };
@@ -132,6 +141,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         if (this.viewMode == "tree") return this.tree
         if (this.viewMode == "form") return this.form
         if (this.viewMode == "search") return this.search
+        if (this.viewMode == "xtree") return this.xtree
     }
 
     visitElement = async (ctx: ElementContext) => {
@@ -150,7 +160,11 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             } else if (tagName.trim().toLowerCase() == 'search') { // tree
                 this.viewMode = 'search'
                 this.getTemplate().template = ""
-                await this.visitTreeElement(ctx)
+                await this.visitSearchElement(ctx)
+            } else if (tagName.trim().toLowerCase() == 'xtree') { // tree
+                this.viewMode = 'xtree'
+                this.getTemplate().template = ""
+                await this.visitXtreeElement(ctx)
             } else if (tagName.trim().toLowerCase() == 'tree') { // tree
                 if (!this._contain_field_stack()) { // 是列表视图
                     this.viewMode = 'tree'
@@ -332,6 +346,15 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                         this.getTemplate().template += `</div>`
                     }
                 }
+            } else if (tagName.trim().toLowerCase() == 'parentfield') {
+                const field = await this.visitFieldElement(ctx)
+                this.xtree.parentField = field.name
+            } else if (tagName.trim().toLowerCase() == 'namefield') {
+                const field = await this.visitFieldElement(ctx)
+                this.xtree.nameField = field.name
+            } else if (tagName.trim().toLowerCase() == 'childrenfield') {
+                const field = await this.visitFieldElement(ctx)
+                this.xtree.childrenField = field.name
             } else {
                 this.getTemplate().template += `<${tagName}`
                 this.visitorTagAttribute(ctx)
@@ -437,6 +460,18 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
     visitTreeElement = async (ctx: ElementContext) => {
         for (let attributeContext of ctx.attribute_list()) { // 获取看板的所有属性
             await this.visitObjectAttribute(attributeContext, this.tree)
+        }
+        await this.visitContent(ctx.content())
+    }
+    visitSearchElement = async (ctx: ElementContext) => {
+        for (let attributeContext of ctx.attribute_list()) { // 获取search的所有属性
+            await this.visitObjectAttribute(attributeContext, this.search)
+        }
+        await this.visitContent(ctx.content())
+    }
+    visitXtreeElement = async (ctx: ElementContext) => {
+        for (let attributeContext of ctx.attribute_list()) { // 获取search的所有属性
+            await this.visitObjectAttribute(attributeContext, this.xtree)
         }
         await this.visitContent(ctx.content())
     }

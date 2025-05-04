@@ -8,8 +8,8 @@ application:
     host: localhost
     port: 5432
     class-type: org.postgresql.Driver
-    username: postgres
-    password: Lvx.c0m!
+    username: avalon
+    password: avalon
     max-pool-size: 200
     min-idle: 10
     connection-timeout: 20000
@@ -31,6 +31,9 @@ spring:
     nacos:
       discovery:
         group: test
+        username: nacos
+        password: nacos
+        server-addr: ${spring.profiles.host}:8848
 
 pulsar:
   url: pulsar://127.0.0.1:6650

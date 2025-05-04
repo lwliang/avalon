@@ -2,13 +2,14 @@
 import FormField from "../../model/FormField.ts";
 import DocumentFile from "./document-file.vue";
 import mittBus from "../../global/bus/mittBus.ts";
-import {addModelApi, createModelApi, deleteModelApi, getModelAllApi} from "../../api/modelApi.ts";
+import {addModelApi, createModelApi, deleteModelApi, editModelApi, getModelAllApi} from "../../api/modelApi.ts";
 import {ComponentInternalInstance, getCurrentInstance, ref, watch} from "vue";
 import {useMouse, useEventListener, useStorage} from "@vueuse/core";
 import {getUserId} from "../../cache/userStorage.ts";
 import MyDialog from "../dialog/my-dialog.vue";
 import MyInput from "../input/my-input.vue";
 import {postDownloadFileFromFileServer} from "../../api/http.ts";
+import draggable from "vuedraggable";
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 
@@ -58,6 +59,7 @@ const {x, y} = useMouse()
 const menuPosition = ref({x: 0, y: 0})
 
 const showListMenu = () => {
+    console.log('showListMenu true')
     fileSelectedIndex.value = 0
     fileSelectedTag.value = null
     createFolderShow.value = true
@@ -68,6 +70,7 @@ const showListMenu = () => {
 }
 
 useEventListener('click', () => {
+    console.log('click true')
     createFolderShow.value = false
     createFileShow.value = false
     openFolderShow.value = false
@@ -152,18 +155,20 @@ const deleteFolderClick = async () => {
 
 const fileSelectedIndex = ref(0)
 const fileSelectedTag = ref<any>(null)
-const showFileMenu = (index: number) => {
+const showFileMenu = (id: number) => {
     createFolderShow.value = false
+    const index = formField.value.value.findIndex((x: any) => x.id == id);
     fileSelectedIndex.value = index
     menuPosition.value.x = x.value - 90;
     menuPosition.value.y = y.value - 90;
     fileSelectedTag.value = formField.value.value[index]
     if (fileSelectedTag.value.isFolder) {
         openFolderShow.value = true
+        createFileShow.value = false
     } else {
         createFileShow.value = true
+        openFolderShow.value = false
     }
-
 }
 
 const openFolderShow = ref(false) // 右击文件夹时打开
@@ -173,11 +178,17 @@ const openFolderClick = () => {
     getAllFileByParentId()
 }
 
-const openFileClick = (index: number) => {
-    if (formField.value.value[index].isFolder) {
-        parentId.value = formField.value.value[index].id
+const openFileClick = (id: number) => {
+    const doc = formField.value.value.find((x: any) => x.id == id);
+    if (doc && doc.isFolder) {
+        parentId.value = doc.id
         getAllFileByParentId()
     }
+}
+
+const activeFileId = ref(0)
+const activeFileClick = (id: number) => {
+    activeFileId.value = id
 }
 
 const uploadFileClick = () => {
@@ -186,15 +197,71 @@ const uploadFileClick = () => {
 const uploadFolderClick = () => {
 
 }
+
+const dragging = ref(false)
+
+const onDragEnd = (evt: any) => {
+    dragging.value = false
+    if (!evt.to) return // 未移动
+
+    if (!dragIntoItem.value) {
+        return;
+    }
+    const src = evt.item.__draggable_context.element
+
+    // 调整目录
+    let newSrc = {id: src.id, parentId: dragIntoItem.value}
+
+    editModelApi(newSrc, "document.file").then(() => {
+        const index = formField.value.value.findIndex((x: any) => x.id == src.id)
+        formField.value.value.splice(index, 1)
+    })
+}
+const onDragStart = (evt: any) => {
+    dragging.value = true
+    const currentElement = evt.item.__draggable_context.element
+    if (currentElement.id != activeFileId.value) {
+        activeFileId.value = currentElement.id
+    }
+}
+const dragIntoItem = ref(0)
+
+const ondragenter = (element: any) => {
+    if (element && element.isFolder) {
+        dragIntoItem.value = element.id
+    }
+}
+const onDragOver = (element: any) => {
+    const target = element
+    if (target && target.isFolder) {
+        dragIntoItem.value = target.id
+    }
+}
+const ondragleave = (element: any) => {
+    dragIntoItem.value = 0
+}
 </script>
 
 <template>
-    <div class="flex items-start  flex-wrap gap-2 min-h-full" style="align-content: flex-start"
+    <div class="min-h-full"
          @contextmenu.prevent.stop="showListMenu">
-        <div v-for="(file,index) in formField.value" :key="index" class="inline-block" @click="openFileClick(index)"
-             @contextmenu.prevent.stop="showFileMenu(index)">
-            <document-file :file="file"/>
-        </div>
+        <draggable :list="formField.value" class="flex items-start  flex-wrap gap-2 min-h-full" item-key="id"
+                   group="files" :sort="false"
+                   @start="onDragStart"
+                   @end="onDragEnd">
+            <template #item="{ element }">
+                <div
+                    :class="['inline-block hover:bg-gray-200 p-2 rounded-lg',{'bg-gray-200':activeFileId==element.id || dragIntoItem==element.id}]"
+                    @click="activeFileClick(element.id)"
+                    @dblclick="openFileClick(element.id)"
+                    @dragover="onDragOver(element)"
+                    @dragleave="ondragleave(element)"
+                    @dragenter="ondragenter(element)"
+                    @contextmenu.prevent.stop="showFileMenu(element.id)">
+                    <document-file :file="element"/>
+                </div>
+            </template>
+        </draggable>
         <div v-if="!formField.value.length">
             暂无文件
         </div>

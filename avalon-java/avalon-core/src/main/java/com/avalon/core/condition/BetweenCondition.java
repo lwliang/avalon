@@ -8,10 +8,12 @@ package com.avalon.core.condition;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
+import com.avalon.core.field.IFieldFormat;
 import com.avalon.core.model.FieldValueStatement;
 import com.avalon.core.model.JoinRelationMap;
 import com.avalon.core.select.builder.SelectBuilder;
 import com.avalon.core.service.AbstractService;
+import com.avalon.core.util.DateTimeUtils;
 import com.avalon.core.util.FieldUtils;
 import com.avalon.core.util.ObjectUtils;
 import lombok.Data;
@@ -98,12 +100,30 @@ public class BetweenCondition extends Condition {
                 builder.getAliasSupport());
         Field field = builder.getService().getField(getRealName());
         Object beginValue = begin;
-        if (beginValue instanceof String) {
-            beginValue = builder.getService().getContext().executeScript((String) beginValue);
+        if (beginValue instanceof String) { // 字符串转date
+            if (field instanceof IFieldFormat) {
+                IFieldFormat fieldFormat = (IFieldFormat) field;
+                if (DateTimeUtils.isDateString((String) beginValue, fieldFormat.getFormat())) {
+                    beginValue = DateTimeUtils.parseDate(fieldFormat.getFormat(), (String) beginValue);
+                } else {
+                    beginValue = builder.getService().getContext().executeScript((String) beginValue);
+                }
+            } else {
+                beginValue = builder.getService().getContext().executeScript((String) beginValue);
+            }
         }
         Object endValue = end;
-        if (endValue instanceof String) {
-            endValue = builder.getService().getContext().executeScript((String) endValue);
+        if (endValue instanceof String) {// 字符串转date
+            if (field instanceof IFieldFormat) {
+                IFieldFormat fieldFormat = (IFieldFormat) field;
+                if (DateTimeUtils.isDateString((String) endValue, fieldFormat.getFormat())) {
+                    endValue = DateTimeUtils.parseDate(fieldFormat.getFormat(), (String) endValue);
+                } else {
+                    endValue = builder.getService().getContext().executeScript((String) endValue);
+                }
+            } else {
+                endValue = builder.getService().getContext().executeScript((String) endValue);
+            }
         }
         builder.getFieldValueStatement().put(field, beginValue);
         builder.getFieldValueStatement().put(field, endValue);

@@ -186,6 +186,17 @@ public class DateTimeUtils {
         return new Date(calendar.getTimeInMillis());
     }
 
+    public static boolean isDateString(String dateStr, String dateFormat) {
+        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+        sdf.setLenient(false); // 严格匹配格式
+        try {
+            sdf.parse(dateStr); // 解析字符串
+            return true; // 解析成功
+        } catch (ParseException e) {
+            return false; // 解析失败
+        }
+    }
+
     /**
      * description: 获取指定月指定时间
      * version: 1.0

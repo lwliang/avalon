@@ -14,8 +14,11 @@ import com.avalon.core.db.DynamicDataSource;
 import com.avalon.core.db.DynamicJdbcTemplate;
 import com.avalon.core.enums.SystemStateEnum;
 import com.avalon.core.exception.AvalonException;
+import com.avalon.core.field.Field;
+import com.avalon.core.field.Fields;
+import com.avalon.core.field.Many2manyField;
+import com.avalon.core.model.FieldHashMap;
 import com.avalon.core.model.Record;
-import com.avalon.core.model.RecordRow;
 import com.avalon.core.module.AbstractModule;
 import com.avalon.core.module.ModuleList;
 import com.avalon.core.orm.ClassPoolManager;
@@ -23,7 +26,6 @@ import com.avalon.core.orm.ORMMapper;
 import com.avalon.core.permission.ElevatePermissionEnum;
 import com.avalon.core.redis.IRedisLock;
 import com.avalon.core.service.AbstractService;
-import com.avalon.core.service.AbstractServiceList;
 import com.avalon.core.service.ExternalService;
 import com.avalon.core.util.*;
 import javassist.CannotCompileException;
@@ -92,6 +94,7 @@ public class Context {
     public void addServiceName(String serviceClass, AbstractService service) {
         serviceClassServiceNameDic.put(serviceClass, service);
     }
+
     public Hashtable<String, AbstractService> getServiceClassServiceNameDic() {
         return serviceClassServiceNameDic;
     }
@@ -613,7 +616,9 @@ public class Context {
 
     public void installOrUpgrade(List<AbstractModule> modules) {
         ORMMapper ormMapper = ormMapperMap.get(getBaseName());
-        installOrUpgrade(ormMapper, modules);
+        ModuleList abstractModules = ormMapper.copyModule();
+        abstractModules.addAll(modules);
+        installOrUpgrade(ormMapper, abstractModules);
     }
 
     public void uninstall(List<AbstractModule> modules) {
@@ -715,6 +720,16 @@ public class Context {
 
         beanServices.forEach((serviceName, serviceClass) -> {
             if (containsBean(ormMapper.getServiceNameWithDb(serviceName))) {
+                AbstractService serviceBean = getServiceBean(ormMapper.getServiceNameWithDb(serviceName));
+                FieldHashMap relationFieldMap = serviceBean.getRelationFieldMap(); // 获取关系字段，删除全部已注册的关系模型
+                for (Map.Entry<String, Field> stringFieldEntry : relationFieldMap.entrySet()) {
+                    if (stringFieldEntry.getValue() instanceof Many2manyField) { //
+                        String serviceRelativeName =  ((Many2manyField) stringFieldEntry.getValue()).getTableSqlName();
+                        if (containsBean(ormMapper.getServiceNameWithDb(serviceRelativeName))) {
+                            removeSingleton(ormMapper.getServiceNameWithDb(serviceRelativeName));
+                        }
+                    }
+                }
                 removeBeanDefinition(ormMapper.getServiceNameWithDb(serviceName));
             }
             registerBean(ormMapper.getServiceNameWithDb(serviceName), serviceClass);

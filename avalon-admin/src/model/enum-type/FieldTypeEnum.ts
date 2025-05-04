@@ -13,6 +13,7 @@ export enum FieldTypeEnum {
     FieldSelectionField = 'FieldSelectionField',
     FloatField = 'FloatField',
     HtmlField = 'HtmlField',
+    DrawField = 'DrawField',
     ImageField = 'ImageField',
     VideoField = 'VideoField',
     FileField = 'FileField',
