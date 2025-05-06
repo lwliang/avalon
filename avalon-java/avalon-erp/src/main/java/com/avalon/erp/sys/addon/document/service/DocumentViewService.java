@@ -44,7 +44,7 @@ public class DocumentViewService extends TransientService {
     }
 
     // 上传文件,前端跳转路由
-    public RecordRow uploadFile() {
+    public RecordRow uploadFile(RecordRow param) {
         RecordRow row = RecordRow.build();
         row.put("type", "ir.actions.client")
                 .put("tag", "uploadDocument");

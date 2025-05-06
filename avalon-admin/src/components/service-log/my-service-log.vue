@@ -41,7 +41,7 @@ serviceFieldStore.getFieldByServiceNameAsync(serviceName.value).then(data => {
 
 const loadLogs = () => {
     getModelPageApi("id,op,creator,handleName,createTime,serviceName,serviceId,content",
-        `(&,(=,serviceName,${props.service}),(=,serviceId,${props.serviceId}))`,
+        `(('serviceName',=, '${props.service}')&(serviceId,=,${props.serviceId})`,
         'base.service.log',
         pageNum.value,
         pageSize.value).then(pageInfo => {
@@ -88,13 +88,11 @@ const getFieldLabel = (field: string) => {
                     <ul class="list-disc">
                         <li v-for="(item,index) in log.contentJSON" :key="index">
                             <div class="w-full grid" style="grid-template-columns: 100px 25px  minmax(0, 1fr) ">
-                                <div class="w-[100px]">{{
-                                       item == null ? '' : getFieldLabel(String(typeof item == 'object' ? item.key :item ))
-                                    }}</div>
+                                <div class="w-[100px]">{{ getFieldLabel(String(index))}}</div>
                                 <div class="">
                                     <MyIcon type="fas" icon="arrow-right"/>
                                 </div>
-                                <div>{{ item == null ? '' : typeof item == 'object' ? item.value : item }}</div>
+                                <div>{{ item }}</div>
                             </div>
                         </li>
                     </ul>

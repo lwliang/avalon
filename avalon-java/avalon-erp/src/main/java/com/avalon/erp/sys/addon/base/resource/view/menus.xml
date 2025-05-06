@@ -2,7 +2,7 @@
 <avalon>
     <menuitem id="menu_module_parent_action" name="App">
         <menuitem id="menu_module_action" name="App" action="base_module_action"/>
-        <menuitem id="menu_module_refresh_action" serviceId="base.module" name="更新模块" type="object"
+        <menuitem id="menu_module_refresh_action" ref_serviceId="base.module" name="更新模块" type="object"
                   action="refreshModuleFromDisk"/>
     </menuitem>
     <menuitem id="menu_user_action" name="用户" action="base_user_action"/>

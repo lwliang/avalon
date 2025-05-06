@@ -84,7 +84,7 @@ public class ModuleService extends AbstractService implements IModuleSupport {
     }
 
     @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
-    public void refreshModuleFromDisk(ArrayList<Object> ids, RecordRow row) {
+    public void refreshModuleFromDisk(RecordRow row) {
         for (AbstractModule module : getContext().getModuleList()) {
             RecordRow recordRow = new RecordRow();
             recordRow.put("name", module.getModuleName());
@@ -106,62 +106,50 @@ public class ModuleService extends AbstractService implements IModuleSupport {
     }
 
     @SystemStateAnnotation(SystemStateEnum.installModule)
-    public void install(ArrayList<Integer> ids, RecordRow row) throws AvalonException {
+    public void install(RecordRow row) throws AvalonException {
+        Integer moduleId = row.getInteger("id");
         List<AbstractModule> modules = new ArrayList<>();
-        if (!ObjectUtils.isEmpty(ids)) {
-            for (Object id : ids) {
-                Record select = select(Condition.equalCondition("id", id), "name");
-                String moduleName = select.get(0).getString("name");
-                AbstractModule module = getContext().getModule(moduleName);
-                modules.add(module);
-                module.setIsInstall(true);
-                module.createModule();
-                select = select(Condition.equalCondition("name", moduleName), "id");
-                select.putAll("isInstall", true);
-                updateMulti(select);
-            }
-        } else {
-            AbstractModule module = getContext().getModule(row.getString("name"));
-            modules.add(module);
-            module.setIsInstall(true);
-            module.createModule();
-        }
-        if (!modules.isEmpty()) {
-            getContext().installOrUpgrade(modules);
-        }
+        Record select = select(Condition.equalCondition("id", moduleId), "name");
+        String moduleName = select.get(0).getString("name");
+        AbstractModule module = getContext().getModule(moduleName);
+        modules.add(module);
+        module.setIsInstall(true);
+        module.createModule();
+        select = select(Condition.equalCondition("name", moduleName), "id");
+        select.putAll("isInstall", true);
+        updateMulti(select);
+        getContext().installOrUpgrade(modules);
     }
 
     @SystemStateAnnotation(SystemStateEnum.uninstallModule)
-    public void uninstall(ArrayList<Integer> ids, RecordRow row) throws AvalonException {
+    public void uninstall(RecordRow row) throws AvalonException {
+        Integer moduleId = row.getInteger("id");
         List<AbstractModule> modules = new ArrayList<>();
-        for (Object id : ids) {
-            Record select = select(Condition.equalCondition("id", id), "name");
-            String moduleName = select.get(0).getString("name");
-            AbstractModule module = getContext().getModule(moduleName);
-            modules.add(module);
-            module.setIsInstall(false);
-            module.dropModule();
-            select = select(Condition.equalCondition("name", moduleName), "id");
-            select.putAll("isInstall", false);
-            updateMulti(select);
-        }
+        Record select = select(Condition.equalCondition("id", moduleId), "name");
+        String moduleName = select.get(0).getString("name");
+        AbstractModule module = getContext().getModule(moduleName);
+        modules.add(module);
+        module.setIsInstall(false);
+        module.dropModule();
+        select = select(Condition.equalCondition("name", moduleName), "id");
+        select.putAll("isInstall", false);
+        updateMulti(select);
         if (!modules.isEmpty()) {
             getContext().uninstall(modules);
         }
     }
 
     @SystemStateAnnotation(SystemStateEnum.uninstallModule)
-    public void upgrade(ArrayList<Integer> ids, RecordRow row) throws AvalonException {
-        for (Object id : ids) {
-            Record select = select(Condition.equalCondition("id", id), "name");
-            String moduleName = select.get(0).getString("name");
-            AbstractModule module = getContext().getModule(moduleName);
-            module.setIsInstall(true);
-            module.upgradeModule();
-            select = select(Condition.equalCondition("name", moduleName), "id");
-            select.putAll("isInstall", true);
-            updateMulti(select);
-        }
+    public void upgrade(RecordRow row) throws AvalonException {
+        Integer moduleId = row.getInteger("id");
+        Record select = select(Condition.equalCondition("id", moduleId), "name");
+        String moduleName = select.get(0).getString("name");
+        AbstractModule module = getContext().getModule(moduleName);
+        module.setIsInstall(true);
+        module.upgradeModule();
+        select = select(Condition.equalCondition("name", moduleName), "id");
+        select.putAll("isInstall", true);
+        updateMulti(select);
     }
 
     @Override

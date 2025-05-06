@@ -37,6 +37,9 @@ const labelField = ref<FormField>(labelValue)
 
 watch(() => formField.value?.value, () => {
     setValidate(true)
+    if (labelField.value && labelField.value.value != options.value[formField.value?.value]) {
+        labelField.value.value = options.value[formField.value?.value]
+    }
 })
 
 const options = ref<Record<string, string>>({})

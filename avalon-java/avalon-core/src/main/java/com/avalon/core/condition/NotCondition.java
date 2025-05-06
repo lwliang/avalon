@@ -43,7 +43,7 @@ public class NotCondition extends Condition {
 
     @Override
     public String getConditionString() {
-        return String.format(getOp().getCondition(), condition.toString());
+        return String.format(getOp().getCondition(), condition.getConditionString());
     }
 
     @Override

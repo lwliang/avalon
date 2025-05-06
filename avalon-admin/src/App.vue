@@ -6,23 +6,41 @@
 
 import mittBus from "./global/bus/mittBus.ts";
 import {isLogin} from "./util/commonUtils.ts";
-import {goLogin} from "./util/routerUtils.ts";
+import {goExcalidraw, goLogin} from "./util/routerUtils.ts";
+import {onMounted, onUnmounted} from "@vue/runtime-dom";
 
 
 if (isLogin()) {
-  document.body.setAttribute('login', '')
-  mittBus.emit("loadModule")
-  mittBus.emit("loadService")
-  mittBus.emit('loadUserInfo')
+    document.body.setAttribute('login', '')
+    mittBus.emit("loadModule")
+    mittBus.emit("loadService")
+    mittBus.emit('loadUserInfo')
 } else {
-  document.body.removeAttribute('login')
-  goLogin()
+    document.body.removeAttribute('login')
+    goLogin()
 }
 
+const handleKeydown = (event: KeyboardEvent) => {
+    if (event.altKey && event.shiftKey) {
+        switch (event.key) {
+            case "h":
+            case "H":
+                goExcalidraw()
+                break
+        }
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeydown)
+})
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
-  <router-view></router-view>
+    <router-view></router-view>
 </template>
 
 <style scoped>

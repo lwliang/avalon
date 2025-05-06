@@ -92,7 +92,7 @@ const btnClick = (actionType: string, action: string, fields: any) => {
     const param = {
         serviceName: serviceName.value,
         method: action,
-        param: [[fields.id], fields]
+        param: fields
     }
     if (serviceName.value) {
         invokeMethod(serviceName.value, param).then(data => {

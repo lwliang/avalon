@@ -31,6 +31,10 @@ const router: Router = createRouter({
             component: () => import('../pages/DatabaseManager.vue')
         },
         {
+            path: '/excalidraw',
+            component: () => import('../pages/ExcalidrawPage.vue')
+        },
+        {
             path: '/model',
             component: () => import('../pages/ModelParent.vue'),
             children: [
@@ -53,6 +57,9 @@ const router: Router = createRouter({
                         {
                             path: 'import',
                             component: () => import('../pages/window/action/excel/import-excel.vue')
+                        }, {
+                            path: 'xtree',
+                            component: () => import('../pages/window/action/xtree/xtree.vue')
                         }
                     ]
                 }

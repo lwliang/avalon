@@ -40,8 +40,12 @@ public class ClassPoolManager {
             String newClassName = childClass.getName() + "$Enhanced_" + System.currentTimeMillis();
             childCtClass.setName(newClassName);
             //  加载类到当前类加载器
-            targetClass = childCtClass.toClass(getAppClassLoader());
-            targetClass = childCtClass.toClass(getDefaultClassLoader());
+            if (getAppClassLoader().equals(getDefaultClassLoader())) { // 如果是同一个加载器，则加载一个
+                targetClass = childCtClass.toClass(getAppClassLoader());
+            } else { // 在tomcat下，有两个加载器，则同时加载
+                targetClass = childCtClass.toClass(getAppClassLoader());
+                targetClass = childCtClass.toClass(getDefaultClassLoader());
+            }
 
             parentCtClass = childCtClass;
         }

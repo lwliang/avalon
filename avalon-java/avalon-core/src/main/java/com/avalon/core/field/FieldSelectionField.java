@@ -28,6 +28,7 @@ public class FieldSelectionField extends SelectionField {
         selectionHashMap.put(FloatField.class.getSimpleName(), "Float");
         selectionHashMap.put(TimeField.class.getSimpleName(), "时间");
         selectionHashMap.put(HtmlField.class.getSimpleName(), "HTML");
+        selectionHashMap.put(DrawField.class.getSimpleName(), "Draw");
         selectionHashMap.put(ImageField.class.getSimpleName(), "图片");
         selectionHashMap.put(VideoField.class.getSimpleName(), "视频");
         selectionHashMap.put(StringField.class.getSimpleName(), "单行文本");

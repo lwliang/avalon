@@ -5,10 +5,20 @@
 
 import router from '../router'
 
+export function goRouterBack() {
+    router.back()
+}
+
 export function goLogin(param?: Object) {
     param = param || {}
     router.push({
         path: '/login'
+    })
+}
+
+export function goExcalidraw() {
+    router.push({
+        path: '/excalidraw'
     })
 }
 
@@ -66,6 +76,13 @@ export function replaceModelForm(module: string, service: string, id: any) {
 export function goModelTree(module: string, service: string, query?: any) {
     router.push({
         path: `/model/${module}/${service}/window/tree`,
+        query: query
+    })
+}
+
+export function goModelXTree(module: string, service: string, query?: any) {
+    router.push({
+        path: `/model/${module}/${service}/window/xtree`,
         query: query
     })
 }

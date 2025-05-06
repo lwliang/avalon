@@ -57,7 +57,4 @@ public class RedisUtils {
     public RedisUtils(Map<String, Map<String, RedisTemplate<String, Object>>> redisTemplateDatabase) {
         this.redisTemplateDatabase = redisTemplateDatabase;
     }
-
-
-
 }

@@ -8,9 +8,13 @@ odoo java版 前后分离快速开发平台，基于开源技术栈精心打造�
 
 ![wechat_group](./img/wechat_group.png)
 
+## 视频教程
 
+环境搭建与模块开发：[https://www.bilibili.com/video/BV1xBdhYCEQW/?spm_id_from=333.1387.homepage.video_card.click&vd_source=6b5f63a07c8f986c5f54a14dcf2cbe1b](https://gitee.com/link?target=https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1xBdhYCEQW%2F%3Fspm_id_from%3D333.1387.homepage.video_card.click%26vd_source%3D6b5f63a07c8f986c5f54a14dcf2cbe1b)
 
+ORM介绍：[https://www.bilibili.com/video/BV1xBdhYCEeK/?spm_id_from=333.1387.homepage.video_card.click&vd_source=6b5f63a07c8f986c5f54a14dcf2cbe1b](https://gitee.com/link?target=https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1xBdhYCEeK%2F%3Fspm_id_from%3D333.1387.homepage.video_card.click%26vd_source%3D6b5f63a07c8f986c5f54a14dcf2cbe1b)
 
+前端介绍：[https://www.bilibili.com/video/BV1xBdhYCEKY/?spm_id_from=333.1387.homepage.video_card.click](https://gitee.com/link?target=https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1xBdhYCEKY%2F%3Fspm_id_from%3D333.1387.homepage.video_card.click)
 
 ## 开发环境准备
 
@@ -1066,6 +1070,30 @@ service对应base.action.window
 
 ![image-20250408213149964](img/image-20250408213149964.png)
 
+## xtree视图
+
+将模型分为左右两部分，左边是树状列表，右边是form视图，可点击左边记录，然后再form视图中进行修改。树状列表支持拖拽
+
+配置
+
+```xml
+    <record id="hr_org_view_tree" service="base.action.view">
+        <field name="name">hr_org_view_tree</field>
+        <field name="label">组织</field>
+        <field name="viewMode">xtree</field>
+        <field name="ref_serviceId">hr.org</field>
+        <field name="arch" type="xml">
+            <xtree>
+                <parentField name="parentId"/> <!--上级字段-->
+                <nameField name="name"/> <!--显示字段-->
+                <childrenField name="childIds"/> <!--下级字段列表-->
+            </xtree>
+        </field>
+    </record>
+```
+
+![image-20250504134820996](img/image-20250504134820996.png)
+
 # 菜单
 
 创建前端菜单入口,只能三级
@@ -1151,6 +1179,346 @@ service对应base.action.window
 
 
 
+# HTTP 接口
+
+erp服务：http://localhost:8089/erp
+
+## 登录
+
+```json
+url:/login
+method:post
+param:{
+	db:'avalon' // 数据库
+	username:'avalon',
+	password:'avalon'
+	}
+```
+
+## 创建模型默认记录
+
+```json
+{
+url:/service/{serviceName}/create
+method:post
+param:{
+	value:{
+        "{fieldName}":value
+    	}
+	}
+}
+```
+
+## 新增模型记录
+
+```json
+{
+url:/service/{serviceName}/add
+method:post
+param:{
+	value:{
+        "{fieldName}":value
+    	}
+	}
+}
+```
+
+## 更新模型记录
+
+```json
+{
+url:/service/{serviceName}/update
+method:post
+param:{
+	value:{
+        "{fieldName}":value,
+        "one2ManyField":[
+            {
+                 "{fieldName}":value,
+                "op":"insert|delete|update"
+            }
+        	]
+    	}
+	}
+}
+```
+
+## 删除模型记录
+
+```json
+{
+url:/service/{serviceName}/delete
+method:post
+param:{
+	id:1
+	}
+}
+```
+
+## 查询模型详情
+
+```json
+{
+url:/get/{serviceName}/detail
+method:post
+param:{
+	fields:"id,name,many2One.id",
+    condition:"('a',=,2)",
+    order:"field asc, field.field desc"
+	}
+}
+```
+
+
+
+## 查询模型全部记录
+
+```json
+{
+url:/get/{serviceName}/all
+method:post
+param:{
+	fields:"id,name,many2One.id",
+    condition:"('a',=,2)",
+    order:"field asc, field.field desc"
+	}
+}
+```
+
+## 分页查询模型记录
+
+```json
+{
+url:/get/{serviceName}/page
+method:post
+param:{
+    page:{
+        pageNum:1,
+        pageSize:10
+    }
+	fields:"id,name,many2One.id",
+    condition:"('a',=,2)",
+    order:"field asc, field.field desc"
+	}
+}
+```
+
+## 获取模型的字段
+
+```json
+{
+url:/get/{serviceName}/fields
+method:post
+param:{
+    field:"" // 可选 label like
+}
+```
+
+## 获取模型的枚举字段取值范围
+
+```json
+{
+url:/get/{serviceName}/selection/map
+method:post
+param:{
+    fields:"" // 一个字段
+}
+```
+
+## 导出Excel文件
+
+```json
+{
+url:/export/{serviceName}/excel
+method:post
+param:{
+    field:"a,b" // 一个字段
+    condition:"('a',=,2)",
+    order:"field asc, field.field desc"
+}
+```
+
+## 读取excel的记录
+
+```json
+{
+url:/read/{serviceName}/excel
+method:post
+param:{
+    file:File
+}
+```
+
+## 导入模型记录
+
+```json
+{
+url:/import/{serviceName}/excel
+method:post
+param:{
+    headers:['fieldLabel1','field2'],
+    fields:['fieldName1','fieldName2']
+    data:[]
+}
+```
+
+# condition 
+
+## =|>|like|<|>=|<=|notLike|!=
+
+```json
+"('field',=,2|'a'|1.1)"
+```
+
+## between
+
+```json
+"('field',between,1,2)"
+```
+
+## in | notIn
+
+```json
+"('field',in,1,2,3)"
+```
+
+## 取反
+
+```json
+"!('field',=,2|'a'|1.1)"
+```
+
+## 交集
+
+```json
+"('field',=,2)&('field',=,2)"
+```
+
+## 并集
+
+```json
+"('field',=,2)|('field',=,2)"
+```
+
+
+
+
+
+# avalon-core配置文件
+
+## application-dev.yml
+
+```yml
+application:
+  datetime-format: yyyy-MM-dd HH:mm:ss # 系统日期时间格式，接口参数，返回值，数据库统一
+  date-format: yyyy-MM-dd # 系统日期格式，接口参数，返回值，数据库统一
+  time-format: HH:mm # 系统时间格式，接口参数，返回值，数据库统一
+  page-size: 80 # 前端默认分页大小
+  debug: true # 系统是否处于调试模式
+  multiDb: true # 支持多数据库
+  dataSource: # 数据库源
+    host: ${spring.profiles.host} # 服务器IP
+    port: 5432 # 端口号
+    class-type: org.postgresql.Driver # 数据库类型 org.postgresql.Driver是postgresql，com.mysql.cj.jdbc.Driver是mysql
+    username: odoo16 # 账户
+    password: odoo16 # 密码
+    max-pool-size: 200 # 连接池大小
+    min-idle: 10 
+    connection-timeout: 20000
+    idle-timeout: 25000
+    max-lifetime: 30000
+
+redis: # redis
+  config:
+    - key: redis-0 # 多源redis标志 一般一个不修改
+      hostName: ${spring.profiles.host} # IP
+      port: 6379 
+      password: 
+      database: 
+        - 0 # 第0个 对应 RedisDataBase0 类
+        - 1 # 第1个 对应 RedisDataBase1类
+# nacos配置
+spring:
+  cloud:
+    nacos:
+      discovery:
+        group: dev
+        username: nacos
+        password: nacos
+        server-addr: ${spring.profiles.host}:8848
+  jackson:
+    date-format: ${application.datetime-format}
+    time-zone: GMT+8
+
+# 消息队列配置
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+
+logging:
+  config: classpath:logback-spring-dev.xml
+
+```
+
+
+
+
+
+# avalon-file文件服务器
+
+## application.yml配置项
+
+```yml
+server:
+  port: 8091
+  servlet:
+    context-path: /file
+spring:
+  profiles:
+    active: dev,file-dev
+  application:
+    name: avalon-file
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 200MB  # 上传文件大小
+      max-request-size: 200MB 
+```
+
+## application-file-dev.yml配置项
+
+```yml
+spring:
+  profiles:
+    host: localhost
+
+application:
+  multiDb: false  # 不支持多数据库
+  cache-type: file  # file 本地文件存储，minio minio存储
+
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+
+# 本地文件存储配置
+file:
+  file: ./data/  #本地目录 支持相对路径与绝对路径
+  video: ./video/ # 视频存放路径
+  image: ./image/ # 图片存放路径
+  mode: date # 文件路径生成方式 date 日期方式 存储位置 {db}/YYYY/MM/{UUID}.ext,randon随机存储位置 {db}/{0...255}/{0...255}/{{uuid}}.exit
+
+# minio 存储配置
+minio:
+  endpoint: http://localhost:9000
+  accessKey: minioadmin
+  secretKey: minioadmin
+  mode: date
+```
+
+
+
+
+
 # web
 
 ## Form表单属性
@@ -1213,3 +1581,6 @@ service对应base.action.window
     </record>
 ```
 
+## 快捷键
+
+Shift+Alt+H：跳转到Excalidraw绘画页面

@@ -53,6 +53,11 @@ export function getActionTreeView(serviceName: string) {
         `('serviceId.name',=,'${serviceName}')&('viewMode',=,'tree')`);
 }
 
+export function getActionXTreeView(serviceName: string) {
+    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'xtree')`);
+}
+
 export function getActionFormView(serviceName: string) {
     return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
         `('serviceId.name',=,'${serviceName}')&('viewMode',=,'form')`);

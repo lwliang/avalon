@@ -5,7 +5,7 @@
  */
 import {useRoute} from "vue-router";
 import {ref, watch, provide, getCurrentInstance, ComponentInternalInstance} from "vue";
-import {goModelForm, goModelKanban, goModelTree} from "../../util/routerUtils.ts";
+import {goModelForm, goModelKanban, goModelTree, goModelXTree} from "../../util/routerUtils.ts";
 
 import {onMounted} from "@vue/runtime-dom";
 import {getModelAllApi} from "../../api/modelApi.ts";
@@ -20,57 +20,65 @@ const activeViewMode = ref<string>('');
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 
 if (route.fullPath.endsWith('/window')) {
-    getModelAllApi("id,name,viewMode,label,serviceId,moduleId.id,moduleId.name",
-        `('serviceId.name',=,'${serviceName.value}')`,
-        "base.action.window")
-        .then(data => {
-            if (data.length) {
-                activeViewMode.value = data[0].viewMode.split(",")[0];
-            }
-        })
+  getModelAllApi("id,name,viewMode,label,serviceId,moduleId.id,moduleId.name",
+      `('serviceId.name',=,'${serviceName.value}')`,
+      "base.action.window")
+      .then(data => {
+        if (data.length) {
+          activeViewMode.value = data[0].viewMode.split(",")[0];
+        }
+      })
 }
 
 const navigateToView = (viewMode: string) => {
-    if (viewMode == 'kanban') {
-        goServiceKanban();
-    } else if (viewMode == 'tree') {
-        goServiceTree()
-    } else if (viewMode == 'form') {
-        goServiceForm(undefined);
-    }
+  if (viewMode == 'kanban') {
+    goServiceKanban();
+  } else if (viewMode == 'tree') {
+    goServiceTree()
+  } else if (viewMode == 'form') {
+    goServiceForm(undefined);
+  } else if (viewMode == 'xtree') {
+    goServiceXTree();
+  }
 }
 
 const goServiceForm = (id: number | undefined) => {
-    if (moduleName.value && serviceName.value) {
-        goModelForm(moduleName.value, serviceName.value, id)
-    }
+  if (moduleName.value && serviceName.value) {
+    goModelForm(moduleName.value, serviceName.value, id)
+  }
 }
 
 const goServiceTree = () => {
-    if (moduleName.value && serviceName.value) {
-        goModelTree(moduleName.value, serviceName.value)
-    }
+  if (moduleName.value && serviceName.value) {
+    goModelTree(moduleName.value, serviceName.value)
+  }
+}
+
+const goServiceXTree = () => {
+  if (moduleName.value && serviceName.value) {
+    goModelXTree(moduleName.value, serviceName.value)
+  }
 }
 
 const goServiceKanban = () => {
-    if (moduleName.value && serviceName.value) {
-        goModelKanban(moduleName.value, serviceName.value)
-    }
+  if (moduleName.value && serviceName.value) {
+    goModelKanban(moduleName.value, serviceName.value)
+  }
 }
 
 
 watch(() => activeViewMode.value, (newValue) => {
-    if (newValue) {
-        navigateToView(newValue)
-    }
+  if (newValue) {
+    navigateToView(newValue)
+  }
 })
 
 onMounted(() => {
-    navigateToView(activeViewMode.value)
+  navigateToView(activeViewMode.value)
 })
 
 const rowClickHandler = (id: number | undefined) => {
-    goServiceForm(id)
+  goServiceForm(id)
 }
 
 
@@ -79,7 +87,7 @@ provide('rowClick', rowClickHandler)
 </script>
 
 <template>
-    <router-view></router-view>
+  <router-view></router-view>
 </template>
 
 <style scoped>

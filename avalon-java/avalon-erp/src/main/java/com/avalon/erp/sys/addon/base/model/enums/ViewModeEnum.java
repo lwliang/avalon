@@ -8,6 +8,7 @@ package com.avalon.erp.sys.addon.base.model.enums;
 import com.avalon.core.enums.ISelectFieldEnum;
 
 public enum ViewModeEnum implements ISelectFieldEnum {
+    xtree("树形"),
     kanban("看板"),
     form("表单"),
     search("搜索"),

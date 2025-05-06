@@ -6,7 +6,7 @@
 import MyDropdown from "../dropdown/my-dropdown.vue";
 import MyDropdownItem from "../dropdown/my-dropdown-item.vue";
 import {useUserInfoStore} from "../../global/store/userInfoStore.ts";
-import {goLogin} from "../../util/routerUtils.ts";
+import {goExcalidraw, goLogin} from "../../util/routerUtils.ts";
 import {getFileUploadUrl} from "../../api/env.ts";
 import MyAvatar from "../avatar/my-avatar.vue";
 import {clearToken} from "../../cache/tokenStorage.ts";
@@ -17,6 +17,10 @@ const logoutClick = () => {
     document.body.removeAttribute('login')
     clearToken()
     goLogin()
+}
+
+const goExcalidrawClick = () => {
+    goExcalidraw()
 }
 </script>
 
@@ -31,6 +35,7 @@ const logoutClick = () => {
             </template>
         </template>
         <template #dropdown>
+            <my-dropdown-item label="excalidraw" @itemClick="goExcalidrawClick"></my-dropdown-item>
             <my-dropdown-item label="退出" @itemClick="logoutClick"></my-dropdown-item>
         </template>
     </my-dropdown>

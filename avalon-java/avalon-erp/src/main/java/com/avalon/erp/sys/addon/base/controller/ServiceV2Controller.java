@@ -286,6 +286,6 @@ public class ServiceV2Controller {
     public Object invokeService(@PathVariable("serviceName") String serviceName,
                                 @RequestBody ServiceInvokeParam param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
-        return serviceBean.invokeMethod(param.getServiceName(), param.getMethod(), param.getParam().toArray());
+        return serviceBean.invokeMethod(param.getServiceName(), param.getMethod(), param.getParam());
     }
 }
