@@ -68,6 +68,17 @@ public class ConditionInterpreter extends ExpressionBaseVisitor<Condition> {
     }
 
     @Override
+    public Condition visitNotInComparison(ExpressionParser.NotInComparisonContext ctx) {
+        ExpressionParser.IdentifierContext identifier = ctx.identifier();
+        TerminalNode nameStr = ctx.STRING();
+        List<Object> values = visitValues((ExpressionParser.ListOfValuesContext) ctx.valueList());
+        if (ObjectUtils.isNull(identifier)) {
+            return Condition.notInCondition(nameStr.getText().replaceAll("'", ""), values);
+        }
+        return Condition.notInCondition(identifier.getText(), values);
+    }
+
+    @Override
     public Condition visitComparison(ExpressionParser.ComparisonContext ctx) {
         ExpressionParser.IdentifierContext identifier = ctx.identifier();
         TerminalNode nameStr = ctx.STRING();

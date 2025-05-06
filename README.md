@@ -1155,6 +1155,36 @@ public class UserService extends AbstractService implements IUserService {
 
 ![image-20250504134820996](img/image-20250504134820996.png)
 
+## search视图
+
+search视图一般在tree视图的顶部显示，用于搜索tree数据
+
+例子：以下是在pet.train.item模型上增加search视图，可搜索name，petTypeIds.typeId，tag,creator,difficulty字段
+
+注意：仅最多支持二级字段
+
+```xml
+   <record id="pet_train_item_view_search" service="base.action.view">
+        <field name="name">pet_train_item_view_search</field>
+        <field name="label">项目查询</field>
+        <field name="viewMode">search</field>
+        <field name="ref_serviceId">pet.train.item</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/> <!--String字段 使用like条件-->
+                <field name="petTypeIds.typeId"/><!--many2many字段 使用like条件-->
+                <field name="tag"/> <!--selection字段 使用like-->
+                <field name="creator"/> <!--many2one字段 使用like-->
+                <field name="difficulty"/> <!--integer字段 使用 = 条件-->
+            </search>
+        </field>
+    </record>
+```
+
+效果如下：
+
+![image-20250506215446811](img/image-20250506215446811.png)
+
 # 菜单
 
 创建前端菜单入口,只能三级

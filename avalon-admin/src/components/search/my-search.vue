@@ -12,16 +12,19 @@ import Field from "../../model/Field.ts";
 import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
+import {getJoinFirstField, hasJoin} from "../../util/fieldUtils.ts";
 
 /**
  * @author lwlianghehe@gmail.com
  * @date 2024/11/21 20:21
  */
 const props = defineProps<{
-    service: string,
-    fullWidth?: Boolean,
-    arrowShow?: Boolean,
+  service: string,
+  fullWidth?: Boolean,
+  arrowShow?: Boolean,
 }>()
+
+const serviceStore = useGlobalServiceDataStore()
 
 const fieldDataStore = useGlobalFieldDataStore();
 const serviceDataStore = useGlobalServiceDataStore();
@@ -32,8 +35,8 @@ const floating = ref(null);
 const floatingArrow = ref(null);
 const show = ref(false)
 const {floatingStyles, middlewareData, placement} = useFloating(reference, floating, {
-    placement: 'bottom',
-    middleware: [offset(8), flip(), shift(), arrow({element: floatingArrow})],
+  placement: 'bottom',
+  middleware: [offset(8), flip(), shift(), arrow({element: floatingArrow})],
 });
 
 const searchValue = ref<String>('')
@@ -41,106 +44,127 @@ const searchValue = ref<String>('')
 const arch = ref<string>('')
 let parserResult = ref<XMLParserResult | null>();
 const loadSearchView = (service: string) => {
-    getActionSearchView(service).then(data => {
-        if (data.length) {
-            parserEx(data[0].arch, service).then(result => {
-                parserResult.value = result
-                loadField(parserResult.value.fields)
-            })
-        } else {
-            loadField([])
-        }
-    })
+  getActionSearchView(service).then(data => {
+    if (data.length) {
+      parserEx(data[0].arch, service).then(result => {
+        parserResult.value = result
+        loadField(parserResult.value.fields)
+      })
+    } else {
+      loadField([])
+    }
+  })
 }
 if (props.service) {
-    loadSearchView(props.service)
+  loadSearchView(props.service)
 }
 const showPopper = () => {
-    if (!show.value) {
-        show.value = true;
-    }
+  if (!show.value) {
+    show.value = true;
+  }
 }
 const hidePopper = () => {
-    if (show.value) {
-        show.value = false;
-    }
+  if (show.value) {
+    show.value = false;
+  }
 }
 
 watch(() => searchValue.value, (newSearchValue) => {
-    if (newSearchValue) {
-        showPopper();
-    } else {
-        hidePopper();
-        emit('conditionChange', '');
-    }
+  if (newSearchValue) {
+    showPopper();
+  } else {
+    hidePopper();
+    emit('conditionChange', '');
+  }
 })
 
-const fields = ref<Field[]>([])
+const fields = ref<{ name: string, label: string, fieldMeta: Field }[]>([])
 const loadField = async (fieldArr: any[]) => {
-    const fieldTemp = await fieldDataStore.getFieldByServiceNameAsync(props.service)
-    const service = await serviceDataStore.getServiceByNameAsync(props.service)
-    fields.value.splice(0, fields.value.length);
-    const nameField = fieldArr.find((x) => x.name == service.nameField)
-    if (!nameField) {
-        fieldArr.push({name: service.nameField})
+  const fieldTemp = await fieldDataStore.getFieldByServiceNameAsync(props.service)
+  const service = await serviceDataStore.getServiceByNameAsync(props.service)
+  fields.value.splice(0, fields.value.length);
+  const nameField = fieldArr.find((x) => x.name == service.nameField)
+  if (!nameField) {
+    fieldArr.push({name: service.nameField})
+  }
+  for (let field of fieldArr) {
+    let fieldName = field.name
+    if (hasJoin(field.name)) {
+      fieldName = getJoinFirstField(field.name)
     }
-    for (let field of fieldArr) {
-        const x = fieldTemp.find(x => x.name == field.name);
-        if (x) {
-            fields.value.push(x)
-        }
+    const x = fieldTemp.find(x => x.name == fieldName);
+    if (x) {
+      fields.value.push({
+        name: field.name,
+        label: x.label,
+        fieldMeta: x
+      })
     }
+  }
 }
-const searchChange = (field: Field, value: String) => {
-    let searchCondition = ''
-    if (field.type == FieldTypeEnum.StringField ||
-        field.type == FieldTypeEnum.TextField ||
-        field.type == FieldTypeEnum.HtmlField) {
-        searchCondition = `('${field.name}',like,'${value}')`
-    }
-    if (searchCondition) {
-        emit('conditionChange', searchCondition);
-    }
-    hidePopper();
+const searchChange = async (originName: string, field: Field, value: String) => {
+  let searchCondition = ''
+  let fieldName = originName;
+
+  if (field.type === FieldTypeEnum.Many2oneField) { // 仅支持 string many2one Many2manyField字段
+    const primaryKeyField = await serviceStore.getServiceByNameAsync(field.relativeServiceName)
+    fieldName += `.${primaryKeyField.nameField}`
+  } else if (field.type === FieldTypeEnum.Many2manyField) {
+    const primaryKeyField = await serviceStore.getServiceByNameAsync(field.relativeServiceName)
+    fieldName += `.${primaryKeyField.nameField}`
+  }
+  let conditionOp = 'like'
+  if (field.type == FieldTypeEnum.BigDecimalField ||
+      field.type == FieldTypeEnum.BigIntegerField ||
+      field.type == FieldTypeEnum.DoubleField ||
+      field.type == FieldTypeEnum.FloatField ||
+      field.type == FieldTypeEnum.IntegerField) {
+    conditionOp = '='
+  }
+  searchCondition = `('${fieldName}',${conditionOp},'${value}')`
+  if (searchCondition) {
+    emit('conditionChange', searchCondition);
+  }
+  hidePopper();
 }
 
 </script>
 
 <template>
-    <div class="relative">
-        <div ref="reference">
-            <div class="flex border items-center gap-2 px-2 py-1 rounded-xl overflow-hidden">
-                <MyIcon type="fas" icon="search" size="sm"></MyIcon>
-                <input placeholder="搜索..." class="text-sm bg-background" type="text" v-model="searchValue">
-                <MyIcon type="fas" icon="caret-down" size="sm"></MyIcon>
-            </div>
+  <div class="relative">
+    <div ref="reference">
+      <div class="flex border items-center gap-2 px-2 py-1 rounded-xl overflow-hidden">
+        <MyIcon type="fas" icon="search" size="sm"></MyIcon>
+        <input placeholder="搜索..." class="text-sm bg-background" type="text" v-model="searchValue">
+        <MyIcon type="fas" icon="caret-down" size="sm"></MyIcon>
+      </div>
+    </div>
+    <div v-if="show"
+         :class="{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
+         ref="floating"
+         :style="[floatingStyles]">
+      <div class="text-sm">
+        <div v-for="(field, index) in fields" :key="index"
+             class="flex items-center px-6 gap-2 py-0.5 cursor-pointer hover:bg-gray-100"
+             @click="searchChange(field.name,field.fieldMeta,searchValue)">
+          <div style="color: #111827">搜索</div>
+          <div class="font-bold" style="color: #374151">{{ field.label }}</div>
+          <div style="color: #111827">包含</div>
+          <div style="color: #714B67">{{ searchValue }}</div>
         </div>
-        <div v-if="show"
-             :class="{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
-             ref="floating"
-             :style="[floatingStyles]">
-            <div class="text-sm">
-                <div v-for="(field, index) in fields" :key="index"
-                     class="flex items-center px-6 gap-2 py-0.5 cursor-pointer hover:bg-gray-100"
-                     @click="searchChange(field,searchValue)">
-                    <div style="color: #111827">搜索</div>
-                    <div class="font-bold" style="color: #374151">{{ field.label }}</div>
-                    <div style="color: #111827">包含</div>
-                    <div style="color: #714B67">{{ searchValue }}</div>
-                </div>
-            </div>
-            <div v-if="arrowShow" :class="{'arrow':true,'border-t':!placement.startsWith('top'),
+      </div>
+      <div v-if="arrowShow" :class="{'arrow':true,'border-t':!placement.startsWith('top'),
             'border-l':!placement.startsWith('top'),
             'border-b':placement.startsWith('top'),
             'border-r':placement.startsWith('top')}"
-                 ref="floatingArrow"
-                 :style="{ position: 'absolute',
+           ref="floatingArrow"
+           :style="{ position: 'absolute',
                 left:  middlewareData.arrow?.x != null ? `${middlewareData.arrow.x}px` : '',
                 top:  middlewareData.arrow?.y != null ? `${middlewareData.arrow.y}px`: '',
                 [placement.startsWith('top') ? 'bottom' : 'top']:'-4px'}">
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
 
 </template>
 

@@ -110,7 +110,7 @@ public class DatabaseController {
             context.addSystemState(SystemStateEnum.createDB);
             context.init(database);
             dbService.createDataBase();
-            context.invokeServiceMethod("base.module", "refreshModuleFromDisk", new ArrayList<Object>(), RecordRow.build());
+            context.invokeServiceMethod("base.module", "refreshModuleFromDisk", RecordRow.build());
         } catch (Exception e) {
             log.error("createDatabase:" + e.getMessage(), e);
             doDropDatabase(database);

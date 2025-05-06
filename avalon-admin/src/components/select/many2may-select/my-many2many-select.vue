@@ -100,14 +100,14 @@ const loadServiceOption = (name?: string) => {
             }
             if (values.length) {
                 if (formField.value.Field) {
-                    condition = `(notIn,${relativeServiceId.value} , ${values.join()})`
+                    condition = `('${relativeServiceId.value}',notIn , ${values.join()})`
                 }
             }
         }
         if (condition) {
-            condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : ''})&(${condition})`
+            condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : "''"})&${condition}`
         } else {
-            condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : ''})`
+            condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : "''"})`
         }
         getModelPageApi(`${service.value.keyField},${service.value.nameField}`,
             condition,
