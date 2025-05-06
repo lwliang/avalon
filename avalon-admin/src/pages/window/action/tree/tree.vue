@@ -3,10 +3,20 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import {ComponentInternalInstance, getCurrentInstance, inject, provide, ref, watch} from "vue";
+import {
+  compile,
+  ComponentInternalInstance,
+  createVNode,
+  getCurrentInstance,
+  inject,
+  provide,
+  ref,
+  shallowRef,
+  watch
+} from "vue";
 import {useRoute} from "vue-router";
 import ActionView from "../../../../model/view/ActionView.ts";
-import {deleteMultiModelApi, getModelAllApi, getModelPageApi} from "../../../../api/modelApi.ts";
+import {deleteMultiModelApi, getModelAllApi, getModelPageApi, invokeMethod} from "../../../../api/modelApi.ts";
 import {getTemplate, XMLParserResult} from "../../../../xml/XMLParserResult.ts";
 import {parserEx} from "../../../../xml/XMLParser.ts";
 import MyButton from "../../../../components/button/my-button.vue";
@@ -60,6 +70,8 @@ const renderView = async () => {
 let template_fields = ref<string[]>([]);
 let template_full_fields = ref<string[]>([]);
 let services_fields = ref<ShowField[]>([]);
+const headerTemplate = ref<any>(null)
+const header_component = shallowRef<any>(null)
 
 let parserResult: XMLParserResult | null = null;
 
@@ -69,6 +81,9 @@ const parserXml = async (str: string) => {
   parserResult = await parserEx(str, serviceName.value)
   xmlTemplate.value = getTemplate(parserResult)
 
+  if (parserResult.header && parserResult.header.template) {
+    headerTemplate.value = parserResult.header.template
+  }
   template_fields.value.splice(0, template_fields.value.length)
   template_fields.value.push(...parserResult.fields.map(x => x.name))
   if (!template_fields.value.includes(primaryKeyField.keyField)) {
@@ -92,6 +107,42 @@ const parserXml = async (str: string) => {
     if (field) {
       services_fields.value.push({Field: field, originField: key, serviceName: serviceName.value})
     }
+  }
+
+  createHeaderTemplateVNode();
+}
+
+const createHeaderTemplateVNode = () => {
+  if (!headerTemplate.value) return
+  const vNode = compile(headerTemplate.value)
+  const btnClickHandler = async (actionType: string, action: string) => {
+    console.log('btnClick', actionType, action)
+
+    let param: any = {
+      serviceName: serviceName.value,
+      method: action,
+      param: {}
+    };
+    if (rowSelectCount.value) {
+      param.param.ids = rowSelectIds.value
+    }
+    if (serviceName.value) {
+      const result = await invokeMethod(serviceName.value, param);
+      if (!result) { // 没有返回值
+        proxy?.$notify.success("提示", "操作成功");
+      } else {
+        if (result.type && result.type == 'ir.actions.client') { // 判断前端动作
+          const service = proxy?.$registry.getAll('actions').get(result.tag) as any
+          if (service) {
+            service.execute(result.param);
+          }
+        }
+
+      }
+    }
+  }
+  header_component.value = () => {
+    return createVNode(vNode, {btnClickHandler})
   }
 }
 
@@ -227,12 +278,14 @@ const importExcelClick = () => {
     <div class="pb-4 flex items-start w-full">
       <div class="flex-1">
         <my-button class="mr-0.5" type="primary" rounded @click="createServiceClick">新增</my-button>
+
         <my-button class="mr-0.5" type="primary" rounded @click="importExcelClick">导入</my-button>
         <my-button class="mr-0.5" v-if="rowSelectCount" type="success" rounded @click="exportOpen">
           导出
         </my-button>
         <my-button class="mr-0.5" v-if="rowSelectCount" type="danger" rounded @click="deleteServiceClick">删除
         </my-button>
+        <component :is="header_component"/>
       </div>
       <div class="flex-1 px-4">
         <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"

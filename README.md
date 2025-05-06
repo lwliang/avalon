@@ -986,6 +986,67 @@ service对应base.action.window
 
 ![image-20250408213235236](img/image-20250408213235236.png)
 
+### 增加顶部按钮
+
+在base.user模型上增加demo按钮
+
+```xml
+    <record id="base_user_view_tree" service="base.action.view">
+        <field name="name">base_user_view_tree</field>
+        <field name="label">用户</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.user</field>
+        <field name="arch" type="xml">
+            <tree>
+                <header>
+                    <MyButton :rounded="true" type="primary" action="demoClick"
+                              action-type="object">Demo
+                    </MyButton>
+                </header>
+                <field name="id"/>
+                <field name="avatar"/>
+                <field name="name"/>
+                <field name="account"/>
+                <field name="password"/>
+            </tree>
+        </field>
+    </record>
+```
+
+action-type="object"：意思是调用模型的方法
+
+action="demoClick"：方法名
+
+user模型代码
+
+```java
+@Service
+@Slf4j
+@Primary
+public class UserService extends AbstractService implements IUserService {
+    @Override
+    public String getServiceName() {
+        return "base.user";
+    }
+
+   //....
+
+    //参数param 会根据选中的记录的id列表，没有选中，则{}，有则{ids:[1,2]}
+	public RecordRow demoClick(RecordRow param) {
+        return null; // 返回null 前端会提示操作成功
+	}
+}
+
+```
+
+前端未选择记录效果:
+
+![image-20250506180330036](img/image-20250506180330036.png)
+
+前端选择记录效果：
+
+![image-20250506180442915](img/image-20250506180442915.png)
+
 ## form
 
 **Form 视图** 是用于显示单条记录的详细信息的视图类型。它是 Avalon中最常用的视图之一，通常用于创建、编辑和查看记录的详细内容。通过 Form 视图，用户可以管理模型的所有字段，并定义交互式的用户界面。

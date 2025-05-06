@@ -15,6 +15,7 @@ import {dotToUnderscore, getJoinFirstField, hasJoin} from "../../util/fieldUtils
 import Form from "../../model/form/Form.ts";
 import {stringToBool} from "../../util/StringUtils.ts";
 import XTreeXml from "../XTreeXml.ts";
+import TreeXml from "../TreeXml.ts";
 
 const useService = useGlobalServiceDataStore();
 const useFieldDataStore = useGlobalFieldDataStore()
@@ -26,7 +27,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
     service: string
     viewMode: 'kanban' | 'search' | 'tree' | 'form' | 'xtree'
     kanban: any
-    tree: any
+    tree: TreeXml
     xtree: XTreeXml
     form: Form
     search: any
@@ -82,7 +83,9 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         this.viewMode = "tree"
         this.kanban = {}
         this.form = {} as Form
-        this.tree = {}
+        this.tree = {
+            template: ''
+        }
         this.search = {}
         this.header = {}
         this.xtree = {

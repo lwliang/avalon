@@ -43,7 +43,9 @@ public class DynamicJdbcTemplate {
                         "WHERE datistemplate = false\n" +
                         "and datallowconn\n" +
                         "  and datname not in ('" + context.getDefaultDatabase() + "') " +
-                        "  AND datdba = (select usesysid from pg_user where usename = '%s');",
+                        "  AND (datdba = (select usesysid from pg_user where usename = '%s')" +
+                        " or  has_database_privilege('%s', datname, 'CONNECT'));",
+                context.getApplicationConfig().getDataSource().getUsername(),
                 context.getApplicationConfig().getDataSource().getUsername());
         return select(sql);
     }

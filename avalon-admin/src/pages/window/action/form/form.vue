@@ -419,9 +419,9 @@ const onScrollClick = (e: any) => {
                 <component :is="template_component"/>
             </div>
             <div class="flex-1 h-full box-border hidden 2xl:block">
-                <div class="w-full overflow-auto h-full">
-                    <MyServiceLog :service="serviceName" :service-id="row_id"></MyServiceLog>
-                </div>
+<!--                <div class="w-full overflow-auto h-full">-->
+<!--                    <MyServiceLog :service="serviceName" :service-id="row_id"></MyServiceLog>-->
+<!--                </div>-->
             </div>
         </div>
     </div>

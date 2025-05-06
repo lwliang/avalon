@@ -29,9 +29,8 @@ axios.interceptors.response.use((response) => {
     if (response.config.responseType == 'blob') {
         return response
     }
-    if (response.data)
-        return response.data
-    return response
+
+    return response.data
 }, (error) => {
     if (error.response.status === 401) {
         goLogin()
