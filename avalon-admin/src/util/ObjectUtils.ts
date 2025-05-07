@@ -3,7 +3,7 @@
  * @date 2024/11/22
  */
 
-import {isEqual, reduce, union, keys} from "lodash";
+import {isEqual, reduce, union, keys, isEmpty} from "lodash";
 
 export function getDifference(obj1: any, obj2: any) {
     const allKeys = union(keys(obj1), keys(obj2));
@@ -13,4 +13,8 @@ export function getDifference(obj1: any, obj2: any) {
         }
         return result;
     }, {});
+}
+
+export function isObjectEmpty(obj: any) {
+    return isEmpty(obj);
 }

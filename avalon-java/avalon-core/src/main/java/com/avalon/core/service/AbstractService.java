@@ -5,6 +5,7 @@
 
 package com.avalon.core.service;
 
+import com.avalon.core.annotation.OnChange;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.context.Context;
 import com.avalon.core.context.SystemConstant;
@@ -53,7 +54,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
 @Lazy
-public abstract class AbstractService implements IAvalonService, IAliasRequire, ICheckPermission, IExtendFieldService, IExportImportService {
+public abstract class AbstractService implements IAvalonService, IAliasRequire, ICheckPermission, IExtendFieldService,
+        IExportImportService, IChangeService {
     public final static String CREATE_TIME = "createTime";
     public final static String CREATOR = "creator";
     public final static String UPDATE_TIME = "updateTime";
@@ -1706,6 +1708,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
             }
         }
     }
+
     /*
      数据库表是否存在
      */
@@ -2235,5 +2238,68 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     @Override
     public Integer importExcel(Record record) {
         return insertMulti(record).size();
+    }
+
+
+    @Override
+    public ChangeRecordRow onChange(RecordRow changeFieldRow, RecordRow newRow, RecordRow oldRow) throws AvalonException {
+        ChangeRecordRow changeRecordRow = new ChangeRecordRow();
+
+        ChangeMethodList onChangeMethods = getOnChangeMethods();
+        changeFieldRow.forEach((fieldName, value) -> { // 变化的字段
+            for (ChangeMethod onChangeMethod : onChangeMethods) { // 全部的监听方法
+                if (onChangeMethod.containField(fieldName)) {
+                    try {
+                        ChangeRecordRow invokeResult = (ChangeRecordRow) onChangeMethod.getMethod().invoke(this, newRow, oldRow);
+
+                        if (ObjectUtils.isNotEmpty(invokeResult.getValue())) { // 合并值
+                            changeRecordRow.combineValue(invokeResult.getValue());
+                        }
+
+                        if (ObjectUtils.isNotEmpty(invokeResult.getWarnings())) { // 合并警告
+                            changeRecordRow.addWarnings(invokeResult.getWarnings());
+                        }
+                    } catch (Exception e) {
+                        throw new AvalonException(e.getMessage(), e);
+                    }
+                }
+            }
+        });
+
+
+        return changeRecordRow;
+    }
+
+    private ChangeMethodList changeMethodList = null;
+
+    @Override
+    public ChangeMethodList getOnChangeMethods() {
+        if (!ObjectUtils.isNull(changeMethodList)) {
+            return changeMethodList;
+        }
+        ChangeMethodList changeMethodListTemp = new ChangeMethodList();
+        Method[] methods = this.getClass().getMethods();
+        for (Method method : methods) {
+            if (!method.isAnnotationPresent(OnChange.class)) {
+                continue;
+            }
+            String[] value = method.getAnnotation(OnChange.class).value();
+            ChangeMethod changeMethod = new ChangeMethod(value, method);
+            changeMethodListTemp.add(changeMethod);
+        }
+        changeMethodList = changeMethodListTemp;
+        return changeMethodListTemp;
+    }
+
+    @Override
+    public List<String> getOnChangeFields() {
+        ChangeMethodList onChangeMethods = getOnChangeMethods();
+
+        List<String> fieldList = new ArrayList<>();
+
+        for (ChangeMethod onChangeMethod : onChangeMethods) {
+            fieldList.addAll(onChangeMethod.getFields());
+        }
+        return fieldList;
     }
 }

@@ -12,6 +12,7 @@ import com.avalon.core.exception.ParamCheckException;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.FieldList;
 import com.avalon.core.field.SelectionField;
+import com.avalon.core.model.ChangeRecordRow;
 import com.avalon.core.model.PageInfo;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
@@ -287,5 +288,19 @@ public class ServiceV2Controller {
                                 @RequestBody ServiceInvokeParam param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
         return serviceBean.invokeMethod(param.getServiceName(), param.getMethod(), param.getParam());
+    }
+
+    @PostMapping("get/{serviceName}/onchange/field")
+    public List<String> getOnChangeFields(@PathVariable("serviceName") String serviceName) {
+        AbstractService serviceBean = context.getServiceBean(serviceName);
+
+        return serviceBean.getOnChangeFields();
+    }
+
+    @PostMapping("value/{serviceName}/onchange")
+    public ChangeRecordRow onChangeRecordRow(@PathVariable("serviceName") String serviceName,
+                                             @RequestBody ServiceChangeParam param) {
+        AbstractService serviceBean = context.getServiceBean(serviceName);
+        return serviceBean.onChange(param.getChangeFieldRow(), param.getNewRow(), param.getOldRow());
     }
 }

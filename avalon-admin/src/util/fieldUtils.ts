@@ -4,6 +4,7 @@
  */
 import Field from "../model/Field.ts";
 import {useGlobalFieldDataStore} from "../global/store/fieldStore.ts";
+import FormField from "../model/FormField.ts";
 
 const useFieldDataStore = useGlobalFieldDataStore()
 
@@ -39,4 +40,39 @@ export async function getServiceField(service: string, field: string): Promise<F
         return undefined;
     }
     return serviceFields.find(x => x.name == field)
+}
+
+// 获取全部的值
+export const getFieldAllRecordRow = async (recordRowField: Record<string, FormField | any>) => {
+    const recordRow = {} as any;
+    for (let fieldKey in recordRowField) {
+        if (recordRowField[fieldKey] instanceof FormField) {
+            recordRow[fieldKey] = await recordRowField[fieldKey].getRawValue()
+        } else {
+            if (!recordRow[fieldKey]) {
+                recordRow[fieldKey] = {}
+            }
+            for (let x in recordRowField[fieldKey]) {
+                recordRow[fieldKey][x] = await recordRowField[fieldKey][x].getRawValue()
+            }
+        }
+    }
+    return recordRow
+}
+
+export const getOldFieldRecordRow = async (recordRowField: Record<string, FormField | any>) => {
+    const recordRow = {} as any;
+    for (let fieldKey in recordRowField) {
+        if (recordRowField[fieldKey] instanceof FormField) {
+            recordRow[fieldKey] = await recordRowField[fieldKey].getOldRawValue()
+        } else {
+            if (!recordRow[fieldKey]) {
+                recordRow[fieldKey] = {}
+            }
+            for (let x in recordRowField[fieldKey]) {
+                recordRow[fieldKey][x] = await recordRowField[fieldKey][x].getOldRawValue()
+            }
+        }
+    }
+    return recordRow
 }

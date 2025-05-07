@@ -633,7 +633,7 @@ public interface IField {
 RecordRow create(RecordRow defaultRow) throws AvalonException;
 ```
 
-#### 新增接口
+### 新增接口
 
 ```java
 PrimaryKey insert(RecordRow recordRow) throws AvalonException;//插入记录 会检查当前记录 及联插入
@@ -650,7 +650,7 @@ Integer update(RecordRow recordRow) throws AvalonException;//更新记录 检查
 Integer updateMulti(Record record) throws AvalonException;//批量更新
 ```
 
-#### 删除接口
+### 删除接口
 
 ```java
 Integer delete(Object id) throws AvalonException;//删除指定主键记录 不会检查是否满足删除条件， 直接删除
@@ -660,14 +660,50 @@ Integer delete(Condition condition, String serviceName) throws AvalonException;/
 Integer delete(RecordRow row) throws AvalonException;//删除记录 会检查当前记录 及联删除
 ```
 
-#### 调用服务接口
+### 调用服务接口
 
 ```java
 // 调用服务方法
 Object invokeMethod(String service, String methodName, Object... args) 
 ```
 
-#### 数据库接口
+### OnChange注解
+
+前端数据修改之后，会触发模型方法调用
+
+例子：
+
+```java
+    @OnChange("active") // 单字段修改
+    public ChangeRecordRow onChangeActive(RecordRow newRow, RecordRow oldRow) {
+        log.info("active is modified");
+        return new ChangeRecordRow();
+    }
+
+    @OnChange("serviceAccess") // 如果是one2many，则会整个字段触发，含新增，删除，某行的字段修改
+    public ChangeRecordRow onChangeServiceAccess(RecordRow newRow, RecordRow oldRow) {
+        log.info("serviceAccess is modified count=" + newRow.getRecord(serviceAccess).size());
+        return new ChangeRecordRow();
+    }
+   @OnChange({"debug", "name"}) // 支持多个字段 返回值有value是个键值对，则会覆盖前端的值，warings则会前端报错提醒
+    public ChangeRecordRow onDebugNameChange(RecordRow newRow, RecordRow oldRow) {
+        log.info("3" + newRow.getString("name").toString());
+        ChangeRecordRow changeRecordRow = new ChangeRecordRow();
+        if (!newRow.getString("name").contains("_java")) {
+            newRow.put("name", newRow.getString("name") + "_java");
+            changeRecordRow.addWarning("错误", "名字必须含_java");
+        }
+        changeRecordRow.setValue(newRow);
+
+        return changeRecordRow;
+    }
+```
+
+结果：
+
+![image-20250507173431511](img/image-20250507173431511.png)
+
+### 数据库接口
 
 ```java
  	/**

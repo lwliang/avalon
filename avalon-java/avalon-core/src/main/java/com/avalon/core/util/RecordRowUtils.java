@@ -47,40 +47,6 @@ public class RecordRowUtils {
      */
     public static RecordRow convert(AbstractService service, Map<String, Object> value)
             throws AvalonException {
-//        RecordRow recordRow = new RecordRow();
-//
-//        for (Map.Entry<String, Object> keyValue : value.entrySet()) {
-//            String key = keyValue.getKey();
-//            Object item = keyValue.getValue();
-//            Field field = service.getField(key);
-//
-//            if (item instanceof List) {
-//
-//                RelationField relationField = (RelationField) field;
-//                if (ObjectUtils.isNull(relationField)) {
-//                    continue;
-//                }
-////                AbstractService serviceBean = service.getServiceBean(relationField.getRelativeServiceName());
-//                recordRow.put(key, RecordUtils.convert(relationField.getRelativeService(), (ArrayList<Map<String, Object>>) item));
-//            } else if (item instanceof Map) {
-//                RelationField relationField = (RelationField) field;
-//                if (ObjectUtils.isNull(relationField)) {
-//                    continue;
-//                }
-////                AbstractService serviceBean = service.getServiceBean(relationField.getRelativeServiceName());
-//                recordRow.put(key, RecordRowUtils.convert(relationField.getRelativeService(), (Map<String, Object>) item));
-//            } else {
-//                if (ObjectUtils.isNotNull(field) &&
-//                        field instanceof IFieldFormat) {//判断字段是否需要格式化
-//                    Object parse = field.parse(item);
-//                    recordRow.put(key, parse);
-//                } else {
-//                    recordRow.put(key, item);
-//                }
-//            }
-//        }
-
-//        return recordRow;
         RecordRow convert = convert(value);
         parsePush(service, convert);
         return convert;
@@ -93,7 +59,6 @@ public class RecordRowUtils {
      * @param row
      */
     public static void parseRecursion(AbstractService service, RecordRow row) {
-
         FieldHashMap fieldFormatMap = service.getFieldFormatMap();
 
         fieldFormatMap.forEach((fieldName, field) -> {

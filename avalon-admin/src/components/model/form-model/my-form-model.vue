@@ -7,7 +7,16 @@ import './my-form-model.css';
 import MyOverlay from "../../overlay/my-overlay.vue";
 import MyIcon from "../../icon/my-icon.vue";
 import MyButton from "../../button/my-button.vue";
-import {compile, createVNode, defineComponent, ref, shallowRef} from "vue";
+import {
+  compile,
+  ComponentInternalInstance,
+  createVNode,
+  defineComponent,
+  getCurrentInstance,
+  ref,
+  shallowRef,
+  watch
+} from "vue";
 import {useGlobalFieldDataStore} from "../../../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../../../global/store/serviceStore.ts";
 import ActionView from "../../../model/view/ActionView.ts";
@@ -18,9 +27,16 @@ import {getTemplate, XMLParserResult} from "../../../xml/XMLParserResult.ts";
 import {FieldTypeEnum} from "../../../model/enum-type/FieldTypeEnum.ts";
 import FormField from "../../../model/FormField.ts";
 import {cloneDeep} from "lodash";
-import {getActionFormView, getActionTreeView} from "../../../api/commonApi.ts";
+import {getActionFormView, getActionTreeView, getOnChangeFields, onChangeValue} from "../../../api/commonApi.ts";
 import Service from "../../../model/Service.ts";
-import {getJoinFirstField, getJoinLastField, getServiceField, hasJoin} from "../../../util/fieldUtils.ts";
+import {
+  getFieldAllRecordRow,
+  getJoinFirstField,
+  getJoinLastField, getOldFieldRecordRow,
+  getServiceField,
+  hasJoin
+} from "../../../util/fieldUtils.ts";
+import {isObjectEmpty} from "../../../util/ObjectUtils.ts";
 
 const emit = defineEmits(['close', 'sure'])
 defineOptions({
@@ -37,6 +53,7 @@ const props = defineProps<{
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
+const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 
 const primaryService = ref<Service>()
 serviceStore.getServiceByNameAsync(props.service).then(data => {
@@ -248,7 +265,45 @@ const sureClick = async () => {
     }
     emit('sure', row)
 }
-
+/**
+ * 加载表单字段监听列表
+ * @param serviceName
+ */
+const onChangeFields = ref<String[]>([])
+const loadOnChangeField = async (serviceName: string) => {
+  return getOnChangeFields(serviceName)
+}
+loadOnChangeField(props.service).then(data => {
+  onChangeFields.value.push(...data)
+})
+watch(recordRowWithField.value, async () => {
+  let changeFields: any = {}
+  for (let fieldKey in recordRowWithField.value) {
+    const fieldValue = recordRowWithField.value[fieldKey]
+    if (fieldValue.isChanged()) {
+      if (onChangeFields.value.includes(fieldKey)) {
+        changeFields[fieldKey] = true
+      }
+    }
+  }
+  if (!isObjectEmpty(changeFields)) {
+    const newRow = await getFieldAllRecordRow(recordRowWithField.value)
+    const oldRow = await getOldFieldRecordRow(recordRowWithField.value)
+    const changeRecordRow = await onChangeValue(props.service, changeFields, newRow, oldRow)
+    if (changeRecordRow.value) { // 返回值
+      for (const fieldKey in changeRecordRow.value) {
+        recordRowWithField.value[fieldKey].value = changeRecordRow.value[fieldKey]
+      }
+    }
+    if (changeRecordRow.warnings && changeRecordRow.warnings.length > 0) { // 有异常
+      for (const warning of changeRecordRow.warnings) {
+        proxy?.$notify.error(warning.title, warning.message)
+      }
+    }
+  }
+}, {
+  deep: true
+})
 </script>
 
 <template>

@@ -116,3 +116,15 @@ export function readExcelContent(serviceName: string, file: File) {
 export function importExcel(serviceName: string, param: any) {
     return postErpHttp(`/service/import/${serviceName}/excel`, param)
 }
+
+export function getOnChangeFields(serviceName: string) {
+    return postErpHttp(`/service/get/${serviceName}/onchange/field`, {})
+}
+
+export function onChangeValue(serviceName: string, changeFields: any, newRow: any, oldRow: any) {
+    return postErpHttp(`/service/value/${serviceName}/onchange`, {
+        changeFieldRow: changeFields,
+        newRow: newRow,
+        oldRow: oldRow
+    })
+}
