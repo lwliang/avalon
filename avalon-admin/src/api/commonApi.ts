@@ -63,6 +63,11 @@ export function getActionFormView(serviceName: string) {
         `('serviceId.name',=,'${serviceName}')&('viewMode',=,'form')`);
 }
 
+export function getActionDownView(serviceName: string) {
+    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'down')`);
+}
+
 export function getActionKanbanView(serviceName: string) {
     return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
         `('serviceId.name',=,'${serviceName}')&('viewMode',=,'kanban')`);

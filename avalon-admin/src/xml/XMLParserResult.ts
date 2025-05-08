@@ -3,6 +3,8 @@
  * @date 2024/11/22
  */
 import XTreeXml from "./XTreeXml.ts";
+import DownXml from "./DownXml.ts";
+import TreeXml from "./TreeXml.ts";
 
 export interface XMLParserResult {
     viewMode: string;
@@ -10,10 +12,11 @@ export interface XMLParserResult {
     fullFields: any[],
     one2ManyFields?: string[],
     kanban: any,
-    tree: any,
+    tree: TreeXml,
     form: any,
     search: any,
     xtree: XTreeXml,
+    down: DownXml
     header: any,
 }
 
@@ -29,6 +32,9 @@ export function getTemplate(parseResult: XMLParserResult) {
     }
     if (parseResult.viewMode === 'xtree') {
         return parseResult.xtree.template
+    }
+    if (parseResult.viewMode === 'down') {
+        return parseResult.down.template
     }
     if (parseResult.viewMode === 'tree') {
         return parseResult.tree.template

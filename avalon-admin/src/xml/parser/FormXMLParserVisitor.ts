@@ -16,6 +16,7 @@ import Form from "../../model/form/Form.ts";
 import {stringToBool} from "../../util/StringUtils.ts";
 import XTreeXml from "../XTreeXml.ts";
 import TreeXml from "../TreeXml.ts";
+import DownXml from "../DownXml.ts";
 
 const useService = useGlobalServiceDataStore();
 const useFieldDataStore = useGlobalFieldDataStore()
@@ -25,10 +26,11 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
     fields: any[] // 保存原始字段
     fullFields: any[] // 全显示字段，包括 one2many,one2one字段 真正用于查询数据库的字段
     service: string
-    viewMode: 'kanban' | 'search' | 'tree' | 'form' | 'xtree'
+    viewMode: 'kanban' | 'search' | 'tree' | 'form' | 'xtree' | 'down'
     kanban: any
     tree: TreeXml
     xtree: XTreeXml
+    down: DownXml
     form: Form
     search: any
     header: any;
@@ -86,6 +88,9 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         this.tree = {
             template: ''
         }
+        this.down = {
+            template: ''
+        }
         this.search = {}
         this.header = {}
         this.xtree = {
@@ -112,6 +117,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             search: this.search,
             header: this.header,
             xtree: this.xtree,
+            down: this.down,
             one2ManyFields: this.one2ManyFields,
         }
     };
@@ -145,6 +151,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         if (this.viewMode == "form") return this.form
         if (this.viewMode == "search") return this.search
         if (this.viewMode == "xtree") return this.xtree
+        if (this.viewMode == "down") return this.down
     }
 
     visitElement = async (ctx: ElementContext) => {
@@ -168,6 +175,14 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 this.viewMode = 'xtree'
                 this.getTemplate().template = ""
                 await this.visitXtreeElement(ctx)
+            } else if (tagName.trim().toLowerCase() == 'down') { // tree
+                this.viewMode = 'down'
+                this.getTemplate().template = ""
+                await this.visitDownElement(ctx)
+                const key = await this.appendServiceKeyField()
+                if (key) {
+                    this.addFields({name: key.name})
+                }
             } else if (tagName.trim().toLowerCase() == 'tree') { // tree
                 if (!this._contain_field_stack()) { // 是列表视图
                     this.viewMode = 'tree'
@@ -469,6 +484,12 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
     visitSearchElement = async (ctx: ElementContext) => {
         for (let attributeContext of ctx.attribute_list()) { // 获取search的所有属性
             await this.visitObjectAttribute(attributeContext, this.search)
+        }
+        await this.visitContent(ctx.content())
+    }
+    visitDownElement = async (ctx: ElementContext) => {
+        for (let attributeContext of ctx.attribute_list()) { // 获取search的所有属性
+            await this.visitObjectAttribute(attributeContext, this.down)
         }
         await this.visitContent(ctx.content())
     }

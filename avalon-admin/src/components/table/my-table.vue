@@ -160,7 +160,7 @@ watch(() => allSelect.value.value, (all) => {
 <template>
     <div class="w-full overflow-auto" :style="{'max-height': height || 'auto'}">
         <table class="data-table w-[1000px]">
-            <thead class="sticky top-0" style="left: auto;bottom: auto;right: auto;z-index: 10;">
+            <thead @click.stop="void(0)" class="sticky top-0" style="left: auto;bottom: auto;right: auto;z-index: 10;">
             <tr class="border-b">
                 <th v-if="showSelectBtn" class="w-[28px]">
                     <MyCheck v-model="allSelect"/>
