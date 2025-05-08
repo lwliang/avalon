@@ -12,6 +12,7 @@ public enum ViewModeEnum implements ISelectFieldEnum {
     kanban("看板"),
     form("表单"),
     search("搜索"),
+    down("下拉"),
     tree("列表");
     private final String name;
 

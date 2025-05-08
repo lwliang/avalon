@@ -1221,6 +1221,33 @@ search视图一般在tree视图的顶部显示，用于搜索tree数据
 
 ![image-20250506215446811](img/image-20250506215446811.png)
 
+## down视图
+
+down作用于many2one的下拉界面中，当需要对某个模型的下来进行定制，则可以定义down视图，不定义，则会显示name字段列表
+
+例子：
+
+```xml
+ <record id="pet_train_item_view_down" service="base.action.view">
+        <field name="name">pet train item down</field>
+        <field name="label">训练项目</field>
+        <field name="viewMode">down</field>
+        <field name="ref_serviceId">pet.train.item</field>
+        <field name="arch" type="xml">
+            <down>
+                <field name="name"/>
+                <field name="petTypeIds"/>
+                <field name="tag"/>
+                <field name="vip"/>
+            </down>
+        </field>
+    </record>
+```
+
+页面效果：
+
+![a58cc0c29d3548579656b5e47d57eba](img/a58cc0c29d3548579656b5e47d57eba.png)
+
 # 菜单
 
 创建前端菜单入口,只能三级
