@@ -13,7 +13,7 @@ import {useUserInfoStore} from "../../global/store/userInfoStore.ts";
 import {ParserField} from "../model/ParserField.ts";
 import {dotToUnderscore, getJoinFirstField, hasJoin} from "../../util/fieldUtils.ts";
 import Form from "../../model/form/Form.ts";
-import {stringToBool} from "../../util/StringUtils.ts";
+import {stringToBool, toStandardJsonString} from "../../util/StringUtils.ts";
 import XTreeXml from "../XTreeXml.ts";
 import TreeXml from "../TreeXml.ts";
 import DownXml from "../DownXml.ts";
@@ -23,8 +23,8 @@ const useFieldDataStore = useGlobalFieldDataStore()
 
 
 export class FormXMLParserVisitor extends XMLParserVisitor<any> {
-    fields: any[] // 保存原始字段
-    fullFields: any[] // 全显示字段，包括 one2many,one2one字段 真正用于查询数据库的字段
+    fields: ParserField[] // 保存原始字段
+    fullFields: ParserField[] // 全显示字段，包括 one2many,one2one字段 真正用于查询数据库的字段
     service: string
     viewMode: 'kanban' | 'search' | 'tree' | 'form' | 'xtree' | 'down'
     kanban: any
@@ -140,7 +140,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         return serviceFields.find(x => x.name == field)
     }
 
-    addFields = (field: any) => {
+    addFields = (field: ParserField) => {
         this.fields.push(field)
         this.fullFields.push(field)
     }
@@ -312,27 +312,39 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                     const first = getJoinFirstField(field.name)
                     const firstField = await this.loadServiceField(this.service, first) as Field
                     const firstService = await useService.getServiceByNameAsync(firstField.relativeServiceName);
-                    if (!this.fullFields.includes(`${first}.${firstService.keyField}`)) {
+                    if (!this.fullFields.find(x => x.name == `${first}.${firstService.keyField}`)) {
                         this.fullFields.push({name: `${first}.${firstService.keyField}`})
                     }
                 }
-                const serviceField = await this.loadServiceField(this.service, field.name) as Field
-                if (!this.fields.find(x => x.name == field.name)) {
-                    this.addFields(field)
-                    if (serviceField && serviceField.type == FieldTypeEnum.Many2oneField) {
-                        const relativeServiceName = serviceField.relativeServiceName;
-                        const service = await useService.getServiceByNameAsync(relativeServiceName)
-                        this.fullFields.push({name: `${field.name}.${service.keyField}`})
-                        this.fullFields.push({name: `${field.name}.${service.nameField}`})
-                    } else if (serviceField && serviceField.type == FieldTypeEnum.Many2manyField) {
-                        const relativeServiceName = serviceField.relativeServiceName;
-                        const service = await useService.getServiceByNameAsync(relativeServiceName)
-                        this.fullFields.push({name: `${field.name}.id`})
-                        this.fullFields.push({name: `${field.name}.${serviceField.relativeForeignKeyName}.${service.keyField}`})
-                        this.fullFields.push({name: `${field.name}.${serviceField.relativeForeignKeyName}.${service.nameField}`})
+                const vModels: any[] = []
+                let props: any = null
+                for (const name in field) { // 获取name字段的值
+                    if (name.startsWith("name.") || name == 'name') {
+                        const fieldName = field[name] as string
+                        const serviceField = await this.loadServiceField(this.service, fieldName) as Field
+                        if (!this.fields.find(x => x.name == fieldName)) {
+                            this.addFields({name: fieldName})
+                            if (serviceField && serviceField.type == FieldTypeEnum.Many2oneField) {
+                                const relativeServiceName = serviceField.relativeServiceName;
+                                const service = await useService.getServiceByNameAsync(relativeServiceName)
+                                this.fullFields.push({name: `${fieldName}.${service.keyField}`})
+                                this.fullFields.push({name: `${fieldName}.${service.nameField}`})
+                            } else if (serviceField && serviceField.type == FieldTypeEnum.Many2manyField) {
+                                const relativeServiceName = serviceField.relativeServiceName;
+                                const service = await useService.getServiceByNameAsync(relativeServiceName)
+                                this.fullFields.push({name: `${fieldName}.id`})
+                                this.fullFields.push({name: `${fieldName}.${serviceField.relativeForeignKeyName}.${service.keyField}`})
+                                this.fullFields.push({name: `${fieldName}.${serviceField.relativeForeignKeyName}.${service.nameField}`})
+                            }
+                        }
+                        if (name.startsWith("name.")) {
+                            vModels.push({name: name.slice(5), value: fieldName})
+                        }
+                    } else if (name == 'props') { // 获取组件属性
+                        props = JSON.parse(toStandardJsonString(field[name]))
                     }
-
                 }
+                const serviceField = await this.loadServiceField(this.service, field.name) as Field
                 if (this.viewMode == 'form') {
                     if (this._contain_stack('col')) { // 在col中的字段 增加label组件
                         this.getTemplate().template += `<div class="contents">`
@@ -355,7 +367,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                         this.one2ManyFields.push(field.name)
                     }
 
-                    const templateXml = await this.createComponentName(field, serviceField)
+                    const templateXml = await this.createComponentName(field, serviceField, vModels, props)
                     if (templateXml) {
                         this.getTemplate().template += templateXml;
                     }
@@ -364,6 +376,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                         this.getTemplate().template += `</div>`
                     }
                 }
+
             } else if (tagName.trim().toLowerCase() == 'parentfield') {
                 const field = await this.visitFieldElement(ctx)
                 this.xtree.parentField = field.name
@@ -382,8 +395,15 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         this._pop_stack()
     }
 
-
-    private async createComponentName(field: ParserField, serviceField: Field) {
+    /**
+     *
+     * @param field
+     * @param serviceField
+     * @param vModels 多v-model值
+     * @param props 是组件属性值 {a:1}
+     * @private
+     */
+    private async createComponentName(field: ParserField, serviceField: Field, vModels: any[], props: any) {
         let componentName = '';
         let htmlName = field.name;
         let delegate = false;
@@ -404,6 +424,22 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 componentName = `ChatWindow`
             } else if (field.widget == 'document') {
                 componentName = `DocumentList`
+            } else if (field.widget == 'address') {
+                componentName = `MyAddress`
+            }
+        }
+        let vModelStr = ''
+        for (const model of vModels) {
+            vModelStr = `${vModelStr} v-model:${model.name}="${model.value}" `
+        }
+        let propStr = ''
+        if (props) {
+            for (const prop in props) {
+                if (prop.startsWith(':')) {
+                    propStr = `${propStr} :${prop}="${props[prop]}" `
+                } else {
+                    propStr = `${propStr} ${prop}="${props[prop]}" `
+                }
             }
         }
 
@@ -414,39 +450,42 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 return `<MySubTree ref="${htmlRef}_input" title="${serviceField.label}" :delegate="${delegate}" parentService="${this.service}" service="${service.name}" field="${serviceField.name}"
                                 :record="${field.name}" fieldType=${serviceField.type}></MySubTree>`
             } else {
-                return `<${componentName} v-model="${field.name}" />`
+                return `<${componentName} v-model="${field.name}" ${vModelStr} ${propStr}/>`
             }
         } else if (serviceField.type == FieldTypeEnum.SelectionField) {
-            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
+            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
         } else if (serviceField.type == FieldTypeEnum.FieldSelectionField) {
-            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
+            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
         } else if (serviceField.type == FieldTypeEnum.Many2oneField) {
-            return `<MyIdSelect border="bottom" ref="${htmlRef}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyIdSelect>`
+            if (!componentName) {
+                componentName = `MyIdSelect`
+            }
+            return `<${componentName} border="bottom" ref="${htmlRef}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
         } else if (serviceField.type == FieldTypeEnum.ImageField) {
-            return `<MyImageUpload ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyImageUpload>`
+            return `<MyImageUpload ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyImageUpload>`
         } else if (serviceField.type == FieldTypeEnum.VideoField) {
-            return `<MyVideoUpload ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyVideoUpload>`
+            return `<MyVideoUpload ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyVideoUpload>`
         } else if (serviceField.type == FieldTypeEnum.PasswordField) {
-            return `<MyPassword ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}" border="bottom"></MyPassword>`
+            return `<MyPassword ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}" border="bottom"></MyPassword>`
         } else if (serviceField.type == FieldTypeEnum.DateField) {
-            return `<my-date ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></my-date>`
+            return `<my-date ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></my-date>`
         } else if (serviceField.type == FieldTypeEnum.BooleanField) {
-            return `<MyCheck ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyCheck>`
+            return `<MyCheck ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyCheck>`
         } else if (serviceField.type == FieldTypeEnum.HtmlField) {
-            return `<MyTextarea border="bottom" ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyTextarea>`
+            return `<MyTextarea border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyTextarea>`
         } else if (serviceField.type == FieldTypeEnum.TextField) {
             if (!componentName) {
                 componentName = `MyTextarea`
             }
-            return `<${componentName}  border="bottom" ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
+            return `<${componentName}  border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
         } else if (serviceField.type == FieldTypeEnum.Many2manyField) {
-            return `<MyMany2manySelect border="bottom" ref="${htmlRef}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyMany2manySelect>`
+            return `<MyMany2manySelect border="bottom" ref="${htmlRef}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyMany2manySelect>`
         } else if (serviceField.type == FieldTypeEnum.TimeField) {
-            return `<MyTime ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyTime>`
+            return `<MyTime ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyTime>`
         } else if (serviceField.type == FieldTypeEnum.DateTimeField) {
-            return `<MyDatetime border="bottom" ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}"></MyDatetime>`
+            return `<MyDatetime border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyDatetime>`
         } else {
-            return `<MyInput ref="${htmlRef}_input" v-model="${field.name}" htmlId="${field.name}" htmlName="${htmlName}" border="bottom"></MyInput>`
+            return `<MyInput ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}" border="bottom"></MyInput>`
         }
     }
 

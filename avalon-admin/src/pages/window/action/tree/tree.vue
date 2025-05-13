@@ -289,7 +289,7 @@ const importExcelClick = () => {
       </div>
       <div class="flex-1 px-4">
         <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
-                  :service="serviceName"></MySearch>
+                  :serviceName="serviceName"></MySearch>
       </div>
       <div class="flex-1 flex justify-end">
         <MyPagination v-model:total="total" v-model:begin="begin" v-model:end="end"

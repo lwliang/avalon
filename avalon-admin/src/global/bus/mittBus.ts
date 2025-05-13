@@ -66,7 +66,7 @@ async function goFirstMenu(menus: MenuModel[]) {
         }
         if (menu) {
             console.log("changeModule", menu)
-            goModelWindow(menu.action.serviceId.moduleId.name,
+            goModelWindow(menu.moduleId ? menu.moduleId.name : menu.action.serviceId.moduleId.name,
                 menu.action.serviceId.name,
                 {})
         }

@@ -13,13 +13,14 @@ import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
 import {getJoinFirstField, hasJoin} from "../../util/fieldUtils.ts";
+import MySearchConditionModel from "./my-search-condition-model.vue";
 
 /**
  * @author lwlianghehe@gmail.com
  * @date 2024/11/21 20:21
  */
 const props = defineProps<{
-  service: string,
+  serviceName: string,
   fullWidth?: Boolean,
   arrowShow?: Boolean,
 }>()
@@ -55,8 +56,8 @@ const loadSearchView = (service: string) => {
     }
   })
 }
-if (props.service) {
-  loadSearchView(props.service)
+if (props.serviceName) {
+  loadSearchView(props.serviceName)
 }
 const showPopper = () => {
   if (!show.value) {
@@ -80,8 +81,8 @@ watch(() => searchValue.value, (newSearchValue) => {
 
 const fields = ref<{ name: string, label: string, fieldMeta: Field }[]>([])
 const loadField = async (fieldArr: any[]) => {
-  const fieldTemp = await fieldDataStore.getFieldByServiceNameAsync(props.service)
-  const service = await serviceDataStore.getServiceByNameAsync(props.service)
+  const fieldTemp = await fieldDataStore.getFieldByServiceNameAsync(props.serviceName)
+  const service = await serviceDataStore.getServiceByNameAsync(props.serviceName)
   fields.value.splice(0, fields.value.length);
   const nameField = fieldArr.find((x) => x.name == service.nameField)
   if (!nameField) {
@@ -128,15 +129,42 @@ const searchChange = async (originName: string, field: Field, value: String) => 
   hidePopper();
 }
 
+const searchConditionShow = ref(false)
+const showSearchConditionModel = () => {
+  searchConditionShow.value = true
+}
+const searchConditionStr = ref('')
+const searchConditionSure = (conditionStr: string) => {
+  searchConditionShow.value = false
+  if (conditionStr) { // 不是字符串
+    searchConditionStr.value = conditionStr
+    emit('conditionChange', conditionStr);
+  } else {
+    searchConditionStr.value = ''
+  }
+}
+const searchConditionClose = () => {
+  searchConditionShow.value = false
+}
+const clearSearchConditionClick = () => {
+  searchConditionStr.value = ''
+  emit('conditionChange', '');
+}
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative h-[34px]">
     <div ref="reference">
       <div class="flex border items-center gap-2 px-2 py-1 rounded-xl overflow-hidden">
         <MyIcon type="fas" icon="search" size="sm"></MyIcon>
-        <input placeholder="搜索..." class="text-sm bg-background" type="text" v-model="searchValue">
-        <MyIcon type="fas" icon="caret-down" size="sm"></MyIcon>
+        <div class="flex bg-white rounded-lg px-1" v-if="searchConditionStr">
+          <div class="px-1">{{ searchConditionStr }}</div>
+          <div class="cursor-pointer" @click="clearSearchConditionClick">x</div>
+        </div>
+        <input placeholder="搜索..." class="text-sm bg-background flex-1" type="text" style="width:auto"
+               v-model="searchValue">
+        <MyIcon @click="showSearchConditionModel" class="cursor-pointer" type="fas" icon="caret-down"
+                size="sm"></MyIcon>
       </div>
     </div>
     <div v-if="show"
@@ -164,6 +192,9 @@ const searchChange = async (originName: string, field: Field, value: String) => 
                 [placement.startsWith('top') ? 'bottom' : 'top']:'-4px'}">
       </div>
     </div>
+
+    <my-search-condition-model :service-name="serviceName" :show="searchConditionShow"
+                               @sureClick="searchConditionSure" @close-click="searchConditionClose"/>
   </div>
 
 </template>

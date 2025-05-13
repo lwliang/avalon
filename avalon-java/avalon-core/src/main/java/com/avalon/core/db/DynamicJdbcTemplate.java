@@ -12,11 +12,14 @@ import com.avalon.core.select.builder.SelectBuilder;
 import com.avalon.core.service.AbstractService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Connection;
 
 @Component
 @Slf4j
@@ -43,16 +46,14 @@ public class DynamicJdbcTemplate {
                         "WHERE datistemplate = false\n" +
                         "and datallowconn\n" +
                         "  and datname not in ('" + context.getDefaultDatabase() + "') " +
-                        "  AND (datdba = (select usesysid from pg_user where usename = '%s')" +
-                        " or  has_database_privilege('%s', datname, 'CONNECT'));",
-                context.getApplicationConfig().getDataSource().getUsername(),
+                        "  AND datdba = (select usesysid from pg_user where usename = '%s');",
                 context.getApplicationConfig().getDataSource().getUsername());
         return select(sql);
     }
 
     public Record select(String sql) {
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} select sql -> {}", context.getBaseName(), sql);
+            log.debug("db {} select sql -> {}", getCurrentDatabase(), sql);
         }
         DataReaderRowDefaultHandler dataReaderHandler = new DataReaderRowDefaultHandler();
         jdbcTemplate.query(sql, dataReaderHandler);
@@ -60,10 +61,14 @@ public class DynamicJdbcTemplate {
         return dataReaderHandler.getRecord();
     }
 
+    public String getCurrentDatabase() {
+        return jdbcTemplate.execute(Connection::getCatalog);
+    }
+
     public Record select(AvalonPreparedStatement psc,
                          SelectBuilder selectBuilder) {
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} select sql -> {}", context.getBaseName(), psc.toString());
+            log.debug("db {} select sql -> {}", getCurrentDatabase(), psc.toString());
         }
         DataReaderRowHandler dataReaderHandler = new DataReaderRowHandler(selectBuilder);
         jdbcTemplate.query(psc, dataReaderHandler);
@@ -73,7 +78,7 @@ public class DynamicJdbcTemplate {
 
     public Record select(AvalonPreparedStatement psc) {
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} select default sql -> {}", context.getBaseName(), psc.toString());
+            log.debug("db {} select default sql -> {}", getCurrentDatabase(), psc.toString());
         }
         DataReaderRowDefaultHandler dataReaderHandler = new DataReaderRowDefaultHandler();
         jdbcTemplate.query(psc, dataReaderHandler);
@@ -85,14 +90,14 @@ public class DynamicJdbcTemplate {
     public Integer selectCount(StringBuilder sql) {
         String s = sql.toString();
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} select sql -> {}", context.getBaseName(), s);
+            log.debug("db {} select sql -> {}", getCurrentDatabase(), s);
         }
         return jdbcTemplate.queryForObject(s, Integer.class);
     }
 
     public Integer selectCount(StringBuilder sql, FieldValueStatement fieldValueStatement) {
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} select sql -> {} value {}", context.getBaseName(), sql.toString(), fieldValueStatement.toString());
+            log.debug("db {} select sql -> {} value {}", getCurrentDatabase(), sql.toString(), fieldValueStatement.toString());
         }
 
         return jdbcTemplate.queryForObject(sql.toString(),
@@ -110,7 +115,7 @@ public class DynamicJdbcTemplate {
     public Integer delete(StringBuilder sql) {
         String s = sql.toString();
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} delete sql -> {}", context.getBaseName(), s);
+            log.debug("db {} delete sql -> {}", getCurrentDatabase(), s);
         }
         return jdbcTemplate.update(s);
     }
@@ -124,7 +129,7 @@ public class DynamicJdbcTemplate {
     public Integer insert(StringBuilder sql) {
         String s = sql.toString();
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} insert sql -> {}", context.getBaseName(), s);
+            log.debug("db {} insert sql -> {}", getCurrentDatabase(), s);
         }
         return jdbcTemplate.update(s);
     }
@@ -136,7 +141,7 @@ public class DynamicJdbcTemplate {
      */
     public Integer insert(AvalonPreparedStatement preSql, KeyHolder keyHolder) {
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} insert sql -> {}", context.getBaseName(), preSql.toString());
+            log.debug("db {} insert sql -> {}", getCurrentDatabase(), preSql.toString());
         }
         jdbcTemplate.update(preSql, keyHolder);
         return keyHolder.getKey().intValue();
@@ -144,14 +149,14 @@ public class DynamicJdbcTemplate {
 
     public void insert(AvalonPreparedStatement preSql) {
         if (log.isDebugEnabled()) {
-            log.debug("db {} insert sql -> {}", context.getBaseName(), preSql.toString());
+            log.debug("db {} insert sql -> {}", getCurrentDatabase(), preSql.toString());
         }
         jdbcTemplate.update(preSql);
     }
 
     public Integer update(AvalonPreparedStatement preSql) {
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} update sql -> {}", context.getBaseName(), preSql.toString());
+            log.debug("db {} update sql -> {}",getCurrentDatabase(), preSql.toString());
         }
         return jdbcTemplate.update(preSql);
     }
@@ -165,7 +170,7 @@ public class DynamicJdbcTemplate {
     public Integer update(StringBuilder sql) {
         String s = sql.toString();
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} update sql -> {}", context.getBaseName(), s);
+            log.debug("db {} update sql -> {}", getCurrentDatabase(), s);
         }
         return jdbcTemplate.update(s);
     }
@@ -174,7 +179,7 @@ public class DynamicJdbcTemplate {
     public void execute(StringBuilder sql) {
         String s = sql.toString();
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} execute sql -> {}", context.getBaseName(), s);
+            log.debug("db {} execute sql -> {}", getCurrentDatabase(), s);
         }
         jdbcTemplate.execute(s);
     }
@@ -205,7 +210,7 @@ public class DynamicJdbcTemplate {
      */
     public <T> T executeScalar(String sql, Class<T> t) {
         if (context.getApplicationConfig().getDebug()) {
-            log.debug("db {} execute scalar sql -> {}", context.getBaseName(), sql);
+            log.debug("db {} execute scalar sql -> {}", getCurrentDatabase(), sql);
         }
         return jdbcTemplate.queryForObject(sql, t);
     }

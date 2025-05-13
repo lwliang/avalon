@@ -77,7 +77,11 @@ public class BigIntegerField extends Field implements INumberField<Long> {
 
     @Override
     public Object getSqlValue(Object value) {
-        return value;
+        if (value instanceof Long) {
+            return value;
+        }
+
+        return Long.valueOf(value.toString());
     }
 
     @Override

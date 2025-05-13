@@ -353,7 +353,13 @@ public abstract class AbstractModule {
             row.put(nodeName, nodeValue);
         }
         if (row.containsKey("action") && !row.containsKey("type")) {
-            row.put("action", getModelDataSourceId(this.getModuleName(), row.getString("action")));
+            String moduleName = this.getModuleName();
+            String action = row.getString("action");
+            if (FieldUtils.hasJoinSelect(action)) {
+                moduleName = FieldUtils.getJoinFirstTableString(action);
+                action = FieldUtils.getJoinFirstFieldString(action);
+            }
+            row.put("action", getModelDataSourceId(moduleName, action));
         }
 
         try {

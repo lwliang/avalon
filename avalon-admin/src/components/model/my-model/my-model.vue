@@ -1,0 +1,53 @@
+<script setup lang="ts">
+/**
+ * @author lwlianghehe@gmail.com
+ * @date 2025/05/13 15:15
+ */
+
+import MyIcon from "../../icon/my-icon.vue";
+import MyButton from "../../button/my-button.vue";
+import MyOverlay from "../../overlay/my-overlay.vue";
+
+const props = defineProps({
+  show: {
+    type: Boolean,
+    default: false
+  },
+  title: String,
+})
+
+const emit = defineEmits(['close', 'sure'])
+
+const closeClick = () => {
+  emit('close')
+}
+const sureClick = async () => {
+  emit('sure')
+}
+</script>
+
+<template>
+  <MyOverlay v-if="props.show">
+    <div class="absolute-center w-4/5 h-3/4 bg-background flex flex-col">
+      <div class="model-head">
+        <div class="dialog-title flex-1">
+          {{ title }}
+        </div>
+        <div class="dialog-close pr-2">
+          <MyIcon class="cursor-pointer" icon="xmark" type="fas" @click="closeClick"></MyIcon>
+        </div>
+      </div>
+      <div class="model-content flex-1 overflow-hidden">
+        <slot></slot>
+      </div>
+      <div class="model-footer">
+        <MyButton type="info" rounded @click="closeClick">取消</MyButton>
+        <MyButton class="ml-3" type="primary" rounded @click="sureClick">确认</MyButton>
+      </div>
+    </div>
+  </MyOverlay>
+</template>
+
+<style scoped>
+
+</style>

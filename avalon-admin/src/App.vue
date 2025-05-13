@@ -11,36 +11,37 @@ import {onMounted, onUnmounted} from "@vue/runtime-dom";
 
 
 if (isLogin()) {
-    document.body.setAttribute('login', '')
-    mittBus.emit("loadModule")
-    mittBus.emit("loadService")
-    mittBus.emit('loadUserInfo')
+  document.body.setAttribute('login', '')
+  mittBus.emit("loadModule")
+  mittBus.emit("loadService")
+  mittBus.emit('loadUserInfo')
 } else {
-    document.body.removeAttribute('login')
-    goLogin()
+  document.body.removeAttribute('login')
+  goLogin()
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
-    if (event.altKey && event.shiftKey) {
-        switch (event.key) {
-            case "h":
-            case "H":
-                goExcalidraw()
-                break
-        }
+  if (event.altKey && event.shiftKey) {
+    switch (event.key) {
+      case "h":
+      case "H":
+        goExcalidraw()
+        break
     }
+  }
 }
 
 onMounted(() => {
-    window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('keydown', handleKeydown)
 })
 onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('keydown', handleKeydown)
 })
+
 </script>
 
 <template>
-    <router-view></router-view>
+  <router-view></router-view>
 </template>
 
 <style scoped>

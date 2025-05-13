@@ -124,7 +124,7 @@ const handlePageChange = (dir: string) => {
             <div class="flex-1"></div>
             <div class="flex-1">
                 <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
-                          :service="serviceName"/>
+                          :serviceName="serviceName"/>
             </div>
             <div class="flex-1 flex justify-end">
                 <MyPagination v-model:total="total" v-model:begin="begin" v-model:end="end"

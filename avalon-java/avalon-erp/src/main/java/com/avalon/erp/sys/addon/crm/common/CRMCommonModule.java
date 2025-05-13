@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class CRMCommonModule extends AbstractModule {
     @Override
     public String getModuleName() {
-        return "crm.common";
+        return "crm_common";
     }
 
     @Override

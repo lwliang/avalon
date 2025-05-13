@@ -6,7 +6,7 @@
 import './my-input.css'
 import FormField from "../../model/FormField.ts";
 import {ref, watch} from "vue";
-import {borderStyleType, iconStyleType} from "../icon/my-icon.ts";
+import {borderStyleType, iconStyleType,iconTagType} from "../icon/my-icon.ts";
 import MyButton from "../button/my-button.vue";
 
 const props = defineProps({
@@ -22,6 +22,10 @@ const props = defineProps({
     iconStyle: {
         type: iconStyleType,
         default: 'far'
+    },
+    iconTag:{
+        type: iconTagType,
+        default:'button'
     },
     rightContent: String,
     suffixIcon: {
@@ -105,7 +109,7 @@ defineExpose({validate})
 </script>
 
 <template>
-    <div class="flex relative">
+    <div class="flex relative w-full">
         <div class="absolute top-1/2 -translate-y-1/2 pl-2">
             <MyIcon v-if="suffixIcon" :icon="suffixIcon"
                     :type="suffixIconStyle"></MyIcon>
@@ -122,9 +126,15 @@ defineExpose({validate})
             @blur="isFocus = false"
             @change="valueChange"
             :name="htmlName">
-        <MyButton @click="rightBtnClick" type="info" v-if="icon" :icon="icon" :icon-style="iconStyle" class="rounded-r"
+            <template v-if="iconTag == 'button'">
+                <MyButton @click="rightBtnClick" type="info" v-if="icon" :icon="icon" :icon-style="iconStyle" class="rounded-r"
                   :icon-color="iconColor">{{ rightContent }}
-        </MyButton>
+                </MyButton>
+            </template>
+            <template v-else> 
+                <MyIcon class="absolute right-[10px] top-[50%]" style="transform: translateY(-50%)"  :icon="icon" :type="iconStyle" :color="iconColor"></MyIcon>
+            </template>
+     
     </div>
 
 

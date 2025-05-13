@@ -4,7 +4,7 @@
  * @date 2024/11/22
  */
 import './my-selection-select.css'
-import {ref, watch} from "vue";
+import {ref, watch,computed} from "vue";
 import FormField from "../../../model/FormField.ts";
 import {InputExpose} from "../../../global/input/InputExpose.ts";
 import {getSelectionValueByServiceAndField} from "../../../cache/SelectionValueMemory.ts";
@@ -34,15 +34,43 @@ const formField = defineModel({
 const labelValue = new FormField('');
 labelValue.Field = formField.value?.Field
 const labelField = ref<FormField>(labelValue)
+const labelFields = ref<FormField[]>([]) // 多选时，labelField的值
 
 watch(() => formField.value?.value, () => {
     setValidate(true)
-    if (labelField.value && labelField.value.value != options.value[formField.value?.value]) {
-        labelField.value.value = options.value[formField.value?.value]
-    }
+    formatDisplay()
 })
 
+/**
+ * 格式化显示
+ */
+const formatDisplay = () =>{
+    if (labelField.value && labelField.value.value != options.value[formField.value?.value]) {
+        if (formField.value?.Field && formField.value.Field.isMulti) { // 多选
+            if(formField.value?.value) {
+                const values = formField.value?.value.split(',')
+                labelFields.value.splice(0, labelFields.value.length)
+                for (const value of values) {
+                    labelFields.value.push(new FormField({id: value, name: options.value[value]}, formField.value?.Field))
+                }
+            }
+        } else { // 单选
+            labelField.value.value = options.value[formField.value?.value]
+        }
+    }
+}
+
 const options = ref<Record<string, string>>({})
+
+const computedOptions = computed(() => {
+    const result:any = {}
+    for(const key in  options.value) {
+        if(labelFields.value.findIndex(field => field.value.id === key) < 0) {
+            result[key] = options.value[key]
+        }
+    }
+    return result
+})
 
 onMounted(() => {
     loadSelectionOptions();
@@ -53,7 +81,7 @@ const loadSelectionOptions = () => {
         getSelectionValueByServiceAndField(props.service, props.field).then(data => {
             Object.assign(options.value, data)
             if (formField.value) {
-                labelField.value.value = options.value[formField.value.value]
+                formatDisplay()
             }
         })
     }
@@ -76,12 +104,33 @@ const validate = (): boolean => {
 
 
 const optionSelectClick = (key: string) => {
-    if (labelField.value) {
-        labelField.value.value = options.value[key]
+    if (formField.value?.Field?.isMulti) { // 多选
+        labelFields.value.push(new FormField({id: key, name: options.value[key]}, formField.value?.Field))
+        labelField.value.value = null;
+        if (formField.value) {
+            formField.value.value = labelFields.value.map(field => field.value.id).join(',')
+        }
+    } else { // 单选
+        if (labelField.value) {
+            labelField.value.value = options.value[key]
+        }
+        if (formField.value) {
+            formField.value.value = key
+        }
+    }
+}
+
+const deleteTagClick = (value: any) => {
+    const index = labelFields.value.findIndex(field => field.value.id === value)
+    if (index >= 0) {
+        labelFields.value.splice(index, 1)
     }
     if (formField.value) {
-        formField.value.value = key
+        formField.value.value = labelFields.value.map(field => field.value.id).join(',')
     }
+}
+
+const tagClick = (value: any) => {
 }
 
 defineExpose<InputExpose>({validate})
@@ -90,8 +139,15 @@ defineExpose<InputExpose>({validate})
 
 <template>
     <div class="flex relative">
-        <MyInnerPopover placement="bottom" trigger="click" :option="options" full-width @itemSelect="optionSelectClick">
+        <MyInnerPopover placement="bottom" trigger="click" :option="computedOptions" full-width @itemSelect="optionSelectClick">
             <div class="inline-flex w-full relative">
+                <div class="flex flex-wrap gap-1" v-if="formField?.Field?.isMulti">
+                    <template v-for="(fieldValue,index) in labelFields" :key="index">
+                        <MyTag :close="!readonly" :round="true" 
+                            :label="fieldValue.value.name"
+                            :value="fieldValue.value.id" @deleteTag="deleteTagClick" @tagClick="tagClick"/>
+                    </template>
+                </div>
                 <input
                     :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,
                     'border':border == 'round', 'border-b':border == 'bottom'}]"

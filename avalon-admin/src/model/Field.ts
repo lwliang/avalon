@@ -28,4 +28,5 @@ export default interface Field {
     relativeForeignKeyName: string,
     manyServiceTable: string,
     relativeFieldName: string,
+    isMulti: boolean
 }

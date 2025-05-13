@@ -553,7 +553,7 @@ const loadChildrenData = async (data: TreeData) => {
             </div>
             <div class="flex-1 px-4">
                 <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
-                          :service="serviceName"></MySearch>
+                          :serviceName="serviceName"></MySearch>
             </div>
             <div class="flex-1 flex justify-end">
 

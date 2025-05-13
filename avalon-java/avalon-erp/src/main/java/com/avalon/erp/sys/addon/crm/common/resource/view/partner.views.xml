@@ -20,9 +20,8 @@
                     </row>
                     <row>
                         <col>
-                            <field name="provinceId"/>
-                            <field name="cityId"/>
-                            <field name="districtId"/>
+                            <field name="provinceId" name.city="cityId" name.district="districtId" widget="address"
+                                   props="{'type':'district'}"/>
                         </col>
                         <col>
                             <field name="street"/>

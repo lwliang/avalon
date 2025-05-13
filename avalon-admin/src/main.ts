@@ -52,6 +52,7 @@ import RegistryPlugin from "./global/registry/registryPlugin.ts";
 import {registerActions} from './global/registry/actions'
 import MarkdownVue from "./components/markdown/markdown.vue";
 import ExcalidrawEditorVue from "./components/excalidraw/ExcalidrawVue.vue";
+import Address from "./components/address/address.vue";
 
 
 window.ReconnectingWebSocket = ReconnectingWebSocket;
@@ -98,6 +99,7 @@ app.component('DocumentList', DocumentList)
 app.component('Markdown', MarkdownVue)
 app.component('Excalidraw', ExcalidrawEditorVue)
 app.component('MyTree', MyTree)
+app.component('MyAddress', Address)
 
 // 使用注册表插件
 app.use(RegistryPlugin);

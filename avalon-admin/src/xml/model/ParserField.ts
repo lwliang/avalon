@@ -3,7 +3,9 @@
  * @date 2024/12/16 20:00
  */
 
-export interface ParserField {
-    name: string;
-    widget: string
+/**
+ * widget属性 name.xxx
+ */
+export interface ParserField extends Record<string, string> {
+    name: string
 }

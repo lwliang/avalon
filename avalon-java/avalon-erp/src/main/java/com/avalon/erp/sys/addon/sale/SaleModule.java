@@ -29,7 +29,7 @@ public class SaleModule extends AbstractModule {
     @Override
     public String[] depends() {
         return new String[]{
-                "crm.common",
+                "crm_common",
                 "product"
         };
     }

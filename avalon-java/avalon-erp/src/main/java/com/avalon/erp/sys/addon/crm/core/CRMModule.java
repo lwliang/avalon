@@ -38,7 +38,7 @@ public class CRMModule extends AbstractModule {
 
     @Override
     public String[] depends() {
-        return new String[]{"crm.common"};
+        return new String[]{"crm_common"};
     }
 
     @Override
