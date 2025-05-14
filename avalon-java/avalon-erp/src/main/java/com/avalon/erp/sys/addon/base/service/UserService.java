@@ -39,6 +39,11 @@ public class UserService extends AbstractService implements IUserService {
         return "base.user";
     }
 
+    @Override
+    public String getLabel() {
+        return "登录账户";
+    }
+
     protected final Field password = Fields.createPasswordField("密码");
 
     protected final Field account = Fields.createString("账号", true);

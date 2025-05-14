@@ -156,7 +156,7 @@ public class ServiceV2Controller {
                 "relativeServiceName,manyServiceTable,relativeFieldName";
         Condition condition = Condition.equalCondition("serviceId.name", serviceName);
         if (StringUtils.isNotEmpty(field)) {
-            condition = Condition.andCondition(condition, Condition.likeCondition("label", field));
+            condition = Condition.andCondition(condition, Condition.likeCondition("label","'" +field + "'"));
         }
 
         return serviceBean.select(condition, FieldUtils.getFieldArray(fields));

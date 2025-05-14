@@ -261,7 +261,7 @@ const exportSure = async (fields: string) => {
   const primaryKeyField = await serviceStore.getServiceByNameAsync(serviceName.value)
   let condition = "";
   if (rowSelectIds.value.length) {
-    condition = `(in,${primaryKeyField.keyField},${rowSelectIds.value.join(",")})`
+    condition = `('${primaryKeyField.keyField}',in,${rowSelectIds.value.join(",")})`
   }
   exportExcel(serviceName.value, fields, condition, "").then(data => {
     proxy?.$notify.success("提示", "导出成功");

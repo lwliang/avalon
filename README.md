@@ -1333,58 +1333,108 @@ down作用于many2one的下拉界面中，当需要对某个模型的下来进�
 
 
 
-# HTTP 接口
+#  avlon-erp HTTP 接口
 
 erp服务：http://localhost:8089/erp
 
 ## 登录
 
-```json
-url:/login
-method:post
-param:{
-	db:'avalon' // 数据库
-	username:'avalon',
-	password:'avalon'
-	}
-```
+接口：/login
 
-## 创建模型默认记录
+方式：POST
+
+参数：
 
 ```json
 {
-url:/service/{serviceName}/create
-method:post
-param:{
-	value:{
-        "{fieldName}":value
-    	}
-	}
+    "db":"avalon",
+    "username": "admin",
+    "password": "123456"
 }
 ```
 
-## 新增模型记录
+返回值：
 
 ```json
 {
-url:/service/{serviceName}/add
-method:post
-param:{
-	value:{
-        "{fieldName}":value
-    	}
-	}
+    "id": 1, // 账户主键
+    "db": "avalon",
+    "token": "239b19788adc452ebe57e06f0ae95461" // 登录token
 }
 ```
+
+
+
+## 创建模型默认值
+
+不会保存到数据库中，只是返回给前端
+
+接口:url:/service/{serviceName}/create
+
+方式：POST
+
+参数：可传可不传，传了以参数为准返回默认值
+
+```json
+{
+    "value": {
+        "name": "演示账号"
+    }
+}
+```
+
+返回值:serviceName=base.user
+
+```json
+{
+    "name": "演示账号"
+}
+```
+
+
+
+## 插入模型记录
+
+保存到数据库中
+
+接口:/service/{serviceName}/add
+
+方式：POST
+
+参数 serviceName=base.user
+
+```json
+{
+	"value": {
+        "name": "演示账号",
+        "account": "demo",
+        "password": "123456"
+    }
+}
+```
+
+返回值:
+
+```json
+{
+    "id":2//新增的主键
+}
+```
+
+
 
 ## 更新模型记录
 
+接口:/service/{serviceName}/update
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/service/{serviceName}/update
-method:post
-param:{
 	value:{
+        "id":1,// 主键 需要包括
         "{fieldName}":value,
         "one2ManyField":[
             {
@@ -1397,29 +1447,68 @@ param:{
 }
 ```
 
-## 删除模型记录
+返回值: 原值返回
 
 ```json
 {
-url:/service/{serviceName}/delete
-method:post
-param:{
-	id:1
-	}
+     "id":1,// 主键 需要包括
+        "{fieldName}":value,
+        "one2ManyField":[
+            	{
+                 	"{fieldName}":value,
+            	    "op":"insert|delete|update"
+            	}
+        	]
+    	}
 }
 ```
 
-## 查询模型详情
+
+
+## 删除模型记录
+
+接口:/service/{serviceName}/delete
+
+方式：POST
+
+参数：serviceName=base.user
 
 ```json
 {
-url:/get/{serviceName}/detail
-method:post
-param:{
-	fields:"id,name,many2One.id",
-    condition:"('a',=,2)",
-    order:"field asc, field.field desc"
-	}
+	id:1
+}
+```
+
+返回值：
+
+```json
+1// 删除的个数
+```
+
+
+
+## 查询模型详情
+
+接口:/service/get/{serviceName}/detail
+
+方式：POST
+
+参数：serviceName=base.user
+
+```json
+{
+	"fields":"id,name,account",
+    "condition":"('id',=,1)"
+}
+```
+
+返回值：
+
+```json
+{
+    "name": "管理管理员",
+    "id": 1,
+    "account": "admin"
 }
 ```
 
@@ -1427,94 +1516,241 @@ param:{
 
 ## 查询模型全部记录
 
+接口:/service/get/{serviceName}/all
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/get/{serviceName}/all
-method:post
-param:{
-	fields:"id,name,many2One.id",
-    condition:"('a',=,2)",
-    order:"field asc, field.field desc"
-	}
+	"fields":"id,name,account",
+    "condition":"('id',=,1)",
+	"order":"id asc, name desc"
 }
 ```
+
+返回值：
+
+```json
+[
+    {
+        "name": "管理管理员",
+        "id": 1,
+        "account": "admin"
+    }
+]
+```
+
+
 
 ## 分页查询模型记录
 
+接口:/service/get/{serviceName}/page
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/get/{serviceName}/page
-method:post
-param:{
-    page:{
-        pageNum:1,
-        pageSize:10
-    }
-	fields:"id,name,many2One.id",
-    condition:"('a',=,2)",
-    order:"field asc, field.field desc"
-	}
+    "page": {
+        "pageNum": 1,
+        "pageSize": 10
+    },
+    "fields": "id,name,account",
+    "condition": "('id',=,1)",
+    "order": "id asc, account desc"
+}
+
+```
+
+返回值
+
+```json
+{
+    "total": 1,
+    "pageCur": 1,
+    "pageSize": 10,
+    "pageCount": 1,
+    "nextPage": false,
+    "prePage": false,
+    "data": [
+        {
+            "name": "管理管理员",
+            "id": 1,
+            "account": "admin"
+        }
+    ]
 }
 ```
+
+
 
 ## 获取模型的字段
 
+接口:/service/get/{serviceName}/fields
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/get/{serviceName}/fields
-method:post
-param:{
-    field:"" // 可选 label like
+   "field":"主键"// 模糊匹配lable，不传字段则获取全部
 }
 ```
+
+```json
+[
+    {
+        "isRequired": true,
+        "isReadonly": true,
+        "relativeServiceName": null,
+        "defaultValue": "0",
+        "maxValue": 2147483647.000000,
+        "isUnique": false,
+        "isPrimaryKey": true,
+        "label": "主键",
+        "type": "IntegerField",
+        "manyServiceTable": null,
+        "isAutoIncrement": true,
+        "masterForeignKeyName": null,
+        "minValue": -2147483648.000000,
+        "name": "id",
+        "allowNull": true,
+        "id": 6,
+        "serviceId": 1,
+        "relativeForeignKeyName": null,
+        "relativeFieldName": null
+    }
+]
+```
+
+
 
 ## 获取模型的枚举字段取值范围
 
+接口:/service/get/{serviceName}/selection/map
+
+方式：POST
+
+参数：serviceName=hr.org
+
 ```json
 {
-url:/get/{serviceName}/selection/map
-method:post
-param:{
-    fields:"" // 一个字段
+ fields:"type" // 一个字段
 }
 ```
+
+返回值：
+
+```json
+{
+    "company": "公司",
+    "department": "部门"
+}
+```
+
+
 
 ## 导出Excel文件
 
+接口:/service/export/{serviceName}/excel
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/export/{serviceName}/excel
-method:post
-param:{
-    field:"a,b" // 一个字段
-    condition:"('a',=,2)",
-    order:"field asc, field.field desc"
+    "order": "",
+    "field": "id,account,name",
+    "condition": "('id',in,3,1)"
 }
 ```
+
+返回值：excel文件
 
 ## 读取excel的记录
 
+接口：/service/read/{serviceName}/excel
+
+接口：POST
+
+参数：FormData
+
+```json
+file:File
+```
+
+返回值：excel文件内容
+
 ```json
 {
-url:/read/{serviceName}/excel
-method:post
-param:{
-    file:File
+    "headers": [
+        "账号",
+        "昵称"
+    ],
+    "data": [
+        {
+            "账号": "admin1",
+            "昵称": "管理管理员1"
+        },
+        {
+            "账号": "demo2",
+            "昵称": "演示账号1"
+        }
+    ],
+    "fields": [
+        "account",
+        "name"
+    ]
 }
 ```
+
+
 
 ## 导入模型记录
 
+接口：/service/import/{serviceName}/excel
+
+接口：POST
+
+参数：
+
 ```json
 {
-url:/import/{serviceName}/excel
-method:post
-param:{
-    headers:['fieldLabel1','field2'],
-    fields:['fieldName1','fieldName2']
-    data:[]
+    "headers": [
+        "账号",
+        "昵称"
+    ],
+    "data": [
+        {
+            "账号": "admin1",
+            "昵称": "管理管理员1"
+        },
+        {
+            "账号": "demo2",
+            "昵称": "演示账号1"
+        }
+    ],
+    "fields": [
+        "account",
+        "name"
+    ]
 }
 ```
+
+返回值：
+
+```json
+{
+    "imported": 2 // 成功导入的个数
+}
+```
+
+
 
 # condition 
 
@@ -1554,7 +1790,41 @@ param:{
 "('field',=,2)|('field',=,2)"
 ```
 
+# avlon-erp 配置文件
 
+### application.yml 配置文件
+
+```yml
+server:
+  port: 8090
+  servlet:
+    context-path: /erp
+spring:
+  banner:
+    location: banner.txt
+  profiles:
+    active: dev,erp-dev
+  application:
+    name: avalon-server
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    encoding: UTF-8
+    suffix: .html
+    mode: HTML
+```
+
+### application-erp-dev.yml配置文件
+
+```yml
+spring:
+  profiles:
+    host: localhost
+
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+```
 
 
 
@@ -1669,7 +1939,96 @@ minio:
   mode: date
 ```
 
+## HTTP接口
 
+通用文件上传与与下载接口
+
+host：http://localhost:8091/file
+
+### 上传文件
+
+接口：/file/upload
+
+方式：POST
+
+传参方式：form-data
+
+参数：
+
+```json
+{
+    "file":File
+}
+```
+
+返回值：
+
+```json
+{
+    "mine": "image/png",
+    "size": 3101421,
+    "url": "/file/down/pet/2025/05/a4b57c788727474eae13734acbd0f7b3.png",
+    "originName": "color4bg_2025-05-12 14_14_25.png"
+}
+```
+
+### 上传图片文件
+
+接口：/image/upload
+
+方式：POST
+
+传参方式：form-data
+
+参数：
+
+```json
+{
+    "file":File
+}
+```
+
+返回值：
+
+```json
+{
+    "mine": "image/png",
+    "size": 3101421,
+    "url": "/file/down/pet/2025/05/a4b57c788727474eae13734acbd0f7b3.png",
+    "originName": "color4bg_2025-05-12 14_14_25.png"
+}
+```
+
+### 上传视频文件
+
+接口：/video/upload
+
+方式：POST
+
+传参方式：form-data
+
+参数：
+
+```json
+{
+    "file":File
+}
+```
+
+返回值：
+
+```json
+{
+    "mine": "image/png",
+    "size": 3101421,
+    "url": "/file/down/pet/2025/05/a4b57c788727474eae13734acbd0f7b3.png",
+    "originName": "color4bg_2025-05-12 14_14_25.png"
+}
+```
+
+### 下载图片
+
+地址：http://localhost:8091/file+返回值.url
 
 
 
@@ -1684,6 +2043,420 @@ minio:
      ...
 </form>
 ```
+
+# avalon-im 服务器
+
+用于IM通讯，可以单独部署，不依赖avalon-erp
+
+## 配置文件
+
+### application.yml
+
+```yml
+server:
+  port: 8093
+  servlet:
+    context-path: /im
+spring:
+  profiles:
+    active: dev,im-dev
+  application:
+    name: avalon-im
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: ${spring.profiles.host}:8848
+im:
+  wss: false 不启用
+```
+
+### application-im-dev.yml
+
+```yml
+application:
+  multiDb: false
+  dataSource:
+    database: im
+    username: avalon
+    password: avalon
+spring:
+  profiles:
+    host: localhost
+```
+
+## 数据库文件
+
+需要自己进行安装
+
+![image-20250514104430482](img/image-20250514104430482.png)
+
+## HTTP接口
+
+```
+http-host:http://localhost:8093/im
+```
+
+### 注册用户
+
+接口：/user/register
+
+method:POST
+
+参数：
+
+```json
+{
+	company: "公司名字，可以随便填",
+	app: "app名称，可以随便填",
+	thirdUserId: "app下的用户唯一标识"
+}
+```
+
+返回值：
+
+```json
+{
+	userId: 5 // 文件
+}
+```
+
+### 注册用户
+
+接口：/user/register
+
+method:POST
+
+参数：
+
+```json
+{
+	company: "公司名字，可以随便填",
+	app: "app名称，可以随便填",
+	thirdUserId: "app下的用户唯一标识"
+}
+```
+
+返回值：
+
+```json
+{
+	userId: 5 // 文件
+}
+```
+
+### 创建群组
+
+接口：/team/add
+
+method:POST
+
+参数：
+
+```json
+{
+	"name": "群名字"
+}
+```
+
+返回值：
+
+```json
+{
+	id: 5 // 群id
+}
+```
+
+### 修改群组
+
+接口：/team/update
+
+method:POST
+
+参数：
+
+```json
+{
+	"name": "修改群名字"
+}
+```
+
+返回值：
+
+```json
+
+```
+
+### 删除群组
+
+接口：/team/delete
+
+method:POST
+
+参数：
+
+```json
+{
+	"teamId": 1
+}
+```
+
+返回值：
+
+```json
+
+```
+
+
+
+### 分页获取用户消息
+
+请求,返回值小于pageSize说明是最后一页了
+
+接口：/message/user/get/page
+
+method:POST
+
+参数：
+
+```json
+{
+    "userId": 3,
+    "pageNum": 1,
+    "pageSize": 10
+}
+```
+
+返回值：
+
+```json
+[
+    {
+        "msgType": "Text",//消息类型，Text文本，Image图片，
+        "fromUserId": 2,// 发送用户id
+        "isRead": false,
+        "eventType": null,
+        "toUserId": 3,//目的用户id
+        "content": "消息内容",//消息内容
+        "stateEnum": "Client",
+        "teamId": null,
+        "name": null,
+        "serverSendTime": null,
+        "id": 1267898438633263104, // id 
+        "chatType": "Single",
+        "timestamp": 1722332144206 //
+    }
+]
+```
+
+### 获取离线消息
+
+接口：/message/offline
+
+method:POST
+
+参数：
+
+```json
+{
+    "userId": 3
+}
+```
+
+返回值：
+
+```json
+[
+    {
+        "msgType": "Text",
+        "fromUserId": 2,
+        "isRead": false,
+        "eventType": null,
+        "toUserId": 3,
+        "content": "消息内容",
+        "stateEnum": "Server",
+        "teamId": null,
+        "name": null,
+        "serverSendTime": null,
+        "id": 1267905873892741120,
+        "chatType": "Single",
+        "timestamp": 1722333916896
+    }
+]
+```
+
+
+
+### 获取消息id
+
+接口：/message/get/id
+
+method:POST
+
+参数：
+
+```json
+{
+}
+```
+
+返回值：
+
+```json
+{
+	"id":1268242042090295296
+}
+```
+
+### 清空消息列表的未读消息
+
+接口：/user/chat/clear/unread
+
+method:POST
+
+参数：
+
+```json
+{
+    "id":2
+}
+```
+
+返回值：
+
+```json
+{
+}
+```
+
+### 获取聊天列表
+
+接口：/user/chat/list
+
+method:POST
+
+参数：
+
+```json
+{
+    "id":2
+}
+```
+
+返回值：
+
+```json
+[
+    {
+        "top": false, // 置顶
+        "lastMsgId": { // 最后一条消息
+            "msgType": "Image",
+            "id": 1268572304611348480,
+            "content": "/file/down/123123.png",
+            "timestamp": 1722492806373
+        },
+        "createTime": "2024-08-01 13:29:50",
+        "fromUserId": 2, // 发送方
+        "teamId": null,
+        "updateTime": "2024-08-01 14:13:26",
+        "id": 2,
+        "unReadCount": 2, // 未读消息数
+        "toUserId": 3,
+        "chatType": "Single"
+    }
+]
+```
+
+## ws 连接 
+
+### 发送消息的流程
+
+**建立连接->鉴权->发送消息->服务器回发ack确认消息**
+
+### 建立连接 ws地址
+
+```json
+ws://localhost:6666/ws
+```
+
+### 鉴权消息
+
+```json
+{
+    "msgType":"Auth",
+    "fromUserId":3,
+    "content": "token" // token 是 唯一标识，可以自定义
+}
+```
+
+### 发送单聊文本消息
+
+```json
+{
+    "id":1268242042090295296,
+    "fromUserId":3,
+    "toUserId":2,
+    "chatType":"Single", // 单聊
+    "msgType":"Text", 
+    "content": "Hello,World" 
+}
+```
+
+### 服务器返回单聊文本ACK消息
+
+```json
+{
+    "id":1268242042090295296
+    "chatType":"Single",
+    "msgType":"Ack",
+    "content": "{'srcId': 1268242042090295295}" // srcId 是确认收到消息的id
+}
+```
+
+
+
+## 接受消息的流程
+
+**建立连接->鉴权->接受消息->向服务器发送ack确认消息**
+
+### 鉴权消息
+
+```json
+{
+    "msgType":"Auth",
+    "fromUserId":3,
+    "content": "{token}"
+}
+```
+
+### 接受单聊文本消息
+
+```json
+{
+    "id":1268242042090295296,
+    "fromUserId":3,
+    "toUserId":2,
+    "chatType":"Single",
+    "msgType":"Text", // Text 文本， Image 图片
+    "content": "Hello,World" 
+}
+```
+
+### 向服务器发送单聊文本ack消息
+
+```json
+{
+    "id":1268242042090295297,
+    "chatType":"Single",
+    "msgType":"Ack",
+    "content": "{'srcId': 1268242042090295296}" // srcId 是确认收到消息的id
+}
+```
+
+
+
+
 
 
 

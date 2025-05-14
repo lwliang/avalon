@@ -2,8 +2,8 @@ application:
   multiDb: false
   dataSource:
     database: im
-    username: avalon_im
-    password: avalon_im
+    username: avalon
+    password: avalon
 spring:
   profiles:
     host: localhost

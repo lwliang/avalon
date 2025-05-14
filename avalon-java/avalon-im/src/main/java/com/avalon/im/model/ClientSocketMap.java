@@ -96,6 +96,8 @@ public class ClientSocketMap {
      * @param clientSocket 客户端
      */
     public void auth(Integer userId, ClientSocket clientSocket) {
+        if (ObjectUtils.isNull(userId)) return;
+
         if (userMap.containsKey(userId)) {
             if (!userMap.get(userId).contains(clientSocket)) {
                 userMap.get(userId).add(clientSocket);
