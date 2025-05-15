@@ -27,7 +27,7 @@ export async function getModuleMenu(module: string) {
 export function getFieldsByServiceName(serviceName: string): Promise<any> {
     return getModelAllApi("id,label,name,isPrimaryKey,isAutoIncrement,isRequired,isReadonly,defaultValue," +
         "type,serviceId,isUnique,allowNull,minValue,maxValue,masterForeignKeyName,relativeForeignKeyName," +
-        "relativeServiceName,manyServiceTable,relativeFieldName,isMulti",
+        "relativeServiceName,manyServiceTable,relativeFieldName,isMulti,canSearch",
         `('serviceId.name',=,'${serviceName}')`,
         "base.field")
 }

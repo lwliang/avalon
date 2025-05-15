@@ -4,5 +4,15 @@
  */
 import {definePropType} from "../../util/propUtils.ts";
 
-export const conditionOperateType = definePropType<'=' | '!=' | '>' | '>=' | '<=' | '<'
-    | 'in' | 'like' | 'notIn' | 'notLike' | 'between'>(String)
+export type ConditionOperateType =
+    '='
+    | '!='
+    | '>'
+    | '>='
+    | '<='
+    | '<'
+    | 'in'
+    | 'like'
+    | 'notIn'
+    | 'notLike'
+    | 'between';

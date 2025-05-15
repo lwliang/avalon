@@ -229,6 +229,12 @@ const rowSelectChangeHandler = (selectCount: number, ids: any[]) => {
   }
 }
 
+const colFieldSearchHandler = (conditionString: string) => {
+  condition.value = conditionString
+  pageNum.value = 1
+  loadData()
+}
+
 const deleteShow = ref(false)
 
 const hideClick = () => {
@@ -301,7 +307,8 @@ const importExcelClick = () => {
         <MyTable height="100%" :record="record" :fields="services_fields" :service-name="serviceName"
                  :showSelectBtn="true"
                  @rowClick="rowClick"
-                 @rowSelectChange="rowSelectChangeHandler">
+                 @rowSelectChange="rowSelectChangeHandler"
+                 @colFieldSearch="colFieldSearchHandler">
 
         </MyTable>
       </div>

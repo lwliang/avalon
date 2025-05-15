@@ -1608,6 +1608,8 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         row.put("allowNull", field.allowNull());
         row.put("type", field.getClassType());
         row.put("sourceType", "system");
+        row.put("canSearch", field.getCanSearch());
+
         if (ObjectUtils.isNotEmpty(field.getDefaultValue())) {
             row.put("defaultValue", field.getDefaultValue().getDefaultString());
         }

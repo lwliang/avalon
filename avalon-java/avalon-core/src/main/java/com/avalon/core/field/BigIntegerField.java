@@ -196,6 +196,12 @@ public class BigIntegerField extends Field implements INumberField<Long> {
             return this;
         }
 
+        @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
+        }
+
         public static Builder getInstance() {
             return new Builder();
         }

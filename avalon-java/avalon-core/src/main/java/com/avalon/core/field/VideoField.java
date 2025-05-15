@@ -40,6 +40,11 @@ public class VideoField extends Field {
         return Types.VARCHAR;
     }
 
+    @Override
+    public Boolean getCanSearch() {
+        return false;
+    }
+
     public static class Builder extends Field.Builder<Builder> {
         @Override
         public Builder setIsUnique(Boolean isUnique) {
@@ -102,6 +107,12 @@ public class VideoField extends Field {
 
         public static Builder getInstance() {
             return new Builder();
+        }
+
+        @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
         }
     }
 }

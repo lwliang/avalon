@@ -195,6 +195,12 @@ public class BigDecimalField extends Field implements INumberField<BigDecimal> {
         }
 
         @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
+        }
+
+        @Override
         public Field build() {
             return new BigDecimalField(this);
         }

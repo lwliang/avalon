@@ -7,7 +7,7 @@ import {FieldTypeEnum} from "./enum-type/FieldTypeEnum.ts";
 
 
 export default interface Field {
-    id:number,
+    id: number,
     label: string,
     name: string,
     type: FieldTypeEnum,
@@ -28,5 +28,6 @@ export default interface Field {
     relativeForeignKeyName: string,
     manyServiceTable: string,
     relativeFieldName: string,
-    isMulti: boolean
+    isMulti: boolean,
+    canSearch: boolean
 }

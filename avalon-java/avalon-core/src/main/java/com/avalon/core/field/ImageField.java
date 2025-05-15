@@ -40,6 +40,11 @@ public class ImageField extends Field {
     }
 
     @Override
+    public Boolean getCanSearch() {
+        return false;
+    }
+
+    @Override
     public Integer getSqlType() {
         return Types.VARCHAR;
     }
@@ -106,6 +111,12 @@ public class ImageField extends Field {
 
         public static Builder getInstance() {
             return new Builder();
+        }
+
+        @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
         }
     }
 }

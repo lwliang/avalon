@@ -35,6 +35,7 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
     private IFieldDefaultValue defaultValue;
     private Boolean isAutoIncrement = false;
     private String label = "";
+    private Boolean canSearch = true;
     @Setter
     private AbstractService service;
 
@@ -298,6 +299,11 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
         return Condition.notEqualCondition(this, value);
     }
 
+    @Override
+    public Boolean getCanSearch() {
+        return canSearch;
+    }
+
     /**
      * 用于创建字段的builder
      */
@@ -311,6 +317,7 @@ public abstract class Field implements IField, ExternalField, IAliasRequire, IFi
         protected Boolean isReadonly = false;
         protected String fieldName = "";
         protected String label = "";
+        protected Boolean canSearch = true;
         @Setter
         protected AbstractService service;
 

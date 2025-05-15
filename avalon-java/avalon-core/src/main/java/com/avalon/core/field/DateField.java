@@ -183,6 +183,12 @@ public class DateField extends Field implements IFieldFormat {
             return this;
         }
 
+        @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
+        }
+
         public static Builder getInstance() {
             return new Builder();
         }

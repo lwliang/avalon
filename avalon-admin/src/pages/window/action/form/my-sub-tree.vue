@@ -255,15 +255,14 @@ const getRecordComputed = computed(() => {
 
 <template>
     <div>
-        <div>
-            <MyButton type="primary" rounded @click="addRow">新增</MyButton>
-        </div>
         <div class="py-2">
             <MyTable :height="tableHeight" :record="getRecordComputed" :fields="fieldComputed"
                      :service-name="serviceName"
                      :showDeleteBtn="true"
                      @rowDeleteClick="rowDeleteClick"
-                     @rowClick="rowClick">
+                     @rowClick="rowClick"
+                     :showBtnRow="true"
+                     @row-add-click="addRow">
 
             </MyTable>
         </div>

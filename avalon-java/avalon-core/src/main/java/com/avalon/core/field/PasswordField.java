@@ -61,6 +61,10 @@ public class PasswordField extends StringField {
         return false;
     }
 
+    @Override
+    public Boolean getCanSearch() {
+        return false;
+    }
 
     public static class Builder extends StringField.Builder {
         @Override
