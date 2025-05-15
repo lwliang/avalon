@@ -108,7 +108,7 @@ public class ServiceV2Controller {
     public RecordRow getDetail(@PathVariable("serviceName") String serviceName,
                                @RequestBody ServiceModelField param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
-        Condition condition = context.conditionManager.interpreter(param.getCondition());
+        Condition condition = context.interpreter(param.getCondition());
         Record select = serviceBean.select(condition, FieldUtils.getFieldArray(param.getFields()));
         if (select.isEmpty()) {
             return RecordRow.build();
@@ -128,7 +128,7 @@ public class ServiceV2Controller {
                          @RequestBody ServiceModelField serviceConditionPage) {
         AbstractService serviceBean = context.getServiceBean(serviceName);
         return serviceBean.select(serviceConditionPage.getOrder(),
-                context.conditionManager.interpreter(serviceConditionPage.getCondition()),
+                context.interpreter( serviceConditionPage.getCondition()),
                 FieldUtils.getFieldList(serviceConditionPage.getFields()).toArray(new String[0]));
     }
 
@@ -139,7 +139,7 @@ public class ServiceV2Controller {
 
         return serviceBean.selectPage(serviceModelPage.getPage(),
                 serviceModelPage.getOrder(),
-                context.conditionManager.interpreter(serviceModelPage.getCondition()),
+                context.interpreter( serviceModelPage.getCondition()),
                 FieldUtils.getFieldList(serviceModelPage.getFields()).toArray(new String[0]));
     }
 
@@ -156,7 +156,7 @@ public class ServiceV2Controller {
                 "relativeServiceName,manyServiceTable,relativeFieldName";
         Condition condition = Condition.equalCondition("serviceId.name", serviceName);
         if (StringUtils.isNotEmpty(field)) {
-            condition = Condition.andCondition(condition, Condition.likeCondition("label","'" +field + "'"));
+            condition = Condition.andCondition(condition, Condition.likeCondition("label", "'" + field + "'"));
         }
 
         return serviceBean.select(condition, FieldUtils.getFieldArray(fields));

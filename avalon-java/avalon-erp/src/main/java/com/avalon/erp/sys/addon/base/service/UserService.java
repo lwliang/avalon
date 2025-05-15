@@ -81,6 +81,12 @@ public class UserService extends AbstractService implements IUserService {
                 recordRow.put(this.avatar, avatar.getString("url"));
             }
         }
-        return super.insert(recordRow);
+        PrimaryKey insert = super.insert(recordRow);
+        Object groupId = invokeMethod("base.service.data", "refId", "base", "base_group"); // 获取权限id
+        if(ObjectUtils.isNotNull(groupId)) {
+            invokeMethod("base.group", "addGroupUser", groupId, insert.getInteger());
+        }
+
+        return insert;
     }
 }

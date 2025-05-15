@@ -1333,6 +1333,45 @@ down作用于many2one的下拉界面中，当需要对某个模型的下来进�
 
 
 
+
+
+# 创建模型记录
+
+可以在数据库模型，创建时，在模型表中增加记录
+
+## 创建模型记录
+
+介绍创建模型的一般方式
+
+### 在base模块的resource/record目录下新增对应模型的base.group.xml文件
+
+![image-20250515124753595](img/image-20250515124753595.png)
+
+### 在base.group.xml文件添加如下内容
+
+record标签的id表示资源id唯一值，service对应模型名称，field标签的name属性则是字段值，内容则对应的值。field都复制有很多方式
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_group" service="base.group">
+        <field name="name">基础权限组</field>
+        <field name="active">true</field>
+    </record>
+    <!--介绍field复制方式-->
+	<record>
+    	 <field name="serviceId" eval="refServiceId('base.user')"/> <!--refServiceId 获取base.user模型的id-->
+         <field name="groupId" eval="refId('base.base_group')"/><!--refId 获取 base模型下 base_group资源id-->
+    </record>
+</avalon>
+```
+
+### base模块类上启用base.group.xml文件
+
+![image-20250515133237396](img/image-20250515133237396.png)
+
+
+
 #  avlon-erp HTTP 接口
 
 erp服务：http://localhost:8089/erp
@@ -2507,6 +2546,50 @@ ws://localhost:6666/ws
         </field>
     </record>
 ```
+
+
+
+# 用户教程
+
+## 权限设置
+
+### 入口
+
+![image-20250515121847804](img/image-20250515121847804.png)
+
+### 权限组
+
+拥有规则，菜单，模型等权限的组合，用户可以属于多个权限组
+
+#### 增加用户
+
+被增加的用户拥有当前权限组的所有权限
+
+![image-20250515122148396](img/image-20250515122148396.png)
+
+#### 增加规则
+
+设置模型记录的访问条件,创建规则时，使用的是查询字符串，内部支持的变量，有userId，表示当前用户
+
+![image-20250515124018909](img/image-20250515124018909.png)
+
+#### 增加菜单
+
+用户可以访问的菜单，但不能表示用户可以访问菜单对应的模型，方法等，需要保证菜单所有执行的权限足够。正常情况下主要设置模型足够满足要求。
+
+![image-20250515124231907](img/image-20250515124231907.png)
+
+#### 增加模型
+
+用户对模型有访问，修改，新增，删除的权限，有访问，则对应的菜单会显示。
+
+![image-20250515124425813](img/image-20250515124425813.png)
+
+
+
+
+
+
 
 ## 快捷键
 

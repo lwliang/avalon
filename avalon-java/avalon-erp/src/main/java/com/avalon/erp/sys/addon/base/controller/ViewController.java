@@ -31,7 +31,7 @@ public class ViewController {
      */
     @PostMapping("get/base.action.view/all")
     public Record getBaseActionView(@RequestBody ServiceModelField serviceConditionPage) {
-        Condition condition = context.conditionManager.interpreter(serviceConditionPage.getCondition());
+        Condition condition = context.interpreter(serviceConditionPage.getCondition());
         ActionViewService serviceBean = (ActionViewService) context.getServiceBean("base.action.view");
         return serviceBean.getActionView(serviceConditionPage.getFields(),
                 serviceConditionPage.getOrder(),

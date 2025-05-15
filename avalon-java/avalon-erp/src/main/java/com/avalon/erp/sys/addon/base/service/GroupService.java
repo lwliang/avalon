@@ -7,6 +7,7 @@ package com.avalon.erp.sys.addon.base.service;
 
 import com.avalon.core.condition.Condition;
 import com.avalon.core.context.SystemConstant;
+import com.avalon.core.enums.ServiceOperateEnum;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
 import com.avalon.core.model.Record;
@@ -72,6 +73,25 @@ public class GroupService extends AbstractTreeService {
             "base.service.access", "groupId");
 
     /**
+     * 新增用户
+     *
+     * @param groupId 权限组id
+     * @param userId  用户id
+     */
+    public void addGroupUser(Integer groupId, Integer userId) {
+        RecordRow row = RecordRow.build();
+        row.put("id", groupId);
+        RecordRow userRow = RecordRow.build();
+        userRow.put("userId", userId);
+        userRow.put("groupId", groupId);
+        userRow.put(OPERATE, ServiceOperateEnum.insert);
+        Record userRows = Record.build();
+        userRows.add(userRow);
+        row.put("userIds", userRows);
+        update(row);
+    }
+
+    /**
      * 获取 用户所在组总，可以访问的模块的id
      *
      * @param userId 用户
@@ -96,8 +116,10 @@ public class GroupService extends AbstractTreeService {
                 .collect(Collectors.toList());
 
         Condition menuCondition = Condition.equalCondition("type", ActionTypeEnum.action);
-        if (!serviceIdList.isEmpty()) {
+        if (!serviceIdList.isEmpty()) { // 如果存在服务id
             menuCondition = menuCondition.andInCondition("action.serviceId", (List<?>) serviceIdList);
+        } else { // 如果不存在服务id
+            menuCondition = menuCondition.andInCondition("action.serviceId", 0);
         }
         Record menuIds = getServiceBean("base.menu").select(menuCondition, "id"); // 获取模型对应的菜单id
 

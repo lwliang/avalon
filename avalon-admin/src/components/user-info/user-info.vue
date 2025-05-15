@@ -10,11 +10,13 @@ import {goExcalidraw, goLogin} from "../../util/routerUtils.ts";
 import {getFileUploadUrl} from "../../api/env.ts";
 import MyAvatar from "../avatar/my-avatar.vue";
 import {clearToken} from "../../cache/tokenStorage.ts";
+import {emitLogout} from "../../global/bus/mittBus.ts";
 
 const userInfoStore = useUserInfoStore();
 
 const logoutClick = () => {
     document.body.removeAttribute('login')
+    emitLogout()
     clearToken()
     goLogin()
 }

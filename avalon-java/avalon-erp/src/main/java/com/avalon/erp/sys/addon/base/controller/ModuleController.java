@@ -45,30 +45,18 @@ import java.util.Map;
 @RequestMapping("/module")
 @Slf4j
 public class ModuleController {
-    private final ModuleService moduleService;
-    private final Context context;
-    private final MenuService menuService;
-    private final GroupService groupService;
-
     @Autowired
-
-    public ModuleController(ModuleService moduleService,
-                            Context context,
-                            MenuService menuService,
-                            GroupService groupService) {
-        this.moduleService = moduleService;
-        this.context = context;
-        this.menuService = menuService;
-        this.groupService = groupService;
-    }
+    private  Context context;
 
     @PostMapping("/get/permission/module")
     public Record getModulePermission() {
+        ModuleService moduleService = (ModuleService)context.getServiceBean("base.module");
         return moduleService.getDisplayModules();
     }
 
     @PostMapping("/get/install/module")
     public Record getInstallModule() {
+        ModuleService moduleService = (ModuleService)context.getServiceBean("base.module");
         return moduleService.getInstalledModules();
     }
 
@@ -76,7 +64,8 @@ public class ModuleController {
     public Record getMenuPermission(@RequestBody RecordRow param) {
         String module = param.getString("module");
         String fields = param.getString("field");
-
+        MenuService menuService = (MenuService)context.getServiceBean("base.menu");
+        GroupService groupService = (GroupService)context.getServiceBean("base.group");
         Condition condition = Condition.equalCondition("moduleId.name", module);
         if (!context.getUserId().equals(SystemConstant.ADMIN)) {
             List<Integer> menuIds = groupService.getPermissionMenu(groupService.getContext().getUserId());
@@ -97,6 +86,8 @@ public class ModuleController {
                     menuCondition = Condition.inCondition("id", menuIds);
                 }
                 condition = condition.andCondition(menuCondition);
+            } else {
+                condition = condition.andCondition(Condition.inCondition("id", 0));
             }
         }
 

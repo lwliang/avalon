@@ -1,7 +1,10 @@
 package com.avalon.core.antlr4.condition;
 
 import com.avalon.core.condition.Condition;
+import com.avalon.core.context.Context;
 import com.avalon.core.util.ObjectUtils;
+import lombok.Getter;
+import lombok.Setter;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
@@ -12,6 +15,10 @@ import java.util.List;
  * @date 2025/02/12 20:17
  */
 public class ConditionInterpreter extends ExpressionBaseVisitor<Condition> {
+    @Getter
+    @Setter
+    public Context context;
+
     @Override
     public Condition visitExpr(ExpressionParser.ExprContext ctx) {
         return super.visitExpr(ctx);
@@ -144,6 +151,17 @@ public class ConditionInterpreter extends ExpressionBaseVisitor<Condition> {
         return values;
     }
 
+    public Object doVisitIdentifierValue(ExpressionParser.IdentifierValueContext ctx) {
+        if (ObjectUtils.isNull(context)) {
+            return ctx.getText().replaceAll("'", "").replaceAll("\"", "");
+        }
+        String token = ctx.getText().trim().toLowerCase();
+        if (token.equals("userid")) {
+            return context.getUserId();
+        }
+        return null;
+    }
+
     public Object visitValue(ExpressionParser.ValueContext ctx) {
         if (ctx instanceof ExpressionParser.FloatValueContext) {
             return Float.valueOf(ctx.getText());
@@ -160,6 +178,9 @@ public class ConditionInterpreter extends ExpressionBaseVisitor<Condition> {
 
         if (ctx instanceof ExpressionParser.NullValueContext) {
             return null;
+        }
+        if (ctx instanceof ExpressionParser.IdentifierValueContext) {
+            return doVisitIdentifierValue((ExpressionParser.IdentifierValueContext) ctx);
         }
 
         return ctx.getText();

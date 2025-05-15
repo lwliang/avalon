@@ -18,6 +18,7 @@ import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
 import com.avalon.core.field.Many2manyField;
 import com.avalon.core.model.FieldHashMap;
+import com.avalon.core.model.Man2ManyServiceRecordRow;
 import com.avalon.core.model.Record;
 import com.avalon.core.module.AbstractModule;
 import com.avalon.core.module.ModuleList;
@@ -57,6 +58,16 @@ public class Context {
     private PulsarConfig pulsarConfig;
     @Autowired
     public ConditionManager conditionManager;
+
+    private final Man2ManyServiceRecordRow man2ManyServiceRecordRow = new Man2ManyServiceRecordRow();
+
+    public void putMany2manyService( Many2manyField field) {
+        man2ManyServiceRecordRow.putMany2manyService( field);
+    }
+
+    public AbstractService getMany2manyService(String many2manyServiceName) {
+        return man2ManyServiceRecordRow.getMany2manyService(many2manyServiceName);
+    }
 
     /**
      * 系统初始化完成，true 准备好，false
@@ -172,6 +183,7 @@ public class Context {
         }
 
         avalonEvaluationContext = new AvalonEvaluationContext();
+        avalonEvaluationContext.setContext(this);
         standardEvaluationContext = new StandardEvaluationContext(avalonEvaluationContext);
     }
 
@@ -423,15 +435,6 @@ public class Context {
         return getAvalonApplicationContext().containsBean(beanName);
     }
 
-    public Boolean containsBean(Class<?> beanClass) {
-        try {
-            getAvalonApplicationContext().getBean(beanClass);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     public <T> T getClassBean(Class<T> t) {
         return getAvalonApplicationContext().getBean(t);
     }
@@ -440,20 +443,29 @@ public class Context {
         return (ExternalService) getAvalonApplicationContext().getBean("external_service");
     }
 
+    public String getORMServiceName(String serviceName) {
+        if (!(getSystemStateEnum() == SystemStateEnum.uninstallModule ||
+                getSystemStateEnum() == SystemStateEnum.installModule ||
+                getSystemStateEnum() == SystemStateEnum.upgradeModule ||
+                getSystemStateEnum() == SystemStateEnum.createDB ||
+                getSystemStateEnum() == SystemStateEnum.dropDB)) { // 在安装、卸载、升级模块时，不进行ORM
+            serviceName = getDbORM(getBaseName(), serviceName);
+        }
+        return serviceName;
+    }
+
     public AbstractService getServiceBean(String serviceName) {
         try {
-            if (!(getSystemStateEnum() == SystemStateEnum.uninstallModule ||
-                    getSystemStateEnum() == SystemStateEnum.installModule ||
-                    getSystemStateEnum() == SystemStateEnum.upgradeModule ||
-                    getSystemStateEnum() == SystemStateEnum.createDB ||
-                    getSystemStateEnum() == SystemStateEnum.dropDB)) { // 在安装、卸载、升级模块时，不进行ORM
-                serviceName = getDbORM(getBaseName(), serviceName);
-            }
+            String serviceNameWithDB = getORMServiceName(serviceName);
 
-            return (AbstractService) getAvalonApplicationContext().getBean(serviceName);
+            return (AbstractService) getAvalonApplicationContext().getBean(serviceNameWithDB);
         } catch (Exception ex) {
-            log.error(serviceName + "获取service bean失败", ex);
-            return null;
+            try {
+                return getMany2manyService(serviceName);
+            } catch (Exception ex2) {
+                log.error(serviceName + "获取service bean失败", ex);
+                return null;
+            }
         }
     }
 
@@ -516,16 +528,12 @@ public class Context {
         if (!newBeanName.equals(beanName)) {
             getORMMapper().addSingletonServiceBean(beanName, service);
         }
-        getAvalonApplicationContext().getBeanFactory().registerSingleton(newBeanName, service);
-    }
-
-    public void registerSingleton(String beanName, Object service) {
-        String newBeanName = getDbORM(getBaseName(), beanName);
-        if (!newBeanName.equals(beanName)) {
-            getORMMapper().addSingletonServiceBean(beanName, service);
+        if (getAvalonApplicationContext().getBeanFactory().containsSingleton(newBeanName)) {
+            removeSingleton(newBeanName);
         }
         getAvalonApplicationContext().getBeanFactory().registerSingleton(newBeanName, service);
     }
+
 
     /**
      * 获取分布式redis锁
@@ -724,7 +732,7 @@ public class Context {
                 FieldHashMap relationFieldMap = serviceBean.getRelationFieldMap(); // 获取关系字段，删除全部已注册的关系模型
                 for (Map.Entry<String, Field> stringFieldEntry : relationFieldMap.entrySet()) {
                     if (stringFieldEntry.getValue() instanceof Many2manyField) { //
-                        String serviceRelativeName =  ((Many2manyField) stringFieldEntry.getValue()).getTableSqlName();
+                        String serviceRelativeName = ((Many2manyField) stringFieldEntry.getValue()).getTableSqlName();
                         if (containsBean(ormMapper.getServiceNameWithDb(serviceRelativeName))) {
                             removeSingleton(ormMapper.getServiceNameWithDb(serviceRelativeName));
                         }
@@ -760,5 +768,9 @@ public class Context {
 
     public Record getDB() {
         return jdbcTemplate.getDB();
+    }
+
+    public Condition interpreter(String script) {
+        return conditionManager.interpreter(this, script);
     }
 }

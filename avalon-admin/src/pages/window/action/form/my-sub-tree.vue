@@ -174,7 +174,7 @@ const many2ManyClose = () => {
 
 const many2ManySure = (ids: any[]) => {
     console.log('many2ManySure', ids)
-    getModelAllApi(props.fields as string, `(in,${primaryService.value?.keyField},${ids.join(',')})`, props.service).then(data => {
+    getModelAllApi(props.fields as string, `('${primaryService.value?.keyField}',in,${ids.join(',')})`, props.service).then(data => {
         if (!props.record.value) {
             props.record.value = []
         }

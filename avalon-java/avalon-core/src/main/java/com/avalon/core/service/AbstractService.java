@@ -65,7 +65,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     public final static String OPERATE = "op";//系统使用的字段，子类不能使用
 
     public Condition getCondition(String script) {
-        return context.conditionManager.interpreter(script);
+        return context.interpreter(script);
     }
 
     /**
@@ -387,6 +387,13 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
                 context.addServiceName(this.getClass().getName(), this);
             }
         }
+
+        getRelationFieldMap().forEach((fieldName, field) -> {
+            if (field instanceof Many2manyField) {
+                Many2manyField manyField = (Many2manyField) field;
+                context.putMany2manyService(manyField);
+            }
+        });
     }
 
 
@@ -1828,6 +1835,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     }
 
     public AbstractService getService() {
+        if (this instanceof ExternalService) {
+            return this;
+        }
         return context.getServiceBean(getServiceName());
     }
 
@@ -2223,7 +2233,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
 
     @Override
     public Record exportExcel(String field, String condition, String order) {
-        Condition con = context.conditionManager.interpreter(condition);
+        Condition con = context.interpreter(condition);
         SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
                 field.split(","),
                 con,

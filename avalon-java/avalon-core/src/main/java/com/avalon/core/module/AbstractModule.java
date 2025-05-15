@@ -562,39 +562,46 @@ public abstract class AbstractModule {
             record.setRow(row);
         }
         NamedNodeMap attributes = item.getAttributes();
+        String nameKey = "";
+        Object value = null;
         for (int i = 0; i < attributes.getLength(); i++) {
             Node attribute = attributes.item(i);
-            String nodeName = attribute.getNodeName();
-            String nodeValue = attribute.getNodeValue();
-            Object value = item.getTextContent();
-            if ("ref_serviceId".equals(nodeValue)) { // 逻辑写死
-                nodeValue = "serviceId";
-                FieldValue fieldValue = getContext().getServiceBean("base.service")
-                        .getFieldValue("id",
-                                Condition.equalCondition("name", value));
-                if (ObjectUtils.isNull(fieldValue)) {
-                    throw new AvalonException(value + "服务不存在");
+            String nodeName = attribute.getNodeName(); // name
+            String nodeValue = attribute.getNodeValue(); // label
+            Object content = item.getTextContent(); // base.user
+
+            switch (nodeName) {
+                case "refId" -> value = getResourceId(getModuleName(), content.toString());
+                case "ref" -> {
+                    value = computeInheritId(row.getString("ref"), getModuleName());
                 }
-                value = fieldValue.getInteger();
-            } else if ("arch".equals(nodeValue)) {
-                value = getInnerXml(item);
-            }
-            if ("refId".equals(nodeName)) {
-                value = getResourceId(getModuleName(), value.toString());
-            } else if ("ref".equals(nodeName)) {
-                value = nodeValue;
-                nodeValue = nodeName;
-            }
+                case "eval" -> {
+                    value = context.executeScript(nodeValue);
+                }
 
-            row.put(nodeValue, value);
+                case "name" -> {
+                    nameKey = nodeValue;
+                    if ("ref_serviceId".equals(nodeValue)) { // 逻辑写死
+                        nameKey = "serviceId";
+                        FieldValue fieldValue = getContext().getServiceBean("base.service")
+                                .getFieldValue("id",
+                                        Condition.equalCondition("name", content));
+                        if (ObjectUtils.isNull(fieldValue)) {
+                            throw new AvalonException(content + "服务不存在");
+                        }
+                        value = fieldValue.getInteger();
+                    } else if ("arch".equals(nodeValue)) {
+                        value = getInnerXml(item);
+                    } else {
+                        if (ObjectUtils.isNull(value)) {
+                            value = content;
+                        }
+                    }
+                }
+            }
         }
 
-        if (row.containsKey("inheritId")) {
-            if (row.containsKey("ref")) {
-                row.put("inheritId", computeInheritId(row.getString("ref"), getModuleName()));
-                row.remove("ref");
-            }
-        }
+        row.put(nameKey, value);
 
         return row;
     }

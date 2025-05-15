@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class ServiceAccessService extends AbstractService {
+
     @Override
     public String getServiceName() {
         return "base.service.access";
