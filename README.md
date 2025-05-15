@@ -16,6 +16,18 @@ ORM介绍：[https://www.bilibili.com/video/BV1xBdhYCEeK/?spm_id_from=333.1387.h
 
 前端介绍：[https://www.bilibili.com/video/BV1xBdhYCEKY/?spm_id_from=333.1387.homepage.video_card.click](https://gitee.com/link?target=https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1xBdhYCEKY%2F%3Fspm_id_from%3D333.1387.homepage.video_card.click)
 
+
+
+# 绿色版
+
+Avalon 绿色版 0.1.1 内含数据库，nacos，redis，avalon运行环境，可以一键运行，支持window
+
+百度云：https://pan.baidu.com/s/1QpnS9NAwbfDkClM9p8rRFw?pwd=zzxf 提取码: zzxf
+
+天翼：https://cloud.189.cn/web/share?code=7jAzIviqeEFv（访问码：6dfi）
+
+
+
 ## 开发环境准备
 
 ## 1、安装docker
