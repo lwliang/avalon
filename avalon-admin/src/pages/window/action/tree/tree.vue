@@ -5,7 +5,7 @@
  */
 import {
   compile,
-  ComponentInternalInstance,
+  ComponentInternalInstance, computed,
   createVNode,
   getCurrentInstance,
   inject,
@@ -16,7 +16,14 @@ import {
 } from "vue";
 import {useRoute} from "vue-router";
 import ActionView from "../../../../model/view/ActionView.ts";
-import {deleteMultiModelApi, getModelAllApi, getModelPageApi, invokeMethod} from "../../../../api/modelApi.ts";
+import {
+  createModelApi,
+  deleteMultiModelApi,
+  getModelAllApi,
+  getModelPageApi,
+  invokeMethod,
+  saveMultiModelApi
+} from "../../../../api/modelApi.ts";
 import {getTemplate, XMLParserResult} from "../../../../xml/XMLParserResult.ts";
 import {parserEx} from "../../../../xml/XMLParser.ts";
 import MyButton from "../../../../components/button/my-button.vue";
@@ -30,17 +37,19 @@ import {getPageSize} from "../../../../api/env.ts";
 import MyTable from "../../../../components/table/my-table.vue";
 import FormField from "../../../../model/FormField.ts";
 import MySearch from "../../../../components/search/my-search.vue";
-import {useUserInfoStore} from "../../../../global/store/userInfoStore.ts";
 import MyDialog from "../../../../components/dialog/my-dialog.vue";
 import MyExportDialog from "../../../../components/dialog/my-export-dialog.vue";
 import {goModelImport} from "../../../../util/routerUtils.ts";
-import {getServiceField, hasJoin} from "../../../../util/fieldUtils.ts";
+import {getModelKeyValue, getServiceField, hasJoin, isModelKeyValue} from "../../../../util/fieldUtils.ts";
 import ShowField from "../../../../model/ShowField.ts";
+import TreeXml from "../../../../xml/TreeXml.ts";
+import {EditableType} from "../../../../xml/xmlType.ts";
+import {objectCloneDeep} from "../../../../util/ObjectUtils.ts";
+import {uploadFile} from "../../../../api/fileUploadApi.ts";
 
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
-const userInfoStore = useUserInfoStore()
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 const route = useRoute();
@@ -48,7 +57,11 @@ const route = useRoute();
 const moduleName = ref<string>(route.params.module as string)
 const serviceName = ref<string>(route.params.service as string)
 const rowClickHandler = inject('rowClick') as (id: number | undefined) => void;
+const serviceKeyField = ref<string>('')
 
+serviceStore.getServiceByNameAsync(serviceName.value).then(data => {
+  serviceKeyField.value = data.keyField;
+})
 
 const view = ref<ActionView | undefined>(undefined)
 getActionTreeView(serviceName.value).then(data => { // 加载xml
@@ -75,11 +88,16 @@ const header_component = shallowRef<any>(null)
 
 let parserResult: XMLParserResult | null = null;
 
+let tree: TreeXml | undefined = undefined;
+const editable = ref<EditableType | undefined>(undefined);
+
 const parserXml = async (str: string) => {
   const primaryKeyField = await serviceStore.getServiceByNameAsync(serviceName.value)
   const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
   parserResult = await parserEx(str, serviceName.value)
   xmlTemplate.value = getTemplate(parserResult)
+  tree = parserResult.tree
+  editable.value = tree.editable
 
   if (parserResult.header && parserResult.header.template) {
     headerTemplate.value = parserResult.header.template
@@ -149,6 +167,8 @@ const createHeaderTemplateVNode = () => {
 const emit = defineEmits(['rowClick'])
 
 const record = ref<any>([])
+const recordOrigin = ref<any>([])
+const recordChange = ref<any>([])
 const pageNum = ref<number>(1)
 const selectionDynamic = ref<any>({})
 const condition = ref<string>('')
@@ -178,6 +198,9 @@ const loadData = async () => {
   }
   record.value.splice(0, record.value.length);
   record.value.push(...recordTemp)
+  recordOrigin.value.splice(0, recordOrigin.value.length)
+  recordChange.value.splice(0, recordChange.value.length)
+  recordOrigin.value.push(...objectCloneDeep(recordTemp))
 }
 
 
@@ -187,8 +210,37 @@ const rowClick = (row: any) => {
   })
 }
 
-const createServiceClick = () => {
-  rowClickHandler(undefined)
+const createServiceClick = async () => {
+  if (!editable.value) { // 不在tree中编辑
+    rowClickHandler(undefined)
+  } else {
+    const defaultValue = await createModelApi({}, serviceName.value)
+    if (serviceKeyField.value) {
+      defaultValue[serviceKeyField.value] = getModelKeyValue()
+    }
+    if (editable.value == 'bottom') {
+      record.value.push(defaultValue)
+    } else {
+      record.value.unshift(defaultValue)
+    }
+  }
+}
+
+const saveServiceClick = async () => {
+  for (const row of recordChange.value) { // 检查需要二次上传的图片
+    for (let fieldName in row) {
+      if (row[fieldName] instanceof File) { // 文件
+        const urlObj = await uploadFile(row[fieldName])
+        row[fieldName] = urlObj.url
+      }
+      if (fieldName == serviceKeyField.value && isModelKeyValue(row[fieldName])) { // 去除前端新增主键
+        row[fieldName] = undefined
+      }
+    }
+  }
+  saveMultiModelApi(recordChange.value, serviceName.value).then(result => {
+    loadData()
+  })
 }
 
 const deleteServiceClick = () => {
@@ -229,8 +281,8 @@ const rowSelectChangeHandler = (selectCount: number, ids: any[]) => {
   }
 }
 
-const colFieldSearchHandler = (conditionString: string) => {
-  condition.value = conditionString
+const colFieldSearchHandler = (fieldName: string, operate: string, value: any) => {
+  condition.value = `('${fieldName}',${operate}, '${value}')`
   pageNum.value = 1
   loadData()
 }
@@ -277,6 +329,27 @@ const exportSure = async (fields: string) => {
 const importExcelClick = () => {
   goModelImport(moduleName.value, serviceName.value, {})
 }
+
+const isRecordModify = computed(() => {
+  return !!recordChange.value.length
+})
+
+const cellFieldHandler = async (key: any, fieldName: string, value: any) => {
+  let obj = recordChange.value.find((x: any) => x[serviceKeyField.value] == key)
+  let originObj = recordOrigin.value.find((x: any) => x[serviceKeyField.value] == key)
+  if (obj) {
+    if (!originObj || originObj[fieldName] != value) {
+      obj[fieldName] = value
+    }
+  } else {
+    if (!originObj || originObj[fieldName] != value) {
+      obj = {}
+      obj[fieldName] = value
+      obj[serviceKeyField.value] = key
+      recordChange.value.push(obj)
+    }
+  }
+}
 </script>
 
 <template>
@@ -284,7 +357,8 @@ const importExcelClick = () => {
     <div class="pb-4 flex items-start w-full">
       <div class="flex-1">
         <my-button class="mr-0.5" type="primary" rounded @click="createServiceClick">新增</my-button>
-
+        <my-button class="mr-0.5" type="success" rounded @click="saveServiceClick" v-if="isRecordModify">保存
+        </my-button>
         <my-button class="mr-0.5" type="primary" rounded @click="importExcelClick">导入</my-button>
         <my-button class="mr-0.5" v-if="rowSelectCount" type="success" rounded @click="exportOpen">
           导出
@@ -304,13 +378,15 @@ const importExcelClick = () => {
     </div>
     <div class="flex-1 overflow-y-auto flex flex-col">
       <div class="flex-1 overflow-y-auto">
-        <MyTable height="100%" :record="record" :fields="services_fields" :service-name="serviceName"
+        <MyTable :editable="!!editable" height="100%" :record="record" :fields="services_fields"
+                 :service-name="serviceName"
+                 :key-field="serviceKeyField"
                  :showSelectBtn="true"
+                 :enableFilter="true"
                  @rowClick="rowClick"
                  @rowSelectChange="rowSelectChangeHandler"
-                 @colFieldSearch="colFieldSearchHandler">
-
-        </MyTable>
+                 @colFieldSearch="colFieldSearchHandler"
+                 @cellChange="cellFieldHandler"/>
       </div>
     </div>
   </div>

@@ -3,7 +3,7 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import './my-id-select.css'
+import './my-many2one-select.css'
 import {ref, watch} from "vue";
 import FormField from "../../../model/FormField.ts";
 import {InputExpose} from "../../../global/input/InputExpose.ts";
@@ -15,7 +15,6 @@ import Service from "../../../model/Service.ts";
 import {PopperAPI} from "../../popover/my-popover.ts";
 import {useDebounceFn} from '@vueuse/core'
 import MyIcon from "../../icon/my-icon.vue";
-import MyInnerPopover from "../../popover/my-inner-popover.vue";
 import {borderStyleType} from "../../icon/my-icon.ts";
 import ActionView from "../../../model/view/ActionView.ts";
 import {getActionDownView} from "../../../api/commonApi.ts";
@@ -26,6 +25,7 @@ import ShowField from "../../../model/ShowField.ts";
 import MyTable from "../../table/my-table.vue";
 import {FieldTypeEnum} from "../../../model/enum-type/FieldTypeEnum.ts";
 import {getSelectionValueByServiceAndField} from "../../../cache/SelectionValueMemory.ts";
+import MyPopover from "../../popover/my-popover.vue";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -289,7 +289,7 @@ defineExpose<InputExpose>({validate})
 
 <template>
   <div class="flex relative">
-    <MyInnerPopover placement="bottom" trigger="click" full-width ref="popperSelect" @popperShow="popperShow">
+    <MyPopover placement="bottom" trigger="click" full-width ref="popperSelect" @popperShow="popperShow">
       <template v-slot:default>
         <div class="inline-flex w-full relative">
           <input
@@ -308,7 +308,7 @@ defineExpose<InputExpose>({validate})
 
       </template>
       <template v-slot:option>
-        <div class="flex flex-col w-full" v-if="!view">
+        <div class="flex flex-col w-full min-w-[250px]" v-if="!view">
           <div v-for="(value,index) in options" :key="index"
                class="w-full cursor-pointer hover:bg-select-hover px-4"
                @click="optionSelectClick(value)">
@@ -324,7 +324,7 @@ defineExpose<InputExpose>({validate})
           </MyTable>
         </div>
       </template>
-    </MyInnerPopover>
+    </MyPopover>
   </div>
 
 

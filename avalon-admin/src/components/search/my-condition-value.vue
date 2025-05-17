@@ -2,7 +2,8 @@
 import Field from "../../model/Field.ts";
 import FormField from "../../model/FormField.ts";
 import MyInput from "../input/my-input.vue";
-import {ConditionOperateType} from "./search.ts";
+import {FilterOperator} from "../../model/FilterCondition.ts";
+
 
 /**
  * @author lwlianghehe@gmail.com
@@ -10,8 +11,8 @@ import {ConditionOperateType} from "./search.ts";
  */
 const props = defineProps<{
   serviceName: string,
-  field: Field,
-  operate: ConditionOperateType
+  field?: Field,
+  operate: FilterOperator
 }>()
 
 const formField = defineModel({type: FormField, required: true})

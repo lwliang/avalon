@@ -19,3 +19,7 @@ export function toStandardJsonString(str: string) {
     s = s.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
     return s;
 }
+
+export function maskPassword(password: string): string {
+    return '.'.repeat(password.length)
+}

@@ -5,6 +5,7 @@
 import Field from "../model/Field.ts";
 import {useGlobalFieldDataStore} from "../global/store/fieldStore.ts";
 import FormField from "../model/FormField.ts";
+import Snowflake from "../model/Snowflake.ts";
 
 const useFieldDataStore = useGlobalFieldDataStore()
 
@@ -75,4 +76,12 @@ export const getOldFieldRecordRow = async (recordRowField: Record<string, FormFi
         }
     }
     return recordRow
+}
+
+export const getModelKeyValue = () => {
+    return Symbol(Snowflake.getNextId())
+}
+
+export const isModelKeyValue = (value: any) => {
+    return typeof value == 'symbol'
 }

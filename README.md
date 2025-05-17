@@ -1095,6 +1095,38 @@ public class UserService extends AbstractService implements IUserService {
 
 ![image-20250506180442915](img/image-20250506180442915.png)
 
+### 支持在tree视图中直接修改与新增记录
+
+支持在tree视图的表格内修改，新增记录，而不用弹窗，这样的操作方式，适用于字段比较少的表
+
+效果：
+
+![image-20250517115222147](img/image-20250517115222147.png)
+
+用法：
+
+```xml
+<record id="base_user_view_tree" service="base.action.view">
+        <field name="name">base_user_view_tree</field>
+        <field name="label">用户</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.user</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom"> <!--使用editable 属性 值bottom 新增的记录在下方，top在上方-->
+                <field name="id"/>
+                <field name="avatar"/>
+                <field name="name"/>
+                <field name="account"/>
+                <field name="createTime"/>
+                <field name="myTime"/>
+                <field name="myDate"/>
+            </tree>
+        </field>
+    </record>
+```
+
+
+
 ## form
 
 **Form 视图** 是用于显示单条记录的详细信息的视图类型。它是 Avalon中最常用的视图之一，通常用于创建、编辑和查看记录的详细内容。通过 Form 视图，用户可以管理模型的所有字段，并定义交互式的用户界面。

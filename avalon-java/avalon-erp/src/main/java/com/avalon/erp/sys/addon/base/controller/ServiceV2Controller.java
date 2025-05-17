@@ -63,6 +63,14 @@ public class ServiceV2Controller {
         return RecordRow.build().put(serviceBean.getPrimaryKeyName(), serviceBean.insert(recordRow));
     }
 
+    @PostMapping("{serviceName}/save")
+    public List<Object> saveMultiModel(@PathVariable("serviceName") String serviceName,
+                              @RequestBody Record param) throws AvalonException {
+        AbstractService serviceBean = context.getServiceBean(serviceName);
+
+        return serviceBean.saveMulti(param);
+    }
+
     @PostMapping("{serviceName}/update")
     public RecordRow updateModel(@PathVariable("serviceName") String serviceName,
                                  @RequestBody ServiceModelParam param) throws AvalonException {

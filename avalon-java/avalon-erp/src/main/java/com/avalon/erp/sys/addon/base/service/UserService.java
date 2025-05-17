@@ -83,7 +83,7 @@ public class UserService extends AbstractService implements IUserService {
         }
         PrimaryKey insert = super.insert(recordRow);
         Object groupId = invokeMethod("base.service.data", "refId", "base", "base_group"); // 获取权限id
-        if(ObjectUtils.isNotNull(groupId)) {
+        if (ObjectUtils.isNotNull(groupId)) {
             invokeMethod("base.group", "addGroupUser", groupId, insert.getInteger());
         }
 

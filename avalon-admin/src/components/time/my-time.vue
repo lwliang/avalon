@@ -9,7 +9,7 @@ import FormField from "../../model/FormField.ts";
 import {ref} from "vue";
 import {popoverType} from "../popover/my-popover.ts";
 import {borderStyleType} from "../icon/my-icon.ts";
-import MyInnerPopover from "../popover/my-inner-popover.vue";
+import MyPopover from "../popover/my-popover.vue";
 
 const props = defineProps({
     htmlId: String,
@@ -127,7 +127,7 @@ const sureTime = () => {
 </script>
 
 <template>
-    <MyInnerPopover :placement="placement" trigger="click" width="182px">
+    <MyPopover :placement="placement" trigger="click" width="182px">
         <template #default>
             <MyInput :inputWidth="props.inputWidth" v-model="formField" suffix-icon-style="far"
                      suffix-icon="clock" :border="border"></MyInput>
@@ -174,7 +174,7 @@ const sureTime = () => {
                 </div>
             </div>
         </template>
-    </MyInnerPopover>
+    </MyPopover>
 </template>
 
 <style scoped>

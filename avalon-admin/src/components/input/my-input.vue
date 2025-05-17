@@ -56,7 +56,7 @@ const inputStyle = {
 }
 const isFocus = ref(false)
 
-const emit = defineEmits(['rightBtnClick', 'valueChange'])
+const emit = defineEmits(['rightBtnClick', 'valueChange', 'blur'])
 
 const formField = defineModel({
     type: FormField,
@@ -103,6 +103,10 @@ const valueChange = () => {
     emit('valueChange', formField.value.value)
 }
 
+const inputBlurClick = ()=>{
+  isFocus.value = false
+  emit('blur')
+}
 
 defineExpose({validate})
 
@@ -123,7 +127,7 @@ defineExpose({validate})
             v-model="formField.value" :id="htmlId" :readonly="readonly"
             :placeholder="placeholder"
             @focus="isFocus = true"
-            @blur="isFocus = false"
+            @blur="inputBlurClick"
             @change="valueChange"
             :name="htmlName">
             <template v-if="iconTag == 'button'">
@@ -131,10 +135,10 @@ defineExpose({validate})
                   :icon-color="iconColor">{{ rightContent }}
                 </MyButton>
             </template>
-            <template v-else> 
+            <template v-else>
                 <MyIcon class="absolute right-[10px] top-[50%]" style="transform: translateY(-50%)"  :icon="icon" :type="iconStyle" :color="iconColor"></MyIcon>
             </template>
-     
+
     </div>
 
 

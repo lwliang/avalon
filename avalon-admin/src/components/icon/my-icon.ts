@@ -7,7 +7,8 @@
 import {library} from '@fortawesome/fontawesome-svg-core'
 
 /* import font awesome icon component */
-import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
+import { FontAwesomeIcon, FontAwesomeLayers, FontAwesomeLayersText } from '@fortawesome/vue-fontawesome'
+
 
 /* import specific icons */
 import {fas} from '@fortawesome/free-solid-svg-icons'
@@ -21,6 +22,8 @@ library.add(fas, far, fab)
 
 export function loadSvg(app: App) {
     app.component('font-awesome-icon', FontAwesomeIcon)
+        .component('font-awesome-layers', FontAwesomeLayers)
+        .component('font-awesome-layer-text', FontAwesomeLayersText)
 }
 
 export const iconStyleType = definePropType<'fas' | 'fab' | 'far'>(String)

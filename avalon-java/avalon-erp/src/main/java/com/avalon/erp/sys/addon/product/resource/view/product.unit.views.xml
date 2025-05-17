@@ -27,7 +27,7 @@
         <field name="viewMode">tree</field>
         <field name="ref_serviceId">product.unit</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree editable="bottom">
                 <field name="name"/>
                 <field name="label"/>
             </tree>

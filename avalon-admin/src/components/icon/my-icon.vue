@@ -4,7 +4,7 @@
  * @date 2024/11/22
  */
 import {iconSizeType, iconStyleType} from "./my-icon.ts";
-import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
+import {FontAwesomeIcon, FontAwesomeLayers} from "@fortawesome/vue-fontawesome";
 
 
 defineProps({
@@ -22,9 +22,10 @@ defineProps({
 </script>
 
 <template>
-    <font-awesome-icon class="bg-transparent" :icon="[type,icon]" :size="size" :style="{fill:color}"/>
+  <font-awesome-layers>
+    <font-awesome-icon class="bg-transparent" :icon="[type,icon]" :size="size" :style="{'color': color}"/>
+  </font-awesome-layers>
 </template>
 
 <style scoped>
-
 </style>

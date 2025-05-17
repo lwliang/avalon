@@ -9,10 +9,10 @@ import {ref} from "vue";
 import MySearchCondition from "./my-search-condition.vue";
 import {useTemplateRef} from "@vue/runtime-dom";
 
-const props = defineProps({
-  serviceName: String,
-  show: Boolean,
-})
+const props = defineProps<{
+  serviceName: string,
+  show: boolean,
+}>()
 
 const searchConditionRef = useTemplateRef<any>('searchCondition')
 

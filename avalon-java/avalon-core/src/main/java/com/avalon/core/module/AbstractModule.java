@@ -573,7 +573,7 @@ public abstract class AbstractModule {
             switch (nodeName) {
                 case "refId" -> value = getResourceId(getModuleName(), content.toString());
                 case "ref" -> {
-                    value = computeInheritId(row.getString("ref"), getModuleName());
+                    value = computeInheritId(nodeValue, getModuleName());
                 }
                 case "eval" -> {
                     value = context.executeScript(nodeValue);

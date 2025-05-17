@@ -131,16 +131,14 @@ defineExpose({
 
     <teleport to="body">
       <div v-if="show"
-           :class="{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
+           :class="{'z-9999':true,popover:true,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
            ref="floating"
            :style="[dynamicStyles,floatingStyles]"
            @mouseenter="showMousePopper"
            @mouseleave="hideMousePopper">
-        <div class="flex justify-center items-center flex-wrap">
+        <div class="flex justify-center items-center flex-wrap"  @click="optionClick">
           <template v-if="$slots.option">
-            <div class="w-full" @click="optionClick">
-              <slot name="option"></slot>
-            </div>
+            <slot name="option"></slot>
           </template>
           <template v-if="option">
             <div class="w-full cursor-pointer hover:bg-gray-300 px-4" v-for="(value,key) in option"

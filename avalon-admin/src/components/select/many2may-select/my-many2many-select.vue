@@ -16,8 +16,8 @@ import {useDebounceFn} from '@vueuse/core'
 import MyIcon from "../../icon/my-icon.vue";
 import MyTag from "../../tag/my-tag.vue";
 import Snowflake from "../../../model/Snowflake.ts";
-import MyInnerPopover from "../../popover/my-inner-popover.vue";
 import {borderStyleType} from "../../icon/my-icon.ts";
+import MyPopover from "../../popover/my-popover.vue";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
@@ -190,7 +190,8 @@ defineExpose<InputExpose>({validate})
                        :label="fieldValue[formField.Field.relativeForeignKeyName][relativeServiceName]"
                        :value="fieldValue" @deleteTag="deleteTagClick" @tagClick="tagClick"/>
             </template>
-            <MyInnerPopover v-if="!readonly" class="min-w-48" style="flex:1" placement="bottom" trigger="click"
+            <MyPopover v-if="!readonly" class="min-w-48"
+                            style="flex:1" placement="bottom" trigger="click"
                             full-width
                             ref="popperSelect"
                             @popperShow="popperShow">
@@ -211,9 +212,9 @@ defineExpose<InputExpose>({validate})
                     </div>
                 </template>
                 <template v-slot:option>
-                    <div class="flex flex-col w-full">
+                    <div class="flex flex-col w-full min-w-[250px]">
                         <div v-for="(value,index) in options" :key="index"
-                             class="w-full cursor-pointer hover:bg-select-hover px-4"
+                             class="w-full cursor-pointer hover:bg-select-hover px-4 "
                              @click="optionSelectClick(value)">
                             {{ value[service?.nameField as string] }}
                         </div>
@@ -222,7 +223,7 @@ defineExpose<InputExpose>({validate})
                         </div>
                     </div>
                 </template>
-            </MyInnerPopover>
+            </MyPopover>
         </div>
 
     </div>

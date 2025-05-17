@@ -13,9 +13,9 @@ import {useTemplateRef} from "@vue/runtime-dom";
  * @author lwlianghehe@gmail.com
  * @date 2025/05/13 14:21
  */
-const props = defineProps({
-  serviceName: String
-})
+const props = defineProps<{
+  serviceName: string
+}>()
 
 const fieldForms = ref<FormField[]>([
   new FormField(null)

@@ -16,7 +16,7 @@ import {
 import FormField from "../../model/FormField.ts";
 import {ref} from "vue";
 import {borderStyleType} from "../icon/my-icon.ts";
-import MyInnerPopover from "../popover/my-inner-popover.vue";
+import MyPopover from "../popover/my-popover.vue";
 
 interface monthDay {
     year: number
@@ -158,7 +158,7 @@ const getCurrentDateStr = (day: any) => {
 </script>
 
 <template>
-    <MyInnerPopover placement="bottom" trigger="click" width="332px">
+    <MyPopover placement="bottom" trigger="click" width="332px">
         <template #default>
             <MyInput v-model="formField" suffix-icon-style="far" suffix-icon="calendar" :border="border"></MyInput>
         </template>
@@ -217,7 +217,7 @@ const getCurrentDateStr = (day: any) => {
                 </table>
             </div>
         </template>
-    </MyInnerPopover>
+    </MyPopover>
 </template>
 
 <style scoped>

@@ -458,7 +458,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
         } else if (serviceField.type == FieldTypeEnum.Many2oneField) {
             if (!componentName) {
-                componentName = `MyIdSelect`
+                componentName = `MyMany2OneSelect`
             }
             return `<${componentName} border="bottom" ref="${htmlRef}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
         } else if (serviceField.type == FieldTypeEnum.ImageField) {

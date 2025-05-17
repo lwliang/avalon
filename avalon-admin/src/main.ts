@@ -21,7 +21,7 @@ import Sheet from "./components/form-layout/sheel/sheet.vue";
 import Row from "./components/form-layout/row/row.vue";
 import MyCol from "./components/form-layout/col/my-col.vue";
 import MySelectionSelect from "./components/select/selection-select/my-selection-select.vue";
-import MyIdSelect from "./components/select/id-select/my-id-select.vue";
+import MyMany2OneSelect from "./components/select/many2one-select/my-many2one-select.vue";
 import MyTabs from "./components/tabs/my-tabs.vue";
 import MyTabPanel from "./components/tabs/my-tab-panel.vue";
 import MySubTree from './pages/window/action/form/my-sub-tree.vue';
@@ -73,7 +73,7 @@ app.component('Sheet', Sheet)
 app.component('Row', Row)
 app.component('MyCol', MyCol)
 app.component('MySelectionSelect', MySelectionSelect)
-app.component('MyIdSelect', MyIdSelect)
+app.component('MyMany2OneSelect', MyMany2OneSelect)
 app.component('MyTabs', MyTabs)
 app.component('MyTabPanel', MyTabPanel)
 app.component('MySubTree', MySubTree)

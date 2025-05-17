@@ -23,6 +23,11 @@ export function getServiceFieldApi(serviceName: string, field?: string): Promise
     return postErpHttp(`/service/get/${serviceName}/fields`, param)
 }
 
+export function saveMultiModelApi(value: Object[], serviceName: string): Promise<any> {
+    return postErpHttp(`/service/${serviceName}/save`, value)
+}
+
+
 export function addModelApi(value: Object, serviceName: string): Promise<any> {
     return postErpHttp(`/service/${serviceName}/add`, {serviceName, value})
 }

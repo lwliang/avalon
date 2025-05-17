@@ -1,9 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-path {
-
-}
 
 /* 默认浅色模式 */
 :root {
@@ -99,7 +96,6 @@ input {
     @apply box-border;
     @apply m-0;
     @apply p-0;
-    @apply text-text;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, "Noto Sans", Arial, "Odoo Unicode Support Noto", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 

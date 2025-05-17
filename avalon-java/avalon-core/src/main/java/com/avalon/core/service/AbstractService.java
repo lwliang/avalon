@@ -2314,4 +2314,21 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         }
         return fieldList;
     }
+
+    @Override
+    public List<Object> saveMulti(Record record) throws AvalonException {
+        if (ObjectUtils.isNull(record)) {
+            return Collections.emptyList();
+        }
+        List<Object> ids = new ArrayList<>();
+        record.forEach(row -> {
+            if (row.containsKey(getPrimaryKeyName()) && row.isNotNull(getPrimaryKeyName())) { // 存在主键
+                update(row);
+                ids.add(row.getRawValue(getPrimaryKeyField()));
+            } else {
+                ids.add(insert(row).getValue());
+            }
+        });
+        return ids;
+    }
 }

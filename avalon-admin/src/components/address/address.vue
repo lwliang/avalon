@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {AddressType} from "./address.ts";
-import MyIdSelect from "../select/id-select/my-id-select.vue";
 import FormField from "../../model/FormField.ts";
 import {getModelPageApi} from "../../api/modelApi.ts";
 import {watch} from "vue";
@@ -93,16 +92,16 @@ const loadDistrictOption = async (name: string) => {
 
 <template>
   <div class="flex items-center gap-2">
-    <my-id-select :service="serviceName" :html-id="htmlId" :readonly="readonly" :required="required" :border="border"
+    <my-many-2-one-select :service="serviceName" :html-id="htmlId" :readonly="readonly" :required="required" :border="border"
                   v-model="province"
                   :load-option="loadProvinceOption"/>
-    <my-id-select v-if="type == 'city' || type == 'district'" :service="serviceName" :html-id="htmlId+'_city'"
+    <my-many-2-one-select v-if="type == 'city' || type == 'district'" :service="serviceName" :html-id="htmlId+'_city'"
                   :border="border"
                   :readonly="readonly"
                   :required="required"
                   v-model="city"
                   :load-option="loadCityOption"/>
-    <my-id-select v-if="type == 'district'" :service="serviceName" :html-id="htmlId+'_district'" :readonly="readonly"
+    <my-many-2-one-select v-if="type == 'district'" :service="serviceName" :html-id="htmlId+'_district'" :readonly="readonly"
                   :border="border"
                   :required="required"
                   v-model="district"

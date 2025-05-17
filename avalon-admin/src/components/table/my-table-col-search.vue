@@ -20,7 +20,7 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  sureSearch: [conditon: string]
+  sureSearch: [fieldName: string, operate: string, value: any]
 }>()
 
 
@@ -50,7 +50,7 @@ const searchClick = () => {
     const event = new MouseEvent('click', {bubbles: true});
     outsideRef.value.dispatchEvent(event);
   }
-  emits('sureSearch', `('${props.field.name}',${operateValue.value.value.value}, '${searchValue.value.value ? searchValue.value.value : ''}')`)
+  emits('sureSearch', props.field.name, operateValue.value.value.value, searchValue.value.value ? searchValue.value.value : '')
 }
 </script>
 

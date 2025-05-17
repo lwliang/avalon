@@ -7,9 +7,9 @@ import MyConditionField from "./my-condition-field.vue";
 import Field from "../../model/Field.ts";
 import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
 
-const props = defineProps({
-  serviceName: String
-})
+const props = defineProps<{
+  serviceName: string
+}>()
 /**
  * @author lwlianghehe@gmail.com
  * @date 2025/05/13 12:01
@@ -53,7 +53,7 @@ defineExpose({
   <div class="flex gap-2">
     <myConditionField v-model="field" :service-name="serviceName" @select-field="selectFieldEvent"></myConditionField>
     <my-condition-operate v-model="operate"></my-condition-operate>
-    <my-condition-value :service-name="serviceName" :field="selectField" v-model="value"></my-condition-value>
+    <my-condition-value :service-name="serviceName" :field="selectField" v-model="value" :operate="operate.value"></my-condition-value>
   </div>
 </template>
 
