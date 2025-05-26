@@ -5,7 +5,7 @@
  */
 import FormField from "../../model/FormField.ts";
 import {watch} from "vue";
-import {borderStyleType} from "../icon/my-icon.ts";
+import {borderStyleType} from "../icon/types.ts";
 
 const props = defineProps({
   htmlId: String,
@@ -60,11 +60,11 @@ defineExpose({validate})
 </script>
 
 <template>
-  <div class="w-full relative ">
+  <div class="w-full relative border border-solid border-border rounded p-2 mt-2">
         <textarea
             :style="{'min-height': '80px','padding-top':pt+'px'}"
             :class="['form-input-control','bg-transparent', 'w-full', {'form-input-control-error': !formField.isValidate,
-            'border':border == 'round', 'border-b':border == 'bottom'}]"
+            }]"
             v-if="formField"
             type="checkbox"
             v-model="formField.value" :id="htmlId" :readonly="readonly"

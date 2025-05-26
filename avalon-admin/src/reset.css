@@ -1,0 +1,127 @@
+@import "normalize.css";
+
+/* 全局 box-sizing 边界盒模型 */
+*, *::before, *::after {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+/* 字体与基础色，支持主题变量 */
+html {
+    font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary, #303133);
+    background-color: var(--background-page, #f5f7fa);
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background-color: inherit;
+}
+
+/* HTML5 元素显示为块 */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+
+/* 图片样式 */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    vertical-align: middle;
+    border-style: none;
+    user-drag: none;
+    user-select: none;
+}
+
+/* 列表无样式 */
+ul, ol {
+    list-style: none;
+}
+
+/* 链接无下划线，继承色 */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* 表格无间距 */
+table {
+    box-sizing: border-box;
+    table-layout: fixed;
+    border-collapse: collapse;
+    position: relative;
+    border-spacing: 0;
+}
+
+caption, th, td {
+    text-align: left;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 表单元素基础样式 */
+input, button, textarea, select {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+/* 去除数字输入箭头 */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+textarea {
+    resize: none;
+}
+
+span {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}

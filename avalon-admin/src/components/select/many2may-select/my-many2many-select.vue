@@ -11,168 +11,160 @@ import {getModelPageApi} from "../../../api/modelApi.ts";
 import {useGlobalFieldDataStore} from "../../../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../../../global/store/serviceStore.ts";
 import Service from "../../../model/Service.ts";
-import {PopperAPI} from "../../popover/my-popover.ts";
 import {useDebounceFn} from '@vueuse/core'
 import MyIcon from "../../icon/my-icon.vue";
 import MyTag from "../../tag/my-tag.vue";
 import Snowflake from "../../../model/Snowflake.ts";
-import {borderStyleType} from "../../icon/my-icon.ts";
+import {borderStyleType} from "../../icon/types.ts";
 import MyPopover from "../../popover/my-popover.vue";
+import {MyMany2ManySelectProps} from "./types.ts";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
 
-const props = defineProps({
-    htmlId: String,
-    htmlName: String,
-    required: Boolean,
-    readonly: Boolean,
-    service: String,
-    field: String,
-    border: {
-        type: borderStyleType,
-        default: 'round'
-    }
-})
+const props = defineProps<MyMany2ManySelectProps>()
 const service = ref<Service>()
 const emit = defineEmits(['rightBtnClick'])
 
 // 格式 {id:1,name:"显示"}
 const formField = defineModel({
-    type: FormField,
-    required: true
+  type: FormField,
+  required: true
 })
 const labelValue = new FormField('');
 labelValue.Field = formField.value?.Field
 const labelField = ref<FormField>(labelValue)
-const popperSelect = ref<PopperAPI | null>(null)
+const popperSelect = ref<any | null>(null)
 
 const relativeServiceName = ref('')
 const relativeServiceId = ref('')
 if (formField.value.Field) {
-    const serviceName = formField.value.Field?.relativeServiceName
-    serviceStore.getServiceByNameAsync(serviceName).then(data => {
-        relativeServiceName.value = data.nameField;
-        relativeServiceId.value = data.keyField;
-    })
+  const serviceName = formField.value.Field?.relativeServiceName
+  serviceStore.getServiceByNameAsync(serviceName).then(data => {
+    relativeServiceName.value = data.nameField;
+    relativeServiceId.value = data.keyField;
+  })
 }
 
 watch(() => formField.value?.value, () => {
-    setValidate(true)
+  setValidate(true)
 })
 
 const options = ref<Record<string, any>[]>([])
 let init = true
 
 onMounted(() => {
-    if (props.service) {
-        service.value = serviceStore.getServiceByName(props.service);
+  if (props.serviceName) {
+    service.value = serviceStore.getServiceByName(props.serviceName);
+  }
+  if (formField.value?.value) {
+    if (init) {
+      formatName()
+      init = false
     }
-    if (formField.value?.value) {
-        if (init) {
-            formatName()
-            init = false
-        }
 
-    } else {
-        loadServiceOption()
-    }
+  } else {
+    loadServiceOption()
+  }
 })
 
 const formatName = () => {
-    if (formField.value?.value) {
-        const find = formField.value?.value ? formField.value?.value : null
-        if (find) {
-            labelField.value.value = find[service.value?.nameField as string]
-        }
+  if (formField.value?.value) {
+    const find = formField.value?.value ? formField.value?.value : null
+    if (find) {
+      labelField.value.value = find[service.value?.nameField as string]
     }
+  }
 }
 
 const loadServiceOption = (name?: string) => {
-    if (props.service && service.value) {
-        let condition = "";
-        if (formField.value.value) {
-            const values = []
-            for (let tag of formField.value.value) {
-                if (formField.value.Field) {
-                    values.push(tag[formField.value.Field.relativeForeignKeyName][relativeServiceId.value])
-                }
-            }
-            if (values.length) {
-                if (formField.value.Field) {
-                    condition = `('${relativeServiceId.value}',notIn , ${values.join()})`
-                }
-            }
+  if (props.serviceName && service.value) {
+    let condition = "";
+    if (formField.value.value) {
+      const values = []
+      for (let tag of formField.value.value) {
+        if (formField.value.Field) {
+          values.push(tag[formField.value.Field.relativeForeignKeyName][relativeServiceId.value])
         }
-        if (condition) {
-            condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : "''"})&${condition}`
-        } else {
-            condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : "''"})`
+      }
+      if (values.length) {
+        if (formField.value.Field) {
+          condition = `('${relativeServiceId.value}',notIn , ${values.join()})`
         }
-        getModelPageApi(`${service.value.keyField},${service.value.nameField}`,
-            condition,
-            props.service,
-            1).then(pageInfo => {
-            options.value.splice(0, options.value.length)
-            options.value.push(...pageInfo.data)
-            if (init) {
-                formatName()
-                init = false
-            }
-        })
+      }
     }
+    if (condition) {
+      condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : "''"})&${condition}`
+    } else {
+      condition = `('${service.value.nameField}',like,${name ? "'" + name + "'" : "''"})`
+    }
+    getModelPageApi(`${service.value.keyField},${service.value.nameField}`,
+        condition,
+        props.serviceName,
+        1).then(pageInfo => {
+      options.value.splice(0, options.value.length)
+      options.value.push(...pageInfo.data)
+      if (init) {
+        formatName()
+        init = false
+      }
+    })
+  }
 }
 
 const setValidate = (valid: boolean) => {
-    if (formField.value) {
-        formField.value.isValidate = valid
-    }
+  if (formField.value) {
+    formField.value.isValidate = valid
+  }
 }
 
 const validate = (): boolean => {
-    if (!props.required) {
-        setValidate(true)
-        return true;
-    }
-    setValidate(!!formField.value?.value)
-    return formField.value ? formField.value.isValidate : false
+  if (!props.required) {
+    setValidate(true)
+    return true;
+  }
+  setValidate(!!formField.value?.value)
+  return formField.value ? formField.value.isValidate : false
 }
 
 
 const optionSelectClick = (key: Record<string, any>) => {
-    if (formField.value) {
-        if (formField.value.Field) {
-            const option: any = {}
-            option['id'] = Symbol(Snowflake.getNextId())
-            option[formField.value.Field.relativeForeignKeyName] = {...key}
-            formField.value.value.push(option)
-        }
+  if (formField.value) {
+    if (formField.value.Field) {
+      const option: any = {}
+      option['id'] = Symbol(Snowflake.getNextId())
+      option[formField.value.Field.relativeForeignKeyName] = {...key}
+      formField.value.value.push(option)
     }
-    if (labelField.value) {
-        formatName()
-    }
+  }
+  if (labelField.value) {
+    formatName()
+  }
+  if (popperSelect.value) {
+    popperSelect.value.hide()
+  }
 }
 const labelInput = (e: any) => {
-    const nameValue = e.target.value
-    popperSelect.value?.show();
-    doLabelInput(nameValue)
+  const nameValue = e.target.value
+  popperSelect.value?.show();
+  doLabelInput(nameValue)
 }
 const doLabelInput = useDebounceFn((value: string) => {
-    loadServiceOption(value)
+  loadServiceOption(value)
 }, 500)
 
 const popperShow = () => {
-    options.value.splice(0, options.value.length)
-    loadServiceOption()
+  options.value.splice(0, options.value.length)
+  loadServiceOption()
 }
 const deleteTagClick = (tagValue: any) => {
-    const tagIndex = formField.value.value.findIndex((x: any) => x.id === tagValue.id)
-    if (tagIndex >= 0) {
-        formField.value.value.splice(tagValue, 1)
-    }
+  const tagIndex = formField.value.value.findIndex((x: any) => x.id === tagValue.id)
+  if (tagIndex >= 0) {
+    formField.value.value.splice(tagValue, 1)
+  }
 }
 const tagClick = (tagValue: any) => {
-    console.log("tagClick", tagValue)
+  console.log("tagClick", tagValue)
 }
 
 const many2Click = () => {
@@ -183,50 +175,53 @@ defineExpose<InputExpose>({validate})
 </script>
 
 <template>
-    <div class="flex relative" @click="many2Click">
-        <div class="inline-flex w-full relative items-center flex-wrap gap-1">
-            <template v-for="(fieldValue,index) in formField.value" :key="index">
-                <MyTag :close="!readonly" :round="true" v-if="relativeServiceName && formField.Field"
-                       :label="fieldValue[formField.Field.relativeForeignKeyName][relativeServiceName]"
-                       :value="fieldValue" @deleteTag="deleteTagClick" @tagClick="tagClick"/>
-            </template>
-            <MyPopover v-if="!readonly" class="min-w-48"
-                            style="flex:1" placement="bottom" trigger="click"
-                            full-width
-                            ref="popperSelect"
-                            @popperShow="popperShow">
-                <template v-slot:default>
-                    <div class="inline-flex relative w-full">
-                        <input
-                            :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,
-                             'border':border == 'round', 'border-b':border == 'bottom'}]"
-                            style="padding-right: 25px"
-                            v-if="labelField"
-                            type="text"
-                            v-model="labelField.value" :id="htmlId"
-                            @input="labelInput"
-                            :name="htmlName">
-                        <MyIcon class="absolute right-[10px] top-[50%]" style="transform: translateY(-50%)"
-                                icon="caret-down"
-                                type="fas" size="sm"></MyIcon>
-                    </div>
-                </template>
-                <template v-slot:option>
-                    <div class="flex flex-col w-full min-w-[250px]">
-                        <div v-for="(value,index) in options" :key="index"
-                             class="w-full cursor-pointer hover:bg-select-hover px-4 "
-                             @click="optionSelectClick(value)">
-                            {{ value[service?.nameField as string] }}
-                        </div>
-                        <div v-if="options.length == 0" class="w-full px-4">
-                            无匹配数据
-                        </div>
-                    </div>
-                </template>
-            </MyPopover>
-        </div>
-
+  <div class="flex relative" @click="many2Click">
+    <div class="inline-flex w-full relative items-center flex-wrap gap-1">
+      <template v-for="(fieldValue,index) in formField.value" :key="index">
+        <MyTag :closable="!readonly"  v-if="relativeServiceName && formField.Field"
+               :label="fieldValue[formField.Field.relativeForeignKeyName][relativeServiceName]"
+               :value="fieldValue" @close="deleteTagClick" @click="tagClick"/>
+      </template>
+      <MyPopover v-if="!readonly"
+                 placement="bottom" trigger="click"
+                 popper-class="py-2"
+                 default-class="w-full flex-1 min-w-[120px]"
+                 ref="popperSelect"
+                 @show="popperShow">
+        <template v-slot:default>
+          <div class="inline-flex relative w-full">
+            <my-input class="w-full" v-model="labelField" suffix-icon-type="fas" suffix-icon="caret-down"
+                      @input="labelInput"/>
+            <!--            <input-->
+            <!--                :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,-->
+            <!--                             'border':border == 'round', 'border-b':border == 'bottom'}]"-->
+            <!--                style="padding-right: 25px"-->
+            <!--                v-if="labelField"-->
+            <!--                type="text"-->
+            <!--                v-model="labelField.value" :id="htmlId"-->
+            <!--                @input="labelInput"-->
+            <!--                :name="htmlName">-->
+            <!--            <MyIcon class="absolute right-[10px] top-[50%]" style="transform: translateY(-50%)"-->
+            <!--                    icon="caret-down"-->
+            <!--                    type="fas" size="sm"></MyIcon>-->
+          </div>
+        </template>
+        <template v-slot:content>
+          <div class="flex flex-col w-full min-w-[250px]">
+            <div v-for="(value,index) in options" :key="index"
+                 class="w-full cursor-pointer hover:bg-background-component px-4 "
+                 @click="optionSelectClick(value)">
+              {{ value[service?.nameField as string] }}
+            </div>
+            <div v-if="options.length == 0" class="w-full px-4">
+              无匹配数据
+            </div>
+          </div>
+        </template>
+      </MyPopover>
     </div>
+
+  </div>
 
 
 </template>

@@ -6,7 +6,7 @@
 import MyImage from "../components/image/my-image.vue";
 import {ComponentInternalInstance, ref} from 'vue'
 import MyButton from "../components/button/my-button.vue";
-import MyBtnGroup from "../components/button-group/my-btn-group.vue";
+import MyBtnGroup from "../components/button-group/my-button-group.vue";
 import MyDivider from "../components/divider/my-divider.vue";
 import {createDB, dropDB, getDB} from "../api/dbAPI.ts";
 import {getCurrentInstance} from "vue";
@@ -78,19 +78,19 @@ const selectDBClick = (db: string) => {
 </script>
 
 <template>
-  <div class="w-full h-full bg">
-    <div class="w-full pt-8">
-      <div class="max-w-[700px] mx-auto">
+  <div class="w-full h-full bg-color-img">
+    <div class="w-full pt-8 ">
+      <div class="max-w-[700px] mx-auto ">
         <div>
           <my-image class="mx-auto" src="/avalon.png" width="300"></my-image>
         </div>
-        <div class="mt-8 rounded max-h-[600px] overflow-y-auto">
-          <div class="p-2 bg-background" v-for="(db,index) in databases" :key="index">
-            <div class="flex justify-between">
-              <my-button type="primary" is-link @click="selectDBClick(db.dataName)">{{
+        <div class="mt-8 rounded max-h-[600px] overflow-y-auto bg-background">
+          <div class="p-2 " v-for="(db,index) in databases" :key="index">
+            <div class="flex justify-between items-center">
+              <my-text type="primary" class="cursor-pointer" @click="selectDBClick(db.dataName)">{{
                   db.dataName
                 }}
-              </my-button>
+              </my-text>
               <div>
                 <my-btn-group>
                   <my-button icon="floppy-disk" @click="developerClick" icon-color="#FFF">备份</my-button>
@@ -124,7 +124,4 @@ const selectDBClick = (db: string) => {
 </template>
 
 <style scoped>
-.bg {
-  background-image: url("/background-light.svg");
-}
 </style>

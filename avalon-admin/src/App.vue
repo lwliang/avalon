@@ -11,13 +11,9 @@ import {onMounted, onUnmounted} from "@vue/runtime-dom";
 
 
 if (isLogin()) {
-  document.body.setAttribute('login', '')
   mittBus.emit("loadModule")
   mittBus.emit("loadService")
   mittBus.emit('loadUserInfo')
-} else {
-  document.body.removeAttribute('login')
-  goLogin()
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -42,6 +38,7 @@ onUnmounted(() => {
 
 <template>
   <router-view></router-view>
+  <div class="contents pb-1"></div>
 </template>
 
 <style scoped>

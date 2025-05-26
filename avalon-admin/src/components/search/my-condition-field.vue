@@ -5,7 +5,7 @@
  */
 
 import MyIcon from "../icon/my-icon.vue";
-import MyInnerPopover from "../popover/my-inner-popover.vue";
+import MyPopover from "../popover/my-popover.vue";
 import MyTable from "../table/my-table.vue";
 import FormField from "../../model/FormField.ts";
 import MyInput from "../input/my-input.vue";
@@ -44,11 +44,17 @@ const leftFieldSelect = (field: any) => {
   formField.value.value = field
 
   emits('selectField', field)
+  if (popperSelect.value) {
+    popperSelect.value.hide()
+  }
 }
+
+const popperSelect = ref()
 </script>
 
 <template>
-  <MyInnerPopover placement="bottom" trigger="click" full-width ref="popperSelect" @popperShow="popperShow">
+  <MyPopover placement="bottom" trigger="click" ref="popperSelect" @show="popperShow" :teleported="false"
+             popper-class="w-[200px] py-1">
     <template v-slot:default>
       <div class="inline-flex w-full relative">
         <my-input v-model="labelInput" icon="caret-down"
@@ -56,12 +62,12 @@ const leftFieldSelect = (field: any) => {
       </div>
 
     </template>
-    <template v-slot:option>
-      <div class="px-2">
+    <template v-slot:content>
+      <div class="w-full">
         <MyFieldTree :show-plus-button="false" :nodes="fields" @fieldSelect="leftFieldSelect"/>
       </div>
     </template>
-  </MyInnerPopover>
+  </MyPopover>
 </template>
 
 <style scoped>

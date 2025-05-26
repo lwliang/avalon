@@ -14,19 +14,20 @@ const emit = defineEmits(['moduleClick'])
 const modules = ref(useGlobalModuleDataStore().getInstallModule());
 
 const moduleItemClick = (module: Module) => {
-    emit('moduleClick', module);
+  emit('moduleClick', module);
 }
 </script>
 
 <template>
-    <div class="flex flex-col justify-start items-center py-3 h-full overflow-y-auto">
-        <div v-for="(module,index) in modules" :key="index"
-             class="flex flex-col justify-center items-center cursor-pointer my-1"
-             @click="moduleItemClick(module)">
-            <MyImage width="35" height="35" :src="getModuleIcon(module.name,module.icon)"></MyImage>
-            <div class="pb-0.5 mt-1 text-sm">{{ module.label }}</div>
-        </div>
+  <div
+      class="flex flex-col justify-start items-center py-3 h-full overflow-y-auto">
+    <div v-for="(module,index) in modules" :key="index"
+         class="flex flex-col justify-center items-center cursor-pointer my-1"
+         @click="moduleItemClick(module)">
+      <MyImage width="24px" height="24px" :src="getModuleIcon(module.name,module.icon)"></MyImage>
+      <div class="pb-0.5 mt-1 text-sm">{{ module.label }}</div>
     </div>
+  </div>
 </template>
 
 <style scoped>

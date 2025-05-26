@@ -35,6 +35,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
     search: any
     header: any;
     one2ManyFields: string[];
+    tabCount = 1;
 
     private _stack: any[] = [] // 记录识别标签的深度
     private _push_stack = (el: any) => {
@@ -255,6 +256,12 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 this.getTemplate().template += ">"
                 await this.visitContent(ctx.content())
                 this.getTemplate().template += `</MyCol>`
+            } else if (tagName.trim().toLowerCase() == 'row') {
+                this.getTemplate().template += `<MyRow`
+                this.visitorTagAttribute(ctx);
+                this.getTemplate().template += ">"
+                await this.visitContent(ctx.content())
+                this.getTemplate().template += `</MyRow>`
             } else if (tagName.trim().toLowerCase() == 'notebook') {
                 this.getTemplate().template += `<MyTabs`
                 this.visitorTagAttribute(ctx);
@@ -264,6 +271,8 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             } else if (tagName.trim().toLowerCase() == 'page') {
                 this.getTemplate().template += `<MyTabPanel`
                 this.visitorTagAttribute(ctx);
+                this.getTemplate().template += `name=${this.tabCount}`
+                this.tabCount++
                 this.getTemplate().template += ">"
                 await this.visitContent(ctx.content())
                 this.getTemplate().template += `</MyTabPanel>`
@@ -347,7 +356,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 const serviceField = await this.loadServiceField(this.service, field.name) as Field
                 if (this.viewMode == 'form') {
                     if (this._contain_stack('col')) { // 在col中的字段 增加label组件
-                        this.getTemplate().template += `<div class="contents">`
+                        this.getTemplate().template += `<div class="mb-[14px]">`
 
                         const useInfoStore = useUserInfoStore();
                         let htmlFor = field.name;
@@ -355,7 +364,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                             htmlFor = dotToUnderscore(field.name);
                         }
                         if (useInfoStore.user.debug) {
-                            this.getTemplate().template += `<my-label htmlFor="${htmlFor}">${serviceField?.label}`
+                            this.getTemplate().template += `<my-label class="mb-[5px]" htmlFor="${htmlFor}">${serviceField?.label}`
                             this.getTemplate().template += ` <my-debug service="${this.service}" field="${field.name}"></my-debug>`
                             this.getTemplate().template += `</my-label>`;
                         } else {
@@ -453,14 +462,14 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 return `<${componentName} v-model="${field.name}" ${vModelStr} ${propStr}/>`
             }
         } else if (serviceField.type == FieldTypeEnum.SelectionField) {
-            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
+            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" serviceName="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
         } else if (serviceField.type == FieldTypeEnum.FieldSelectionField) {
-            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" service="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
+            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" serviceName="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
         } else if (serviceField.type == FieldTypeEnum.Many2oneField) {
             if (!componentName) {
                 componentName = `MyMany2OneSelect`
             }
-            return `<${componentName} border="bottom" ref="${htmlRef}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
+            return `<${componentName} border="bottom" ref="${htmlRef}_input" serviceName="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
         } else if (serviceField.type == FieldTypeEnum.ImageField) {
             return `<MyImageUpload ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyImageUpload>`
         } else if (serviceField.type == FieldTypeEnum.VideoField) {
@@ -470,7 +479,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
         } else if (serviceField.type == FieldTypeEnum.DateField) {
             return `<my-date ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></my-date>`
         } else if (serviceField.type == FieldTypeEnum.BooleanField) {
-            return `<MyCheck ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyCheck>`
+            return `<MyCheckBox class=" " ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyCheckBox>`
         } else if (serviceField.type == FieldTypeEnum.HtmlField) {
             return `<MyTextarea border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyTextarea>`
         } else if (serviceField.type == FieldTypeEnum.TextField) {
@@ -479,7 +488,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
             }
             return `<${componentName}  border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
         } else if (serviceField.type == FieldTypeEnum.Many2manyField) {
-            return `<MyMany2manySelect border="bottom" ref="${htmlRef}_input" service="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyMany2manySelect>`
+            return `<MyMany2manySelect border="bottom" ref="${htmlRef}_input" serviceName="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyMany2manySelect>`
         } else if (serviceField.type == FieldTypeEnum.TimeField) {
             return `<MyTime ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyTime>`
         } else if (serviceField.type == FieldTypeEnum.DateTimeField) {

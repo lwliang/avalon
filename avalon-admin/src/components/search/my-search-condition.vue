@@ -68,7 +68,7 @@ defineExpose({getConditionString})
         匹配
       </div>
       <div>
-        <my-dropdown>
+        <my-dropdown trigger="click" :teleported="false">
           <template #default>
             <div class="hover:bg-gray-200 px-2 py-0.5 rounded"><span>{{
                 conditionForm == 'or' ? '任意' : '所有'

@@ -15,7 +15,7 @@ import {getFileUploadUrl, getVideoUploadUrl} from "../../api/env.ts";
 import MyImage from "../image/my-image.vue";
 import MyMany2manySelect from "../select/many2may-select/my-many2many-select.vue";
 import FormField from "../../model/FormField.ts";
-import MyCheck from "../check/my-check.vue";
+import MyCheckBox from "../checkbox/my-check-box.vue";
 import {getDate, getDateTime, getTime} from "../../util/dateUtils.ts";
 import MyDebug from "../debug/my-debug.vue";
 import {useUserInfoStore} from "../../global/store/userInfoStore.ts";
@@ -275,22 +275,27 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
 
 <template>
   <div ref="myTable" class="w-full overflow-auto h-full" :style="{'max-height': height || 'auto'}">
-    <table class="data-table w-[1000px]">
-      <thead @click.stop="void(0)" class="sticky top-0" style="left: auto;bottom: auto;right: auto;z-index: 10;">
+    <table class="w-full table-fixed">
+      <thead @click.stop="void(0)" class="sticky top-0 bg-fill h-12"
+             style="left: auto;bottom: auto;right: auto;z-index: 10;">
       <tr class="border-b">
-        <th v-if="showSelectBtn" class="w-[28px]">
-          <MyCheck v-model="allSelect"/>
+        <th v-if="showSelectBtn" class="w-[28px] pl-3 pr-3">
+          <div class="w-full h-full flex justify-center items-center pl-3 pr-3">
+            <MyCheckBox v-model="allSelect"/>
+          </div>
         </th>
         <template v-for="field in fields" :key="field.Field.id">
-          <th v-if="!field.Field.isPrimaryKey" class="whitespace-nowrap">
+          <th v-if="!field.Field.isPrimaryKey" class="whitespace-nowrap pr-3 pl-3">
             <div class="flex">
-              <span class="flex-1">{{ field.Field.label }}</span>
+              <span class="flex-1 font-bold">{{ field.Field.label }}</span>
               <template v-if="enableFilter && field.Field.canSearch">
                 <MyPopover ref="popper" placement="top" trigger="click">
                   <template #default>
-                    <MyIcon class="cursor-pointer" type="fas" icon="filter"/>
+                    <div class="h-full flex justify-center items-center">
+                      <MyIcon class="cursor-pointer" type="fas" icon="filter"/>
+                    </div>
                   </template>
-                  <template #option>
+                  <template #content>
                     <my-table-col-search @sureSearch="fieldSearchClick" :service-name="serviceName"
                                          :field="field.Field"/>
                   </template>
@@ -299,7 +304,7 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
 
               <template v-if="userInfoStore.user.debug">
                 <div class="px-2">
-                  <MyDebug class="cursor-pointer" :service="serviceName" :field="field.originField"/>
+                  <MyDebug :service="serviceName" :field="field.originField"/>
                 </div>
               </template>
             </div>
@@ -312,22 +317,27 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
         </th>
       </tr>
       </thead>
-      <tbody>
-      <tr v-for="(row, rowIndex) in record" :key="row.id" class="border-b cursor-pointer" @click="rowClick(row)">
-        <td v-if="showSelectBtn" class="w-[28px]" @click.stop="void(0)">
-          <MyCheck v-model="row[web_select]" @change="selectChange"/>
+      <tbody class="[&>tr:nth-child(even)]:bg-fill-extra-light">
+      <tr v-for="(row, rowIndex) in record" :key="row.id"
+          class="border-t-0 border-l-0 border-r-0 border-b border-border border-solid cursor-pointer"
+          @click="rowClick(row)">
+        <td v-if="showSelectBtn" class="pl-3 pr-3 min-h-[40px]" @click.stop="void(0)">
+          <div class="w-full h-full flex justify-center items-center pl-3 pr-3">
+            <MyCheckBox v-model="row[web_select]" @change="selectChange"/>
+          </div>
         </td>
         <template v-for="(field, colIndex) in fields" :key="field.Field.id">
           <td v-if="!field.Field.isPrimaryKey"
-              @click="editingCellChange(rowIndex,colIndex,getValue(field,row),field.Field)">
+              @click="editingCellChange(rowIndex,colIndex,getValue(field,row),field.Field)"
+              class="py-2 pl-3 pr-3">
             <template v-if="field.Field.type == FieldTypeEnum.SelectionField">
               <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
-                <my-selection-select @click.stop="void 0" :service="serviceName" :field="field.originField"
+                <my-selection-select @click.stop="void 0" :serviceName="serviceName" :field="field.originField"
                                      v-model="editingValue"/>
               </template>
               <template v-else>
                 {{ getSelectFormField(row, getValue(field, row), field.Field) }}
-                <my-selection-select :service="serviceName" :field="field.originField"
+                <my-selection-select :serviceName="serviceName" :field="field.originField"
                                      v-model="row[field.Field.name+'_select']" :readonly="true"
                                      :ref="field.Field.name+'_input'"/>
               </template>
@@ -338,10 +348,8 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
             <template v-else-if="field.Field.type == FieldTypeEnum.Many2oneField">
               <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
                 <MyMany2OneSelect v-model="editingValue"
-                                  :service="field.Field.relativeServiceName"
-                                  :field="field.Field.name"
-                                  :htmlId="field.Field.name"
-                                  :htmlName="field.Field.name"/>
+                                  :serviceName="field.Field.relativeServiceName"
+                                  :field="field.Field.name"/>
               </template>
               <template v-else>
                 {{
@@ -354,7 +362,7 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
                 <MyImageUpload v-model="editingValue" @blur="editingCellSave"></MyImageUpload>
               </template>
               <template v-else>
-                <MyImage width="50" height="50" :src="getImageUrl(getValue(field,row))"></MyImage>
+                <MyImage v-if="getValue(field,row)" :src="getImageUrl(getValue(field,row)) as string"></MyImage>
               </template>
             </template>
             <template v-else-if="field.Field.type == FieldTypeEnum.VideoField">
@@ -364,7 +372,7 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
               <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
                 <MyMany2manySelect v-model="editingValue"
                                    :ref="field.Field.name+'_input'"
-                                   :service="field.Field.relativeServiceName"
+                                   :serviceName="field.Field.relativeServiceName"
                                    :field="field.Field.name"
                                    :htmlId="field.Field.name"
                                    :htmlName="field.Field.name"/>
@@ -373,7 +381,7 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
                 {{ getMany2manyFormField(row, getValue(field, row), field.Field) }}
                 <MyMany2manySelect v-model="row[field.Field.name+'_many']" :readonly="true"
                                    :ref="field.Field.name+'_input'"
-                                   :service="field.Field.relativeServiceName"
+                                   :serviceName="field.Field.relativeServiceName"
                                    :field="field.Field.name"
                                    :htmlId="field.Field.name"
                                    :htmlName="field.Field.name"/>
@@ -381,15 +389,10 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
             </template>
             <template v-else-if="field.Field.type == FieldTypeEnum.BooleanField">
               <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
-                <my-check v-model="editingValue" @blur="editingCellSave"/>
+                <my-check-box v-model="editingValue" @blur="editingCellSave"/>
               </template>
               <template v-else>
-                <template v-if="getValue(field, row)">
-                  <MyIcon icon="square-check" type="fas" color="#3a7afe"/>
-                </template>
-                <template v-else>
-                  <MyIcon icon="square-xmark" type="fas" color="#183153"/>
-                </template>
+                <my-check-box v-model="row[field.Field.name]" @blur="editingCellSave" :disabled="true"/>
               </template>
             </template>
             <template v-else-if="field.Field.type == FieldTypeEnum.DateTimeField">
@@ -436,16 +439,16 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
           </td>
         </template>
 
-        <td class="w-[24px]" @click.stop="()=>{}" v-if="showDeleteBtn">
-          <MyButton @click="rowDeleteClick(row)" icon="trash-can" icon-style="fas" is-link type="primary"
-                    icon-color="#212529"></MyButton>
+        <td class="w-[24px] py-1" @click.stop="()=>{}" v-if="showDeleteBtn">
+          <my-icon @click="rowDeleteClick(row)" icon="trash-can" type="fas" class="cursor-pointer"/>
         </td>
       </tr>
       <tr v-if="showBtnRow" @click.stop="void(0)">
-        <td v-if="showSelectBtn">
+        <td v-if="showSelectBtn" class="py-2">
+
         </td>
-        <td :colspan="rowColSpan">
-          <my-button type="primary" is-link @click="addRowClick">添加行</my-button>
+        <td :colspan="rowColSpan" class="pl-4 py-2">
+          <my-text class="cursor-pointer" type="primary" @click="addRowClick">添加行</my-text>
         </td>
       </tr>
       </tbody>

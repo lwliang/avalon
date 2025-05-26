@@ -2,10 +2,14 @@
 import Field from "../../model/Field.ts";
 import FormField from "../../model/FormField.ts";
 import {onMounted, ref, watch} from "vue";
-import MyInnerPopover from "../popover/my-inner-popover.vue";
+import MyPopover from "../popover/my-popover.vue";
 
 const props = defineProps<{
   field?: Field
+}>()
+
+const emit = defineEmits<{
+  (e: 'click', event: MouseEvent): void
 }>()
 
 const formField = defineModel({
@@ -50,13 +54,19 @@ const options = ref([{
   // }
 ])
 
-const itemClick = (op: any) => {
+const itemClick = (op: any, e: MouseEvent) => {
   if (formField.value) {
     formField.value.value = op;
   }
   labelInput.value.value = op.label;
+
+  if (popperSelect.value) {
+    popperSelect.value.hide();
+  }
+  emit('click', e)
 }
 
+const popperSelect = ref()
 onMounted(() => {
   if (formField && formField.value && formField.value.value) {
     const value = formField.value.value.value
@@ -69,7 +79,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <MyInnerPopover placement="bottom" trigger="click" full-width ref="popperSelect">
+  <MyPopover placement="bottom" trigger="click" ref="popperSelect" popper-class="py-1" :teleported="false">
     <template v-slot:default>
       <div class="inline-flex w-full relative">
         <my-input placeholder="查询条件" v-model="labelInput" icon="caret-down"
@@ -77,19 +87,19 @@ onMounted(() => {
       </div>
 
     </template>
-    <template v-slot:option>
-      <div>
+    <template v-slot:content>
+      <div class="w-[180px]">
         <div class="w-full cursor-pointer option-item px-4" v-for="(op,index) in options" :key="index"
-             @click="itemClick(op)">
+             @click="itemClick(op, $event)">
           {{ op.label }}
         </div>
       </div>
     </template>
-  </MyInnerPopover>
+  </MyPopover>
 </template>
 
 <style scoped>
 .option-item:hover {
-  @apply bg-primary text-white;
+  @apply bg-fill text-primary;
 }
 </style>

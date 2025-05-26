@@ -11,8 +11,8 @@ import {FilterOperator} from "../../model/FilterCondition.ts";
  */
 const props = defineProps<{
   serviceName: string,
-  field?: Field,
-  operate: FilterOperator
+  field?: Field | undefined,
+  operate: FilterOperator | undefined,
 }>()
 
 const formField = defineModel({type: FormField, required: true})

@@ -3,7 +3,7 @@ import {AddressType} from "./address.ts";
 import FormField from "../../model/FormField.ts";
 import {getModelPageApi} from "../../api/modelApi.ts";
 import {watch} from "vue";
-import {borderStyleType} from "../icon/my-icon.ts";
+import {borderStyleType} from "../icon/types.ts";
 
 /**
  * @author lwlianghehe@gmail.com
@@ -92,20 +92,20 @@ const loadDistrictOption = async (name: string) => {
 
 <template>
   <div class="flex items-center gap-2">
-    <my-many-2-one-select :service="serviceName" :html-id="htmlId" :readonly="readonly" :required="required" :border="border"
+    <my-many-2-one-select :serviceName="serviceName" :html-id="htmlId" :readonly="readonly" :required="required" :border="border"
                   v-model="province"
-                  :load-option="loadProvinceOption"/>
-    <my-many-2-one-select v-if="type == 'city' || type == 'district'" :service="serviceName" :html-id="htmlId+'_city'"
+                  :load="loadProvinceOption"/>
+    <my-many-2-one-select v-if="type == 'city' || type == 'district'" :serviceName="serviceName" :html-id="htmlId+'_city'"
                   :border="border"
                   :readonly="readonly"
                   :required="required"
                   v-model="city"
-                  :load-option="loadCityOption"/>
-    <my-many-2-one-select v-if="type == 'district'" :service="serviceName" :html-id="htmlId+'_district'" :readonly="readonly"
+                  :load="loadCityOption"/>
+    <my-many-2-one-select v-if="type == 'district'" :serviceName="serviceName" :html-id="htmlId+'_district'" :readonly="readonly"
                   :border="border"
                   :required="required"
                   v-model="district"
-                  :load-option="loadDistrictOption"/>
+                  :load="loadDistrictOption"/>
   </div>
 </template>
 

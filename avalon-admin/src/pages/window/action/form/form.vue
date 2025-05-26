@@ -1,9 +1,8 @@
-/**
-* @author lwlianghehe@gmail.com
-* @date 2024/11/22
-*/
-
 <script setup lang="ts">
+/**
+ * @author lwlianghehe@gmail.com
+ * @date 2024/11/22
+ */
 import {
   compile,
   ComponentInternalInstance,
@@ -36,6 +35,7 @@ import Service from "../../../../model/Service.ts";
 import Form from "../../../../model/form/Form.ts";
 import ServiceInvokeParam from "../../../../model/ServiceInvokeParam.ts";
 import {isObjectEmpty} from "../../../../util/ObjectUtils.ts";
+import {ButtonClickEvent} from "../../../../model/ButtonClickEvent.ts";
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 const route = useRoute();
@@ -271,25 +271,24 @@ const createFormTemplateVNode = () => {
 const createHeaderTemplateVNode = () => {
   if (!headerTemplate.value) return
   const vNode = compile(headerTemplate.value)
-  const btnClickHandler = async (actionType: string, action: string) => {
-    console.log('btnClick', actionType, action)
-
+  const btnClickHandler = async (btnEvent: ButtonClickEvent) => {
+    console.log('btnClick', btnEvent)
     let param = null;
     if (row_id.value) {
       param = {
         serviceName: serviceName.value,
-        method: action,
+        method: btnEvent.action,
         param: {"id": row_id.value}
       }
     } else {
       param = {
         serviceName: serviceName.value,
-        method: action,
+        method: btnEvent.action,
         param: {}
       }
     }
     if (serviceName.value) {
-      const result = await invokeMethod(serviceName.value, param);
+      const result = await invokeMethod(serviceName.value, param as any);
       if (!result) { // 没有返回值
         proxy?.$notify.success("提示", "操作成功");
       } else {
@@ -471,9 +470,9 @@ watch(recordRowWithField.value, async () => {
 
 <template>
   <div class="p-4 w-full overflow-hidden h-full box-border">
-    <div>
-      <MyButton class="mr-2" type="success" is-link rounded @click="backClick" icon="chevron-left"
-                icon-style="fas">返回
+    <div class="py-4 border-b border-t-0 border-l-0 border-r-0 border-border border-solid">
+      <MyButton type="success" class="mr-4" @click="backClick" icon="chevron-left" plain circle
+                icon-style="fas">
       </MyButton>
       <MyButton type="primary" rounded @click="createClick" v-if="form.create">新增</MyButton>
       <MyButton type="success" rounded @click="saveClick" class="ml-2"
@@ -483,8 +482,8 @@ watch(recordRowWithField.value, async () => {
       <component :is="header_component"/>
     </div>
 
-    <div class="w-full flex h-full box-border">
-      <div class="w-full overflow-x-auto" style="flex: 2" @scroll="onScrollClick">
+    <div class="w-full flex min-h-[500px] h-fit max-h-full pb-[50px] ">
+      <div class="w-full overflow-x-auto box-border border border-border border-solid mt-4 rounded-sm" style="flex: 2" @scroll="onScrollClick">
         <component :is="template_component"/>
       </div>
       <div class="flex-1 h-full box-border hidden 2xl:block">

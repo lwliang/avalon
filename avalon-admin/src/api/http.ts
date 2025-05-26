@@ -32,14 +32,30 @@ axios.interceptors.response.use((response) => {
 
     return response.data
 }, (error) => {
-    if (error.response.status === 401) {
-        goLogin()
+    // 判断是“网络错误”或“服务器无法连接”
+    if (!error.response) {
+
+        // 断网/服务挂了/CORS等
+        if (error.code === 'ECONNABORTED') {
+            return Promise.reject({code: 400, msg: '请求超时'})
+        } else if (error.message && error.message.includes('Network Error')) {
+            return Promise.reject({code: 400, msg: '网络错误'})
+        } else {
+            return Promise.reject({code: 400, msg: '无法连接服务器'})
+        }
+        // 你可以自定义提示
+    } else {
+        // 有 response，是接口报错（如 404、500 等）
+        console.log('服务器有响应，但报错', error.response.status);
+        if (error.response.status === 401) {
+            goLogin()
+        }
+        if (error.response.data) {
+            MyNotification.error('错误', error.response.data.msg)
+            return Promise.reject(error.response.data)
+        }
+        return Promise.reject({code: error.code, msg: error.message})
     }
-    if (error.response.data) {
-        MyNotification.error('错误', error.response.data.msg)
-        return Promise.reject(error.response.data)
-    }
-    return Promise.reject({code: error.code, msg: error.message})
 })
 
 export function getHttp(url: string, config: any): Promise<any> {

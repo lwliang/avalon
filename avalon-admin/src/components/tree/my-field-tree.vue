@@ -7,11 +7,16 @@
 import Field from "../../model/Field.ts";
 import MyFieldTreeNode from "./my-field-tree-node.vue";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   nodes: Field[],
   condition?: String,
-  showPlusButton?: boolean
-}>()
+  showPlusButton?: Boolean,
+  nodeClass?: string,
+  indent?: number
+}
+>(), {
+  indent: 18
+})
 
 const emit = defineEmits(['fieldSelect'])
 
@@ -22,8 +27,10 @@ const fieldSelectClick = (fieldName: String) => {
 </script>
 
 <template>
-  <MyFieldTreeNode :showPlusButton="showPlusButton" v-for="(node,index) in nodes" :node="node" :key="index"
+  <MyFieldTreeNode :first="true" :showPlusButton="showPlusButton" v-for="(node,index) in nodes" :node="node"
+                   :key="index"
                    :condition="condition"
+                   :nodeClass="nodeClass"
                    @fieldSelect="fieldSelectClick"></MyFieldTreeNode>
 </template>
 

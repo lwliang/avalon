@@ -10,21 +10,12 @@ import {InputExpose} from "../../../global/input/InputExpose.ts";
 import {getSelectionValueByServiceAndField} from "../../../cache/SelectionValueMemory.ts";
 import {onMounted} from "@vue/runtime-dom";
 import MyIcon from "../../icon/my-icon.vue";
-import {borderStyleType} from "../../icon/my-icon.ts";
+import {borderStyleType} from "../../icon/types.ts";
 import MyPopover from "../../popover/my-popover.vue";
+import {MySelectionSelectProps} from "./my-selection-select.ts";
+import {isObjectEmpty} from "../../../util/ObjectUtils.ts";
 
-const props = defineProps({
-  htmlId: String,
-  htmlName: String,
-  required: Boolean,
-  readonly: Boolean,
-  service: String,
-  field: String,
-  border: {
-    type: borderStyleType,
-    default: 'round'
-  }
-})
+const props = defineProps<MySelectionSelectProps>()
 
 const emit = defineEmits(['rightBtnClick', 'blur'])
 
@@ -40,6 +31,8 @@ watch(() => formField.value?.value, () => {
   setValidate(true)
   formatDisplay()
 })
+
+const popoverRef = ref()
 
 /**
  * 格式化显示
@@ -77,8 +70,8 @@ onMounted(() => {
 })
 
 const loadSelectionOptions = () => {
-  if (props.service && props.field) {
-    getSelectionValueByServiceAndField(props.service, props.field).then(data => {
+  if (props.serviceName && props.field) {
+    getSelectionValueByServiceAndField(props.serviceName, props.field).then(data => {
       Object.assign(options.value, data)
       if (formField.value) {
         formatDisplay()
@@ -117,6 +110,9 @@ const optionSelectClick = (key: string) => {
     if (formField.value) {
       formField.value.value = key
     }
+    if (popoverRef.value) {
+      popoverRef.value.hide()
+    }
   }
 }
 
@@ -150,38 +146,34 @@ defineExpose<InputExpose>({validate})
   <div class="flex relative">
     <div class="inline-flex w-full relative items-center flex-wrap gap-1">
       <template v-for="(fieldValue,index) in labelFields" :key="index">
-        <MyTag :close="!readonly" :round="true"
+        <MyTag :closable="!readonly" :round="false"
                :label="fieldValue.value.name"
-               :value="fieldValue.value.id" @deleteTag="deleteTagClick" @tagClick="tagClick"/>
+               :value="fieldValue.value.id" @close="deleteTagClick" @click="tagClick"/>
       </template>
       <template v-if="readonly && labelField.value">
-        <MyTag :close="!readonly" :round="true"
+        <MyTag :closable="!readonly" :round="false"
                :label="labelField.value"
-               :value="labelValue.value" @deleteTag="deleteTagClick" @tagClick="tagClick"/>
+               :value="labelValue.value" @close="deleteTagClick" @click="tagClick"/>
       </template>
-      <MyPopover v-if="!readonly" placement="bottom" trigger="click" style="flex:1" full-width
-                 @itemSelect="optionSelectClick">
+      <MyPopover ref="popoverRef" v-if="!readonly" placement="bottom" trigger="click"
+                 default-class="w-full flex-1 min-w-[120px]">
         <template #default>
           <div class="inline-flex relative w-full">
-            <input
-                :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,
-                    'border':border == 'round', 'border-b':border == 'bottom'}]"
-                style="padding-right: 25px"
-                v-if="labelField"
-                type="text"
-                @blur="inputBlurClick"
-                v-model="labelField.value" :id="htmlId" :readonly="true"
-                :name="htmlName">
-            <MyIcon class="absolute right-[10px] top-[50%]" style="transform: translateY(-50%)" icon="caret-down"
-                    type="fas" size="sm"></MyIcon>
+            <my-input class="w-full" v-model="labelField" readonly suffix-icon-type="fas" suffix-icon="caret-down"
+                      @blur="inputBlurClick"/>
           </div>
         </template>
-        <template #option>
+        <template #content>
           <div class="flex flex-col min-w-[250px]">
-            <div class="cursor-pointer hover:bg-gray-300 px-4" v-for="(value,key) in computedOptions"
-                 :key="key"
-                 @click="itemSelectClick(key)">
-              {{ value }}
+            <template v-if="computedOptions && !isObjectEmpty(computedOptions)">
+              <div class="cursor-pointer hover:bg-background-component px-4" v-for="(value,key) in computedOptions"
+                   :key="key"
+                   @click="itemSelectClick(key)">
+                {{ value }}
+              </div>
+            </template>
+            <div v-else class="px-4">
+              无选择
             </div>
           </div>
 

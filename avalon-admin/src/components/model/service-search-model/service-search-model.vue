@@ -34,8 +34,8 @@ const rowSelectChangeEvent = (ids: any[]) => {
 </script>
 
 <template>
-    <MyOverlay v-if="props.show">
-        <div class="absolute-center w-[980px] h-[375px] bg-background flex flex-col">
+    <MyOverlay :show="props.show">
+        <div class="absolute-center w-[980px] h-[375px]  flex flex-col bg-background">
             <div class="model-head py-2">
                 <div class="dialog-title flex-1">
                     {{ title }}
@@ -44,10 +44,10 @@ const rowSelectChangeEvent = (ids: any[]) => {
                     <MyIcon class="cursor-pointer" icon="xmark" type="fas" @click="closeClick"></MyIcon>
                 </div>
             </div>
-            <div class="model-content flex-1 overflow-hidden">
+            <div class="model-content flex-1 ">
                 <service-search :service="service" @rowSelectChange="rowSelectChangeEvent"/>
             </div>
-            <div class="model-footer">
+            <div class="model-footer pt-3">
                 <MyButton type="info" rounded @click="closeClick">取消</MyButton>
                 <MyButton class="ml-3" type="primary" rounded @click="sureClick">确认</MyButton>
             </div>

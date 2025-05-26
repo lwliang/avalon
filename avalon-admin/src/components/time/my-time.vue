@@ -1,202 +1,211 @@
+<template>
+  <MyPopover ref="popoverRef" placement="bottom" trigger="click" popperClass="w-fit" @show="onPopperShow">
+    <template #default>
+      <div v-if="props.type === 'timerange'" class="time-range-inputs">
+        <MyInput
+            v-model="startTimeOnlyTime"
+            :border="border"
+            :readonly="!editable"
+            :disabled="disabled"
+            :clearable="clearable"
+            :placeholder="props.startPlaceholder ?? '开始时间'"
+            @clear="onClear"
+            @change="onStartInput"
+            style="width: 120px;"
+        />
+        <span class="range-separator" style="margin: 0 8px;">{{ rangeSeparator }}</span>
+        <MyInput
+            v-model="endTimeOnlyTime"
+            :border="border"
+            :readonly="!editable"
+            :disabled="disabled"
+            :clearable="clearable"
+            :placeholder="props.endPlaceholder ?? '结束时间'"
+            @clear="onClear"
+            @change="onEndInput"
+            style="width: 120px;"
+        />
+      </div>
+      <MyInput
+          v-else
+          v-model="startTimeOnlyTime"
+          suffix-icon-type="far"
+          suffix-icon="clock"
+          :border="border"
+          :readonly="!editable"
+          :disabled="disabled"
+          :clearable="clearable"
+          :placeholder="displayPlaceholder"
+          @clear="onClear"
+          @change="onStartInput"
+      />
+    </template>
+
+    <!-- 弹出内容：时间面板 -->
+    <template #content>
+      <TimePanel
+          ref="timePanelRef"
+          :type="type"
+          :startTime="startTimeOnlyTime.value"
+          :endTime="endTimeOnlyTime?.value"
+          :format="format"
+          @select="onSelect"
+      />
+    </template>
+  </MyPopover>
+</template>
+
 <script setup lang="ts">
-/**
- * @author lwlianghehe@gmail.com
- * @date 2024/11/22
- */
-import MyInput from "../input/my-input.vue";
-import {getHour, getMinute} from "../../util/dateUtils.ts";
-import FormField from "../../model/FormField.ts";
-import {ref} from "vue";
-import {popoverType} from "../popover/my-popover.ts";
-import {borderStyleType} from "../icon/my-icon.ts";
+import {ref, computed, watch} from 'vue'
+import dayjs from 'dayjs'
 import MyPopover from "../popover/my-popover.vue";
 
-const props = defineProps({
-    htmlId: String,
-    htmlName: String,
-    required: Boolean,
-    readonly: Boolean,
-    inputWidth: String,
-    placement: {
-        type: popoverType,
-        default: 'bottom'
-    },
-    border: {
-        type: borderStyleType,
-        default: 'round'
-    }
+import TimePanel from "../calendar/TimePanel.vue"; // 你需要有这个时间选择面板
+import FormField from "../../model/FormField"
+import {normalizeAndFormatTime} from "../../util/dateUtils.ts";
+
+type TimePickerType = 'time' | 'timerange'
+
+const props = withDefaults(defineProps<{
+  type?: TimePickerType
+  format?: 'HH:mm' | 'HH:mm:ss'
+  editable?: boolean
+  disabled?: boolean
+  clearable?: boolean
+  border?: boolean
+  startPlaceholder?: string
+  endPlaceholder?: string
+  rangeSeparator?: string
+}>(), {
+  type: 'time',
+  format: 'HH:mm:ss',
+  editable: true,
+  disabled: false,
+  clearable: true,
+  border: false,
 })
 
-const formField = defineModel({
-    type: FormField,
-    required: true
-})
+const startTime = defineModel<FormField>({required: true})
+const startTimeOnlyTime = ref<FormField>(new FormField(''))
+const endTime = defineModel<FormField>('end', {required: false})
+const endTimeOnlyTime = ref<FormField>(new FormField(''))
 
-const hours = ref<number[]>([1, 2, 3])
-const minutes = ref<number[]>([1, 2, 3])
-const seconds = ref<number[]>([1, 2, 3])
+watch(() => [startTime.value, startTime.value.value], () => {
+      if (startTime.value && startTime.value.value) {
+        startTimeOnlyTime.value.value = dayjs(startTime.value.value).format(props.format)
+      } else {
+        startTimeOnlyTime.value.value = ''
+      }
+    }
+    , {immediate: true})
 
-const hourUpClick = () => {
-    for (let i = 0; i < hours.value.length; i++) {
-        hours.value[i] = hours.value[i] - 1;
+watch(() => [endTime.value, endTime?.value?.value], () => {
+      if (endTime.value && endTime.value.value) {
+        endTimeOnlyTime.value.value = dayjs(endTime.value.value).format(props.format)
+      } else {
+        endTimeOnlyTime.value.value = ''
+      }
     }
-    if (hours.value[1] < 0) {  // 第二个
-        hours.value[0] = 22
-        hours.value[1] = 23
-        hours.value[2] = 24
-    }
-}
-if (formField.value.value) {
-    const hour = parseInt(formField.value.value.split(':')[0])
-    const minute = parseInt(formField.value.value.split(':')[1])
-    hours.value[0] = hour - 1
-    hours.value[1] = hour
-    hours.value[2] = hour + 1
-    minutes.value[0] = minute - 1
-    minutes.value[1] = minute
-    minutes.value[2] = minute + 1
-} else {
-    const hour = getHour()
-    const minute = getMinute()
-    hours.value[0] = hour - 1
-    hours.value[1] = hour
-    hours.value[2] = hour + 1
-    minutes.value[0] = minute - 1
-    minutes.value[1] = minute
-    minutes.value[2] = minute + 1
+    , {immediate: true})
+
+const popoverRef = ref()
+const timePanelRef = ref()
+const emit = defineEmits<{
+  (e: 'change', v: string | [string, string]): void
+  (e: 'focus'): void
+  (e: 'blur'): void
+}>()
+
+const onPopperShow = () => {
+  if (timePanelRef.value) {
+    timePanelRef.value.scrollToSelected();
+  }
 }
 
+const rangeSeparator = computed(() => props.rangeSeparator ?? ' ~ ')
+const format = computed(() => props.format ?? 'HH:mm:ss')
+const displayPlaceholder = computed(() =>
+    props.type === 'timerange'
+        ? `${props.startPlaceholder ?? '开始时间'}${rangeSeparator.value}${props.endPlaceholder ?? '结束时间'}`
+        : props.startPlaceholder ?? '请选择时间'
+)
 
-const hourDownClick = () => {
-    for (let i = 0; i < hours.value.length; i++) {
-        hours.value[i] = hours.value[i] + 1;
-    }
-    if (hours.value[1] > 23) {  // 第二个
-        hours.value[0] = -1
-        hours.value[1] = 0
-        hours.value[2] = 1
-    }
+
+function onClear() {
+  startTime.value.value = ''
+  if (endTime.value) endTime.value.value = ''
+  emit('change', props.type === 'timerange' ? ['', ''] : '')
 }
 
-const minuteUpClick = () => {
-    for (let i = 0; i < minutes.value.length; i++) {
-        minutes.value[i] = minutes.value[i] - 1;
-    }
-    if (minutes.value[1] < 0) {  // 第二个
-        minutes.value[0] = 58
-        minutes.value[1] = 59
-        minutes.value[2] = 60
-    }
+function onStartInput(val: string) {
+  if (!props.editable) return
+  const time = normalizeAndFormatTime(val, props.format)
+  if (time) {
+    startTime.value.value = time
+  } else {
+    startTime.value.value = ''
+  }
+  onPopperShow()
 }
 
-const minuteDownClick = () => {
-    for (let i = 0; i < minutes.value.length; i++) {
-        minutes.value[i] = minutes.value[i] + 1;
+function onEndInput(val: string) {
+  if (!props.editable) return
+  if (endTime.value) {
+    const time = normalizeAndFormatTime(val, props.format)
+    if (time) {
+      endTime.value.value = time
+    } else {
+      endTime.value.value = ''
     }
-    if (minutes.value[1] > 59) {  // 第二个
-        minutes.value[0] = -1
-        minutes.value[1] = 0
-        minutes.value[2] = 1
-    }
-}
-const secondUpClick = () => {
-    for (let i = 0; i < seconds.value.length; i++) {
-        seconds.value[i] = seconds.value[i] - 1;
-    }
-    if (seconds.value[1] < 0) {  // 第二个
-        seconds.value[0] = 58
-        seconds.value[1] = 59
-        seconds.value[2] = 60
-    }
+    onPopperShow()
+  }
 }
 
-const secondDownClick = () => {
-    for (let i = 0; i < seconds.value.length; i++) {
-        seconds.value[i] = seconds.value[i] + 1;
+function onSelect(val: string | [string, string]) {
+  if (props.type === 'timerange') {
+    if (Array.isArray(val)) {
+      startTimeOnlyTime.value.value = val[0] as string || ''
+      startTime.value.value = normalizeAndFormatTime(startTimeOnlyTime.value.value, props.format)
+      if (endTime.value) {
+        endTimeOnlyTime.value.value = val[1] as string || ''
+        endTime.value.value = normalizeAndFormatTime(endTimeOnlyTime.value.value, props.format)
+      } else {
+
+      }
+      emit('change', [startTime.value.value, endTime.value?.value ?? ''])
+      if (startTime.value.value && endTime.value?.value) closePopover()
     }
-    if (seconds.value[1] > 59) {  // 第二个
-        seconds.value[0] = -1
-        seconds.value[1] = 0
-        seconds.value[2] = 1
-    }
+  } else {
+    startTimeOnlyTime.value.value = val as string
+    startTime.value.value = normalizeAndFormatTime(startTimeOnlyTime.value.value, props.format)
+    emit('change', startTime.value.value)
+    closePopover()
+  }
 }
 
-const sureTime = () => {
-    formField.value.value = `${hours.value[1].toString().padStart(2, '0')}:${minutes.value[1].toString().padStart(2, '0')}`
+
+function onFocus() {
+  emit('focus')
+}
+
+function onBlur() {
+  emit('blur')
+}
+
+function closePopover() {
+  if (popoverRef.value && typeof popoverRef.value.close === 'function') {
+    popoverRef.value.close()
+  }
 }
 </script>
 
-<template>
-    <MyPopover :placement="placement" trigger="click" width="182px">
-        <template #default>
-            <MyInput :inputWidth="props.inputWidth" v-model="formField" suffix-icon-style="far"
-                     suffix-icon="clock" :border="border"></MyInput>
-        </template>
-
-        <template #option>
-            <div class="w-full rounded relative my-time-popper">
-                <div class="flex px-4 py-2" @click.stop="void(0)">
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="cursor-pointer" @click="hourUpClick">
-                            <MyIcon type="fas" icon="angle-up"></MyIcon>
-                        </div>
-                        <div class="cursor-pointer select-none">
-                            <div v-for="(hour,index) in hours" :key="index" class="h-6">
-                                {{
-                                    hour >= 0 && hour <= 23 ? hour.toString().padStart(2, '0') : '  '
-                                }}
-                            </div>
-                        </div>
-                        <div class="cursor-pointer" @click="hourDownClick">
-                            <MyIcon type="fas" icon="angle-down"></MyIcon>
-                        </div>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="cursor-pointer" @click="minuteUpClick">
-                            <MyIcon type="fas" icon="angle-up"></MyIcon>
-                        </div>
-                        <div class="cursor-pointer select-none">
-                            <div v-for="(minute,index) in minutes" :key="index" class="h-6">
-                                {{
-                                    minute >= 0 && minute <= 59 ? minute.toString().padStart(2, '0') : ' '
-                                }}
-                            </div>
-                        </div>
-                        <div class="cursor-pointer" @click="minuteDownClick">
-                            <MyIcon type="fas" icon="angle-down"></MyIcon>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex justify-end px-4 gap-4 py-2">
-                    <div class="flex-1" @click.stop="void (0)"></div>
-                    <MyButton type="info" is-link>Cancel</MyButton>
-                    <MyButton is-link @click="sureTime">OK</MyButton>
-                </div>
-            </div>
-        </template>
-    </MyPopover>
-</template>
-
 <style scoped>
-.my-time-popper::before {
-    content: ' ';
-    display: block;
-    position: absolute;
-    border: 1px solid #F4F4F5;
-    width: 50%;
-    left: 50%;
-    top: 56px;
-    transform: translateX(-50%);
+.time-range-inputs {
+  display: flex;
+  align-items: center;
 }
 
-.my-time-popper::after {
-    content: ' ';
-    display: block;
-    position: absolute;
-    border: 1px solid #F4F4F5;
-    width: 50%;
-    left: 50%;
-    top: 79px;
-    transform: translateX(-50%);
+.range-separator {
+  user-select: none;
 }
 </style>

@@ -1,237 +1,225 @@
-<script setup lang="ts">
-/**
- * @author lwlianghehe@gmail.com
- * @date 2024/11/22
- */
-import MyInput from "../input/my-input.vue";
-import {
-    getDaysInMonth,
-    getYear,
-    getMonth,
-    getDay,
-    getFirstDayOfMonth,
-    getBeforeMonth,
-    getNextMonth
-} from "../../util/dateUtils.ts";
-import FormField from "../../model/FormField.ts";
-import {ref} from "vue";
-import {borderStyleType} from "../icon/my-icon.ts";
-import MyPopover from "../popover/my-popover.vue";
-
-interface monthDay {
-    year: number
-    month: number,
-    day: number
-}
-
-const props = defineProps({
-    htmlId: String,
-    htmlName: String,
-    required: Boolean,
-    readonly: Boolean,
-    border: {
-        type: borderStyleType,
-        default: 'round'
-    }
-})
-
-const formField = defineModel({
-    type: FormField,
-    required: true
-})
-
-const activeLeftLeftColor = ref({color: '#222222'})
-const activeLeftColor = ref({color: '#222222'})
-const activeRightRightColor = ref({color: '#222222'})
-const activeRightColor = ref({color: '#222222'}) //
-const arrowMouseEnter = (color: any) => {
-    color.color = 'rgb(59 130 246)'
-}
-const arrowMouseLeave = (color: any) => {
-    color.color = '#222222'
-}
-const year = ref()
-const month = ref()
-const day = ref()
-const editMode = ref<"year" | "month" | "day">('day') // 编辑模式
-
-const days = ref<Array<monthDay>[]>([])
-const weeks = ref<string[]>(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
-
-const reComputeDay = () => {
-    const dateStr = `${year.value}-${month.value}-${day.value}`
-    const daySum = getDaysInMonth(dateStr)
-    let dayCount = 0;
-    for (let i = 0; i < Math.ceil(daySum / 7); i++) { // 获取最大周数
-        const weekDays: monthDay[] = [];
-        let maxWeeks = 7; // 生成最大周数
-        let week = 0; // 开始的周
-        if (i == 0) { // 第一周
-            week = getFirstDayOfMonth(dateStr)
-            const beforeDateStr = getBeforeMonth(dateStr);
-            const beforeMonth = getMonth(beforeDateStr);
-            const beforeYear = getYear(beforeDateStr);
-            let beforeDaySum = getDaysInMonth(beforeDateStr);
-            for (let j = 0; j < week; j++) {
-                weekDays[week - j - 1] = {year: beforeYear, month: beforeMonth, day: beforeDaySum};
-                beforeDaySum--;
-            }
-        }
-        let lastI = 0;
-        for (let j = week; j < maxWeeks; j++) {
-            dayCount++;
-            lastI = j;
-            if (dayCount > daySum) {
-                break;
-            }
-            weekDays[j] = {year: year.value, month: month.value, day: dayCount};
-        }
-
-        if (i == Math.ceil(daySum / 7) - 1) { // 最后一周
-            const nextDateStr = getNextMonth(dateStr);
-            const nextMonth = getMonth(nextDateStr);
-            const nextYear = getYear(nextDateStr);
-            let nextDaySum = 1
-
-            for (let j = lastI; j < maxWeeks; j++) {
-                weekDays[j] = {year: nextYear, month: nextMonth, day: nextDaySum};
-                nextDaySum++;
-            }
-        }
-
-        days.value.push(weekDays);
-    }
-}
-
-
-year.value = getYear(formField.value.value)
-month.value = getMonth(formField.value.value)
-day.value = getDay(formField.value.value)
-reComputeDay()
-
-
-const monthSub = () => {
-    month.value--;
-    if (month.value <= 0) {
-        year.value--;
-        month.value = 12;
-    }
-    days.value.splice(0, days.value.length)
-    reComputeDay();
-}
-
-const setDate = (yearTemp: number, monthTemp: number, dayTemp: Number) => {
-    day.value = dayTemp
-    month.value = monthTemp
-    year.value = yearTemp
-    formField.value.value = `${year.value}-${month.value}-${day.value}`
-    days.value.splice(0, days.value.length)
-    reComputeDay();
-}
-
-const monthAdd = () => {
-    month.value++;
-    if (month.value > 12) {
-        year.value++;
-        month.value = 1;
-    }
-    days.value.splice(0, days.value.length)
-    reComputeDay();
-}
-
-const addYear = () => {
-    year.value++;
-    days.value.splice(0, days.value.length)
-    reComputeDay();
-}
-
-const subYear = () => {
-    year.value--;
-    days.value.splice(0, days.value.length)
-    reComputeDay();
-}
-
-const getCurrentDateStr = (day: any) => {
-    return `${year.value}-${month.value}-${day}`
-}
-
-</script>
-
 <template>
-    <MyPopover placement="bottom" trigger="click" width="332px">
-        <template #default>
-            <MyInput v-model="formField" suffix-icon-style="far" suffix-icon="calendar" :border="border"></MyInput>
-        </template>
+  <MyPopover ref="popoverRef" placement="bottom" trigger="click" popperClass="w-fit">
+    <!-- 触发输入框 -->
+    <template #default>
+      <div v-if="props.type === 'daterange'" class="date-range-inputs flex">
+        <MyInput
+            v-model="startDate"
+            :border="false"
+            :readonly="!editable"
+            :disabled="disabled"
+            :clearable="clearable"
+            :placeholder="props.startPlaceholder ?? '开始日期'"
+            @clear="onClear"
+            @change="onStartInput"
+            @focus="onFocus"
+            @blur="onBlur"
+            style="width: 120px;"
+        />
+        <span class="range-separator" style="margin: 0 8px;">{{ rangeSeparator }}</span>
+        <MyInput v-if="endDate"
+                 v-model="endDate"
+                 :border="false"
+                 :readonly="!editable"
+                 :disabled="disabled"
+                 :clearable="clearable"
+                 :placeholder="props.endPlaceholder ?? '结束日期'"
+                 @clear="onClear"
+                 @change="onEndInput"
+                 @focus="onFocus"
+                 @blur="onBlur"
+                 style="width: 120px;"
+        />
+      </div>
+      <MyInput
+          v-else
+          v-model="startDate"
+          suffix-icon-type="far"
+          suffix-icon="calendar"
+          :border="border"
+          :readonly="!editable"
+          :disabled="disabled"
+          :clearable="clearable"
+          :placeholder="displayPlaceholder"
+          @clear="onClear"
+          @change="onStartInput"
+          @blur="onBlur"
+      />
+    </template>
 
-        <template #option>
-            <div class="w-full rounded">
-                <div class="flex w-full pt-2 pb-4 px-2">
-                    <div class="px-2 cursor-pointer date-day" @click.stop="subYear"
-                         @mouseenter="arrowMouseEnter(activeLeftLeftColor)"
-                         @mouseleave="arrowMouseLeave(activeLeftLeftColor)">
-                        <MyIcon type="fas" icon="angles-left" :color="activeLeftLeftColor.color"></MyIcon>
-                    </div>
-                    <div class="px-2 cursor-pointer" @mouseenter="arrowMouseEnter(activeLeftColor)"
-                         @click.stop="monthSub"
-                         @mouseleave="arrowMouseLeave(activeLeftColor)">
-                        <MyIcon type="fas" icon="chevron-left" :color="activeLeftColor.color"></MyIcon>
-                    </div>
-                    <div class="flex flex-1">
-                        <div class="flex-1 text-center cursor-pointer date-day"> {{ year }}</div>
-                        <div class="flex-1 text-center cursor-pointer date-day"> {{ month }}</div>
-                    </div>
-
-                    <div class="px-2 cursor-pointer" @mouseenter="arrowMouseEnter(activeRightColor)"
-                         @mouseleave="arrowMouseLeave(activeRightColor)" @click.stop="monthAdd">
-                        <MyIcon type="fas" icon="chevron-right" :color="activeRightColor.color"></MyIcon>
-                    </div>
-                    <div class="px-2 cursor-pointer" @click.stop="addYear"
-                         @mouseenter="arrowMouseEnter(activeRightRightColor)"
-                         @mouseleave="arrowMouseLeave(activeRightRightColor)">
-                        <MyIcon type="fas" icon="angles-right" :color="activeRightRightColor.color"></MyIcon>
-                    </div>
-                </div>
-                <table class="w-full table-fixed">
-                    <tbody>
-                    <tr>
-                        <th v-for="week in weeks" :key="week">
-                            <div class="py-1">{{ week }}</div>
-                        </th>
-                    </tr>
-                    <template v-for="(weekday,index) in days" :key="index">
-                        <tr>
-                            <th v-for="(dayx,dayIndex) in weekday" :key="dayIndex">
-                                <div class="py-1 cursor-pointer flex justify-center items-center">
-                                    <div
-                                        @click="setDate(dayx.year, dayx?.month, dayx?.day)"
-                                        :class="['date-day' ,'w-[24px]', 'h-[24px]', 'text-xs', 'flex', 'justify-center' ,'items-center',
-                                        {'date-day-active': dayx.month == month && getCurrentDateStr(dayx?.day) == formField.value,
-                                        'date-day-grey': dayx.month != month}]">
-                                        {{ dayx?.day }}
-                                    </div>
-                                </div>
-                            </th>
-                        </tr>
-                    </template>
-                    </tbody>
-                </table>
-            </div>
-        </template>
-    </MyPopover>
+    <!-- 弹出内容：日历面板 -->
+    <template #content>
+      <CalendarPanel
+          :type="type"
+          :startDate="startDate.value"
+          :endDate="endDate?.value"
+          :format="format"
+          @select="onSelect"
+      />
+    </template>
+  </MyPopover>
 </template>
 
-<style scoped>
-.date-day:hover {
-    @apply text-primary;
+
+<script setup lang="ts">
+import {ref, computed} from 'vue'
+import dayjs from 'dayjs'
+import MyPopover from "../popover/my-popover.vue";
+import CalendarPanel from "../calendar/CalendarPanel.vue";
+import FormField from "../../model/FormField.ts";
+
+// 类型定义
+type DatePickerType = 'date' | 'daterange'
+
+// props 定义
+const props = withDefaults(defineProps<{
+  type?: DatePickerType
+  format?: string
+  editable?: boolean
+  disabled?: boolean
+  clearable?: boolean
+  border?: boolean
+  startPlaceholder?: string
+  endPlaceholder?: string
+  rangeSeparator?: string
+}>(), {
+  type: 'date',
+  editable: true,
+  disabled: false,
+  clearable: true,
+  border: false,
+})
+
+/** 内部日期状态 */
+const startDate = defineModel<FormField>({
+  required: true,
+})
+const endDate = defineModel<FormField>('end', {
+  required: false,
+})
+
+// emits 定义
+const emit = defineEmits<{
+  (e: 'change', v: string | [string, string]): void
+  (e: 'focus'): void
+  (e: 'blur'): void
+}>()
+
+// popover 控制
+const popoverRef = ref()
+
+function onStartInput(val: string) {
+  if (!props.editable) return
+  if (dayjs(val, format.value, true).isValid()) {
+    startDate.value.value = val
+  } else {
+    startDate.value.value = ''
+  }
 }
 
-.date-day-active {
-    @apply bg-primary;
-    color: white !important;
-    border-radius: 50%;
+function onEndInput(val: string) {
+  if (!props.editable) return
+  if (dayjs(val, format.value, true).isValid()) {
+    if (endDate.value) endDate.value.value = val
+  } else {
+    if (endDate.value) endDate.value.value = ''
+  }
 }
 
-.date-day-grey {
-    @apply text-muted;
+/** 分隔符 */
+const rangeSeparator = computed(() => props.rangeSeparator ?? ' - ')
+/** 格式 */
+const format = computed(() => props.format ?? 'YYYY-MM-DD')
+
+/** 输入框内容 */
+const inputString = ref('')
+
+
+/** 占位符 */
+const displayPlaceholder = computed(() =>
+    props.type === 'daterange'
+        ? `${props.startPlaceholder ?? '开始日期'}${rangeSeparator.value}${props.endPlaceholder ?? '结束日期'}`
+        : props.startPlaceholder ?? '请选择日期'
+)
+
+/** 清空 */
+function onClear() {
+  startDate.value.value = ''
+  if (endDate.value) {
+    endDate.value.value = ''
+  }
+
+  inputString.value = ''
+  emit('change', props.type === 'daterange' ? ['', ''] : '')
 }
-</style>
+
+/** 支持直接输入 */
+function onInput(val: string) {
+  if (!props.editable) return
+  if (props.type === 'daterange') {
+    const [startStr, endStr] = val.split(rangeSeparator.value).map(s => s.trim())
+    if (dayjs(startStr, format.value, true).isValid()) {
+      startDate.value.value = startStr
+    } else {
+      startDate.value.value = ''
+    }
+    if (endDate.value) {
+      if (dayjs(endStr, format.value, true).isValid()) {
+        endDate.value.value = endStr
+      } else {
+        endDate.value.value = ''
+      }
+    }
+  } else {
+    if (dayjs(val, format.value, true).isValid()) {
+      startDate.value.value = val
+    } else {
+      startDate.value.value = ''
+    }
+  }
+}
+
+/** 日历面板选择事件 */
+function onSelect(val: Date | [Date | null, Date | null]) {
+  if (props.type === 'daterange') {
+    if (Array.isArray(val)) {
+      startDate.value.value = val[0] ? formatValue(val[0]) : ''
+      if (endDate.value) {
+        endDate.value.value = val[1] ? formatValue(val[1]) : ''
+      }
+      inputString.value = startDate.value && endDate.value
+          ? `${startDate.value}${rangeSeparator.value}${endDate.value}`
+          : ''
+      emit('change', [startDate.value.value, endDate.value?.value])
+      if (startDate.value.value && endDate.value?.value) closePopover()
+    }
+  } else {
+    startDate.value.value = val ? formatValue(val as Date) : ''
+    inputString.value = startDate.value.value
+    emit('change', startDate.value.value)
+    closePopover()
+  }
+}
+
+/** focus/blur 事件 */
+function onFocus() {
+  emit('focus')
+}
+
+function onBlur() {
+  emit('blur')
+}
+
+/** 关闭 Popover */
+function closePopover() {
+  if (popoverRef.value && typeof popoverRef.value.hide === 'function') {
+    popoverRef.value.hide()
+  }
+}
+
+/** 工具：日期格式化 */
+function formatValue(val: string | Date): string {
+  if (!val) return ''
+  return dayjs(val).format(format.value)
+}
+</script>

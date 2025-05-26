@@ -376,7 +376,7 @@ const cellFieldHandler = async (key: any, fieldName: string, value: any) => {
                       @pageChange="handlePageChange"></MyPagination>
       </div>
     </div>
-    <div class="flex-1 overflow-y-auto flex flex-col">
+    <div class="w-full flex-1 overflow-y-auto flex flex-col">
       <div class="flex-1 overflow-y-auto">
         <MyTable :editable="!!editable" height="100%" :record="record" :fields="services_fields"
                  :service-name="serviceName"

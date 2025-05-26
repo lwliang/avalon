@@ -12,10 +12,7 @@ import {getModelPageApi} from "../../../api/modelApi.ts";
 import {useGlobalFieldDataStore} from "../../../global/store/fieldStore.ts";
 import {useGlobalServiceDataStore} from "../../../global/store/serviceStore.ts";
 import Service from "../../../model/Service.ts";
-import {PopperAPI} from "../../popover/my-popover.ts";
 import {useDebounceFn} from '@vueuse/core'
-import MyIcon from "../../icon/my-icon.vue";
-import {borderStyleType} from "../../icon/my-icon.ts";
 import ActionView from "../../../model/view/ActionView.ts";
 import {getActionDownView} from "../../../api/commonApi.ts";
 import {parserEx} from "../../../xml/XMLParser.ts";
@@ -26,25 +23,12 @@ import MyTable from "../../table/my-table.vue";
 import {FieldTypeEnum} from "../../../model/enum-type/FieldTypeEnum.ts";
 import {getSelectionValueByServiceAndField} from "../../../cache/SelectionValueMemory.ts";
 import MyPopover from "../../popover/my-popover.vue";
+import {MyMany2oneSelectProps} from "./my-many2one-select.ts";
 
 const serviceFieldStore = useGlobalFieldDataStore()
 const serviceStore = useGlobalServiceDataStore()
 
-const props = defineProps({
-  htmlId: String,
-  htmlName: String,
-  required: Boolean,
-  readonly: Boolean,
-  service: {
-    type: String,
-    required: true
-  },
-  border: {
-    type: borderStyleType,
-    default: 'round'
-  },
-  loadOption: {type: Function} // 加载数据函数
-})
+const props = defineProps<MyMany2oneSelectProps>()
 const serviceRef = ref<Service>()
 const emit = defineEmits(['rightBtnClick'])
 
@@ -55,7 +39,7 @@ const formField = defineModel({
 const labelValue = new FormField('');
 labelValue.Field = formField.value?.Field
 const labelField = ref<FormField>(labelValue)
-const popperSelect = ref<PopperAPI | null>(null)
+const popperSelect = ref<any | null>(null)
 
 watch(() => formField.value?.value, () => {
   setValidate(true)
@@ -66,8 +50,8 @@ const options = ref<Record<string, any>[]>([])
 let init = true // 需要初始化，格式化显示，这时候不用加载数据
 
 onMounted(async () => {
-  if (props.service) {
-    serviceRef.value = await serviceStore.getServiceByNameAsync(props.service)
+  if (props.serviceName) {
+    serviceRef.value = await serviceStore.getServiceByNameAsync(props.serviceName)
   }
   if (formField.value?.value) {
     if (init) {
@@ -80,8 +64,8 @@ onMounted(async () => {
   }
 })
 const view = ref<ActionView | undefined>(undefined)
-if (!props.loadOption) { // 自定义加载数据，则不支持table下拉
-  getActionDownView(props.service).then(viewData => {
+if (!props.load) { // 自定义加载数据，则不支持table下拉
+  getActionDownView(props.serviceName).then(viewData => {
     if (viewData && viewData.length) {
       view.value = viewData[0]
       renderView();
@@ -91,7 +75,7 @@ if (!props.loadOption) { // 自定义加载数据，则不支持table下拉
 
 
 const initData = async () => {
-  if (!props.loadOption) {
+  if (!props.load) {
     if (view.value) {
       loadDownData()
     } else {
@@ -103,8 +87,8 @@ const initData = async () => {
 }
 
 const loadOptionExternal = async (name?: string) => {
-  if (props.loadOption) {
-    props.loadOption(name).then((data: any) => {
+  if (props.load) {
+    props.load(name).then((data: any) => {
       options.value.splice(0, options.value.length)
       options.value.push(...data)
       if (init) {
@@ -127,9 +111,9 @@ let services_fields = ref<ShowField[]>([]);
 let parserResult: XMLParserResult | null = null;
 
 const parserXml = async (str: string) => {
-  const primaryKeyField = await serviceStore.getServiceByNameAsync(props.service)
-  const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(props.service)
-  parserResult = await parserEx(str, props.service)
+  const primaryKeyField = await serviceStore.getServiceByNameAsync(props.serviceName)
+  const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(props.serviceName)
+  parserResult = await parserEx(str, props.serviceName)
   xmlTemplate.value = getTemplate(parserResult)
 
   template_fields.value.splice(0, template_fields.value.length)
@@ -150,10 +134,10 @@ const parserXml = async (str: string) => {
     if (!hasJoin(key)) {
       field = serviceFields.find(f => f.name === key)
     } else {
-      field = await getServiceField(props.service, key);
+      field = await getServiceField(props.serviceName, key);
     }
     if (field) {
-      services_fields.value.push({Field: field, originField: key, serviceName: props.service})
+      services_fields.value.push({Field: field, originField: key, serviceName: props.serviceName})
     }
   }
 
@@ -180,13 +164,17 @@ const rowClick = (row: any) => {
   if (labelField.value) {
     formatName()
   }
+
+  if (popperSelect.value) {
+    popperSelect.value.hide()
+  }
 }
 
 const loadServiceOption = async (name?: string) => {
-  if (props.service && serviceRef.value) {
+  if (props.serviceName && serviceRef.value) {
     getModelPageApi(`${serviceRef.value.keyField},${serviceRef.value.nameField}`,
         `('${serviceRef.value.nameField}',like,${name ? "'" + name + "'" : "''"})`,
-        props.service,
+        props.serviceName,
         1, 20).then(pageInfo => {
       options.value.splice(0, options.value.length)
       options.value.push(...pageInfo.data)
@@ -201,12 +189,12 @@ const loadServiceOption = async (name?: string) => {
 // 下载down 列表数据
 const loadDownData = async (name?: string) => {
   const recordTemp: any = []
-  if (!props.service || !serviceRef.value) {
+  if (!props.serviceName || !serviceRef.value) {
     return recordTemp
   }
   await getModelPageApi(template_full_fields.value.join(","),
       `('${serviceRef.value.nameField}',like,${name ? "'" + name + "'" : "''"})`,
-      props.service,
+      props.serviceName,
       1, 20).then(pageInfo => {
     if (pageInfo.data) {
       recordTemp.push(...pageInfo.data)
@@ -215,7 +203,7 @@ const loadDownData = async (name?: string) => {
   })
   for (let field of services_fields.value) {
     if (field.Field.type == FieldTypeEnum.SelectionField) { // 得到字段对应的selection的值
-      selectionDynamic.value[field.Field.name] = await getSelectionValueByServiceAndField(props.service, field.Field.name)
+      selectionDynamic.value[field.Field.name] = await getSelectionValueByServiceAndField(props.serviceName, field.Field.name)
     }
   }
   record.value.splice(0, record.value.length);
@@ -246,6 +234,9 @@ const optionSelectClick = (key: Record<string, any>) => {
   if (labelField.value) {
     formatName()
   }
+  if (popperSelect.value) {
+    popperSelect.value.hide()
+  }
 }
 const labelInput = (e: any) => {
   const nameValue = e.target.value
@@ -253,7 +244,7 @@ const labelInput = (e: any) => {
   doLabelInput(nameValue)
 }
 const doLabelInput = useDebounceFn((value: string) => {
-  if (!props.loadOption) {
+  if (!props.load) {
     if (!view.value) {
       loadServiceOption(value)
     } else {
@@ -271,7 +262,7 @@ const doLabelInput = useDebounceFn((value: string) => {
 }, 500)
 
 const popperShow = () => {
-  if (!props.loadOption) {
+  if (!props.load) {
     if (!view.value) {
       options.value.splice(0, options.value.length)
       loadServiceOption()
@@ -289,37 +280,28 @@ defineExpose<InputExpose>({validate})
 
 <template>
   <div class="flex relative">
-    <MyPopover placement="bottom" trigger="click" full-width ref="popperSelect" @popperShow="popperShow">
+    <MyPopover placement="bottom-start" trigger="click" ref="popperSelect" @show="popperShow"
+               popper-class="py-2"
+               default-class="w-full">
       <template v-slot:default>
         <div class="inline-flex w-full relative">
-          <input
-              :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,
-                        'border':border == 'round', 'border-b':border == 'bottom'}]"
-              style="padding-right: 25px"
-              v-if="labelField"
-              type="text"
-              v-model="labelField.value" :id="htmlId"
-              @input="labelInput"
-              :name="htmlName">
-          <MyIcon class="absolute right-[10px] top-[50%]" style="transform: translateY(-50%)"
-                  icon="caret-down"
-                  type="fas" size="sm"></MyIcon>
+          <my-input class="w-full" v-model="labelField" suffix-icon-type="fas" suffix-icon="caret-down"
+                    @input="labelInput"/>
         </div>
-
       </template>
-      <template v-slot:option>
-        <div class="flex flex-col w-full min-w-[250px]" v-if="!view">
+      <template v-slot:content>
+        <div class="flex flex-col w-fit min-w-[250px]" v-if="!view">
           <div v-for="(value,index) in options" :key="index"
-               class="w-full cursor-pointer hover:bg-select-hover px-4"
+               class="w-full cursor-pointer hover:bg-background-component py-[3px] px-6"
                @click="optionSelectClick(value)">
             {{ value[serviceRef?.nameField as string] }}
           </div>
-          <div v-if="options.length == 0" class="w-full px-4">
+          <div v-if="options.length == 0" class="w-full px-6">
             无匹配数据
           </div>
         </div>
         <div v-else>
-          <MyTable height="100%" :record="record" :fields="services_fields" :service-name="service"
+          <MyTable height="100%" :record="record" :fields="services_fields" :service-name="serviceName"
                    @rowClick="rowClick">
           </MyTable>
         </div>

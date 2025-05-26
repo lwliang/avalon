@@ -1,50 +1,58 @@
 <script setup lang="ts">
-/**
- * @author lwlianghehe@gmail.com
- * @date 2024/11/22
- */
-import './my-image.css'
-import {isAbsoluteUrl} from "../../util/commonUtils.ts";
-import {getFilePrefix} from "../../api/env.ts";
+import {ref, computed} from 'vue'
 
-const props = defineProps({
-  src: String,
-  alt: {
-    type: String,
-    default: '未找到图片'
-  },
-  width: String,
-  height: String,
-  radius: {
-    type: Number,
-    default: 0
-  }
+const props = withDefaults(defineProps<{
+  src: string
+  fit?: '' | 'fill' | 'contain' | 'cover' | 'none' | 'scale-down'
+  loading?: 'eager' | 'lazy'
+  alt?: string
+  preview?: boolean
+  width?: number | string
+  height?: number | string
+  round?: boolean,
+  radius?: number | string
+}>(), {
+  width: 50,
+  height: 50,
+  loading: 'lazy'
 })
 
-// const getImageUrl = () => {
-//     if (props.src) {
-//         if (isAbsoluteUrl(props.src)) {
-//             return props.src
-//         }
-//
-//         return getFilePrefix() + props.src
-//     }
-//     return props.src
-// }
+const emit = defineEmits<{
+  (e: 'load', ev: Event): void
+  (e: 'error', ev: Event): void
+}>()
 
+const showPreview = ref(false)
+const handleLoad = (e: Event) => emit('load', e)
+const handleError = (e: Event) => emit('error', e)
+
+const fitStyle = computed(() => {
+  const style: Record<string, any> = {objectFit: props.fit || undefined}
+  if (props.width !== undefined) style.width = typeof props.width === 'number' ? `${props.width}px` : props.width
+  if (props.height !== undefined) style.height = typeof props.height === 'number' ? `${props.height}px` : props.height
+  if (props.radius !== undefined) style.borderRadius = typeof props.radius === 'number' ? `${props.radius}px` : props.radius
+  if (props.round) style.borderRadius = '9999px'
+  return style
+})
 </script>
 
 <template>
-  <template v-if="src">
-    <img :style="{'border-radius':radius + 'px', height:`${height}px`}" :src="src" :alt="alt" :width="width"
-         :height="height">
-  </template>
-  <template v-else>
-    <img :style="{'border-radius':radius + 'px', height:`${height}px`}" src="/no-image.png" :alt="alt" :width="width"
-         :height="height">
-  </template>
+  <div :style="fitStyle">
+    <img
+        :src="props.src"
+        :alt="props.alt"
+        :loading="props.loading"
+        :style="fitStyle"
+        @load="handleLoad"
+        @error="handleError"
+        v-if="props.src"
+        @click="props.preview ? showPreview = true : undefined"
+    />
+    <div v-if="showPreview && props.preview"
+         class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+         @click="showPreview=false"
+    >
+      <img :src="props.src" class="max-w-full max-h-full" :alt="alt"/>
+    </div>
+  </div>
 </template>
-
-<style scoped>
-
-</style>

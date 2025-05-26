@@ -3,28 +3,23 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import {ref, inject, getCurrentInstance} from "vue";
-import {MyTabsContext, tabsRootContextKey} from "./my-tabs.ts";
 
-const current = getCurrentInstance();
-const tabContext = inject<MyTabsContext>(tabsRootContextKey)
-const props = defineProps({
-    label: String
-})
-const show = ref<boolean>(false)
-tabContext?.registerTab({
-    label: props.label,
-    uid: current?.uid,
-    active: show
-})
+defineOptions({name: 'TabPanel'})
+
+// 类型声明
+const props = defineProps<{
+  label: string
+  name: string | number
+  disabled?: boolean
+}>()
+
 </script>
 
 <template>
-    <div v-show="show" class="contents">
-        <slot></slot>
-    </div>
+  <div
+      :aria-disabled="props.disabled ? 'true' : undefined"
+      style="display: contents;"
+  >
+    <slot/>
+  </div>
 </template>
-
-<style scoped>
-
-</style>

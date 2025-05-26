@@ -92,7 +92,7 @@ defineExpose({validate})
 
 <template>
     <div
-        class="w-[94px] h-[94px] bgc flex justify-center items-center rounded cursor-pointer overflow-hidden border relative video-container"
+        class="w-[94px] h-[94px] bgc flex justify-center items-center rounded cursor-pointer overflow-hidden border relative video-container border-border border-solid"
         @click="selectFileClick">
         <img v-if="!formField.value" src="/upload.png" alt="" width="30" height="30">
         <video ref="video_ref_id" v-if="formField.value" :src="getVideoUrl" width="94" height="94"/>

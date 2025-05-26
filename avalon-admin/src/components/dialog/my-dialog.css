@@ -6,18 +6,15 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--overlay-color);
+    background-color: var(--overlay-30);
 }
 
 .dialog {
     @apply absolute;
-    @apply bg-background;
     @apply rounded;
-    transform: translate(-50%, -50%);
-    top: 50%;
-    left: calc(50%);
 }
 
 .dialog-content {
     @apply py-4;
+    @apply overflow-y-auto;
 }

@@ -34,7 +34,6 @@ const emit = defineEmits(['conditionChange'])
 const reference = ref<any>(null);
 const floating = ref(null);
 const floatingArrow = ref(null);
-const show = ref(false)
 const {floatingStyles, middlewareData, placement} = useFloating(reference, floating, {
   placement: 'bottom',
   middleware: [offset(8), flip(), shift(), arrow({element: floatingArrow})],
@@ -59,14 +58,16 @@ const loadSearchView = (service: string) => {
 if (props.serviceName) {
   loadSearchView(props.serviceName)
 }
+
+const searchPopperRef = ref()
 const showPopper = () => {
-  if (!show.value) {
-    show.value = true;
+  if (searchPopperRef.value) {
+    searchPopperRef.value.show()
   }
 }
 const hidePopper = () => {
-  if (show.value) {
-    show.value = false;
+  if (searchPopperRef.value) {
+    searchPopperRef.value.hide()
   }
 }
 
@@ -153,45 +154,40 @@ const clearSearchConditionClick = () => {
 </script>
 
 <template>
-  <div class="relative h-[34px]">
-    <div ref="reference">
-      <div class="flex border items-center gap-2 px-2 py-1 rounded-xl overflow-hidden">
-        <MyIcon type="fas" icon="search" size="sm"></MyIcon>
-        <div class="flex bg-white rounded-lg px-1" v-if="searchConditionStr">
-          <div class="px-1">{{ searchConditionStr }}</div>
-          <div class="cursor-pointer" @click="clearSearchConditionClick">x</div>
-        </div>
-        <input placeholder="搜索..." class="text-sm bg-background flex-1" type="text" style="width:auto"
-               v-model="searchValue">
-        <MyIcon @click="showSearchConditionModel" class="cursor-pointer" type="fas" icon="caret-down"
-                size="sm"></MyIcon>
-      </div>
-    </div>
-    <div v-if="show"
-         :class="{'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}"
-         ref="floating"
-         :style="[floatingStyles]">
-      <div class="text-sm">
-        <div v-for="(field, index) in fields" :key="index"
-             class="flex items-center px-6 gap-2 py-0.5 cursor-pointer hover:bg-gray-100"
-             @click="searchChange(field.name,field.fieldMeta,searchValue)">
-          <div style="color: #111827">搜索</div>
-          <div class="font-bold" style="color: #374151">{{ field.label }}</div>
-          <div style="color: #111827">包含</div>
-          <div style="color: #714B67">{{ searchValue }}</div>
+  <div class="relative h-[34px] w-full">
+    <my-popover ref="searchPopperRef" placement="bottom" trigger="click" :arrow-show="false"
+                popper-class="w-[570px] h-fit">
+      <div ref="reference" class="w-[570px]">
+        <div class="flex border border-solid border-border items-center gap-2 px-3 h-[34px]  rounded overflow-hidden">
+          <MyIcon type="fas" icon="search" size="sm"></MyIcon>
+          <div class="flex bg-background-component rounded-lg px-1" v-if="searchConditionStr">
+            <div class="px-1">{{ searchConditionStr }}</div>
+            <div class="cursor-pointer" @click="clearSearchConditionClick">x</div>
+          </div>
+          <input placeholder="搜索..." class="text inline-block flex-1 w-full" type="text"
+                 v-model="searchValue">
+          <MyIcon @click.stop="showSearchConditionModel" class="cursor-pointer" type="fas" icon="caret-down"
+                  size="sm"></MyIcon>
         </div>
       </div>
-      <div v-if="arrowShow" :class="{'arrow':true,'border-t':!placement.startsWith('top'),
-            'border-l':!placement.startsWith('top'),
-            'border-b':placement.startsWith('top'),
-            'border-r':placement.startsWith('top')}"
-           ref="floatingArrow"
-           :style="{ position: 'absolute',
-                left:  middlewareData.arrow?.x != null ? `${middlewareData.arrow.x}px` : '',
-                top:  middlewareData.arrow?.y != null ? `${middlewareData.arrow.y}px`: '',
-                [placement.startsWith('top') ? 'bottom' : 'top']:'-4px'}">
-      </div>
-    </div>
+      <template #content>
+        <div :class="['bg-background shadow-sm hover:shadow-lg hover:shadow-primary/20 transition-shadow border border-border border-solid py-2',
+         {'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}]">
+          <div class="">
+            <div v-for="(field, index) in fields" :key="index"
+                 class="flex items-center px-6 gap-2 py-0.5 cursor-pointer hover:bg-gray-100"
+                 @click="searchChange(field.name,field.fieldMeta,searchValue)">
+              <div>搜索</div>
+              <div class="font-bold">{{ field.label }}</div>
+              <div>包含</div>
+              <div class="text-primary">{{ searchValue }}</div>
+            </div>
+          </div>
+
+        </div>
+      </template>
+    </my-popover>
+
 
     <my-search-condition-model :service-name="serviceName" :show="searchConditionShow"
                                @sureClick="searchConditionSure" @close-click="searchConditionClose"/>

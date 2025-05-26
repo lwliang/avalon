@@ -6,8 +6,6 @@
 import MyPopover from "../popover/my-popover.vue";
 import MyButton from "../button/my-button.vue";
 import {ref} from "vue";
-import {PopperAPI} from "../popover/my-popover.ts";
-
 defineProps({
     content: {
         type: String
@@ -16,7 +14,7 @@ defineProps({
 
 const emit = defineEmits(['click'])
 
-const popper = ref<PopperAPI>()
+const popper = ref<any>()
 
 const cancelClick = () => {
     popper.value?.hide()
@@ -33,12 +31,12 @@ const sureClick = () => {
         <template #default>
             <slot></slot>
         </template>
-
-        <template #footer>
+        <template #content>
+          <div class="flex justify-end pt-2">
             <MyButton class="mr-2" is-link type="info" @click="cancelClick">取消</MyButton>
             <MyButton is-link type="danger" @click="sureClick">确认</MyButton>
+          </div>
         </template>
-
     </MyPopover>
 </template>
 

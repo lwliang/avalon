@@ -53,7 +53,8 @@ defineExpose({
   <div class="flex gap-2">
     <myConditionField v-model="field" :service-name="serviceName" @select-field="selectFieldEvent"></myConditionField>
     <my-condition-operate v-model="operate"></my-condition-operate>
-    <my-condition-value :service-name="serviceName" :field="selectField" v-model="value" :operate="operate.value"></my-condition-value>
+    <my-condition-value class="flex-1" :service-name="serviceName" :field="selectField" v-model="value"
+                        :operate="operate.value"></my-condition-value>
   </div>
 </template>
 

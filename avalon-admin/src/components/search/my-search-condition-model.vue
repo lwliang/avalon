@@ -30,7 +30,7 @@ const sureClick = () => {
 </script>
 
 <template>
-  <my-model :show="show" @sure="sureClick" @close="closeClick">
+  <my-model title="高级查询" :show="show" @sure="sureClick" @close="closeClick" model-class="w-[970px] min-h-[245px]">
     <my-search-condition :serviceName="serviceName" ref="searchCondition"/>
   </my-model>
 </template>

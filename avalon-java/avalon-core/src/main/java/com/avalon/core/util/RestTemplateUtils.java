@@ -12,6 +12,7 @@ import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,7 +31,9 @@ public class RestTemplateUtils {
     // ----------------------------------GET-------------------------------------------------------
 
     static {
+        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter()); // 支持JSON
         restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
             public boolean hasError(ClientHttpResponse response) throws IOException {
                 return false;
@@ -254,8 +257,6 @@ public class RestTemplateUtils {
      * @return ResponseEntity 响应对象封装类
      */
     public static <T> ResponseEntity<T> post(String url, HttpEntity<?> requestEntity, Class<T> responseType, Object... uriVariables) {
-        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
         return restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType, uriVariables);
     }
 
