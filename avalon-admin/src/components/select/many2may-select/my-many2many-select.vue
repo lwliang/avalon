@@ -183,8 +183,8 @@ defineExpose<InputExpose>({validate})
                :value="fieldValue" @close="deleteTagClick" @click="tagClick"/>
       </template>
       <MyPopover v-if="!readonly"
-                 placement="bottom" trigger="click"
-                 popper-class="py-2"
+                 placement="bottom-start" trigger="click"
+                 popper-class="py-2 max-h-[300px] overflow-hidden overflow-y-auto"
                  default-class="w-full flex-1 min-w-[120px]"
                  ref="popperSelect"
                  @show="popperShow">

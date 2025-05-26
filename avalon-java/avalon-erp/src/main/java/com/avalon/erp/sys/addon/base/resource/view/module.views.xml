@@ -22,7 +22,7 @@
                             <div class="flex flex-col pr-4">
                                 <div style="height:60px">
                                     <div class="pb-1 font-bold text-lg">{{ label }}</div>
-                                    <my-text :lineClamp="2">{{ description }}</my-text>
+                                    <my-text :lineClamp="2" :title="description">{{ description }}</my-text>
                                 </div>
                                 <div class="pt-4">
                                     <MyButton :rounded="true" type="primary" :action="isInstall ? 'upgrade':'install'"

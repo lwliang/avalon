@@ -281,7 +281,7 @@ defineExpose<InputExpose>({validate})
 <template>
   <div class="flex relative">
     <MyPopover placement="bottom-start" trigger="click" ref="popperSelect" @show="popperShow"
-               popper-class="py-2"
+               popper-class="py-2 max-h-[300px] overflow-y-auto h-fit "
                default-class="w-full">
       <template v-slot:default>
         <div class="inline-flex w-full relative">

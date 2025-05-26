@@ -196,7 +196,7 @@ const popperMergedStyle = computed(() => {
           ref="floatingRef"
           :style="popperMergedStyle"
           :class="[
-              'max-h-[300px] overflow-y-auto z-50 rounded border border-solid border-border bg-background shadow-[0_2px_12px_0_rgba(0,0,0,0.16)]',
+              'z-50 rounded border border-solid border-border bg-background shadow-[0_2px_12px_0_rgba(0,0,0,0.16)]',
           popperClass
           ]"
           role="tooltip"
@@ -225,7 +225,7 @@ const popperMergedStyle = computed(() => {
         ref="floatingRef"
         :style="popperMergedStyle"
         :class="[
-              'max-h-[300px] overflow-y-auto z-50 rounded border border-solid border-border bg-background shadow-[0_2px_12px_0_rgba(0,0,0,0.16)]',
+              'z-50 rounded border border-solid border-border bg-background shadow-[0_2px_12px_0_rgba(0,0,0,0.16)]',
           popperClass
           ]"
         role="tooltip"

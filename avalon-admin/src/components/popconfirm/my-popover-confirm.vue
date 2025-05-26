@@ -27,7 +27,7 @@ const sureClick = () => {
 </script>
 
 <template>
-    <MyPopover ref="popper" placement="top" trigger="click" :content="content">
+    <MyPopover ref="popper" placement="top" trigger="click" :content="content" popper-class="p-2">
         <template #default>
             <slot></slot>
         </template>

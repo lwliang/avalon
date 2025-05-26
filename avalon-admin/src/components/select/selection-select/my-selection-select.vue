@@ -4,13 +4,11 @@
  * @date 2024/11/22
  */
 import './my-selection-select.css'
-import {ref, watch, computed} from "vue";
+import {computed, ref, watch} from "vue";
 import FormField from "../../../model/FormField.ts";
 import {InputExpose} from "../../../global/input/InputExpose.ts";
 import {getSelectionValueByServiceAndField} from "../../../cache/SelectionValueMemory.ts";
 import {onMounted} from "@vue/runtime-dom";
-import MyIcon from "../../icon/my-icon.vue";
-import {borderStyleType} from "../../icon/types.ts";
 import MyPopover from "../../popover/my-popover.vue";
 import {MySelectionSelectProps} from "./my-selection-select.ts";
 import {isObjectEmpty} from "../../../util/ObjectUtils.ts";
@@ -155,10 +153,11 @@ defineExpose<InputExpose>({validate})
                :label="labelField.value"
                :value="labelValue.value" @close="deleteTagClick" @click="tagClick"/>
       </template>
-      <MyPopover ref="popoverRef" v-if="!readonly" placement="bottom" trigger="click"
+      <MyPopover ref="popoverRef" v-if="!readonly" placement="bottom-start" trigger="click"
+                 popper-class="py-1 max-h-[300px] overflow-hidden overflow-y-auto h-fit "
                  default-class="w-full flex-1 min-w-[120px]">
         <template #default>
-          <div class="inline-flex relative w-full">
+          <div class="inline-flex relative w-full ">
             <my-input class="w-full" v-model="labelField" readonly suffix-icon-type="fas" suffix-icon="caret-down"
                       @blur="inputBlurClick"/>
           </div>

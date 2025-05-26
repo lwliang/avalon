@@ -121,7 +121,7 @@ const handlePageChange = (dir: string) => {
 </script>
 
 <template>
-  <div class="flex flex-col flex-wrap p-4 items-start h-full">
+  <div class="h-full p-4">
     <div class="w-full">
       <div class="pb-4 flex items-start w-full px-4">
         <div class="flex-1"></div>
@@ -135,8 +135,8 @@ const handlePageChange = (dir: string) => {
         </div>
       </div>
     </div>
-    <div class="flex flex-wrap p-4 gap-4">
-      <div v-for="item in record" :key="item.id" class="contents">
+    <div class="flex-1 flex flex-wrap gap-4 overflow-y-auto" style="align-items: flex-start">
+      <div v-for="item in record" :key="item.id" style="height: auto;">
         <kanbanTemplate v-if="xmlTemplate" :template="xmlTemplate" :fields="item"
                         @btnClick="btnClick"></kanbanTemplate>
       </div>
