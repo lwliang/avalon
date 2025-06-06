@@ -949,7 +949,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         RecordRow recordRow = RecordRow.build();
         if (getNeedDefaultField()) {
             if (!recordRow.containsKey(CREATE_TIME)) {
-                recordRow.put(CREATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
+                RecordColumn recordColumn = new RecordColumn(DateTimeUtils.getCurrentDateTime());
+                recordColumn.setField((IFieldFormat) getField(CREATE_TIME));
+                recordRow.put(CREATE_TIME, recordColumn);
             }
             if (!recordRow.containsKey(CREATOR)) {
                 Integer userId = context.getUserId();
@@ -1810,9 +1812,17 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
             }
             if (ObjectUtils.isNotNull(field.getDefaultValue())) {
                 if (ObjectUtils.isNotNull(field.getDefaultValue().getDefaultValue())) {
-                    recordRow.put(field.getName(), field.getDefaultValue().getDefaultValue());
+                    RecordColumn recordColumn = new RecordColumn(field.getDefaultValue().getDefaultValue());
+                    if (field instanceof IFieldFormat) {
+                        recordColumn.setField((IFieldFormat) field);
+                    }
+                    recordRow.put(field, recordColumn);
                 } else if (StringUtils.isNotEmpty(field.getDefaultValue().getDefaultString())) {
-                    recordRow.put(field.getName(), field.getDefaultValue().getDefault(getContext()));
+                    RecordColumn recordColumn = new RecordColumn(field.getDefaultValue().getDefault(getContext()));
+                    if (field instanceof IFieldFormat) {
+                        recordColumn.setField((IFieldFormat) field);
+                    }
+                    recordRow.put(field, recordColumn);
                 }
             }
         });

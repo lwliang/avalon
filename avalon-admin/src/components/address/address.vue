@@ -10,8 +10,6 @@ import {borderStyleType} from "../icon/types.ts";
  * @date 2025/05/11 18:09
  */
 const props = defineProps({
-  htmlId: String,
-  htmlName: String,
   required: Boolean,
   readonly: Boolean,
   field: String,
@@ -43,7 +41,7 @@ const district = defineModel('district', {
 })
 
 watch(() => province.value.value, () => {
-  if (city.value && province.value.isChanged() ) {
+  if (city.value && province.value.isChanged()) {
     city.value.value = null
   }
 })
@@ -92,20 +90,20 @@ const loadDistrictOption = async (name: string) => {
 
 <template>
   <div class="flex items-center gap-2">
-    <my-many-2-one-select :serviceName="serviceName" :html-id="htmlId" :readonly="readonly" :required="required" :border="border"
-                  v-model="province"
-                  :load="loadProvinceOption"/>
-    <my-many-2-one-select v-if="type == 'city' || type == 'district'" :serviceName="serviceName" :html-id="htmlId+'_city'"
-                  :border="border"
-                  :readonly="readonly"
-                  :required="required"
-                  v-model="city"
-                  :load="loadCityOption"/>
-    <my-many-2-one-select v-if="type == 'district'" :serviceName="serviceName" :html-id="htmlId+'_district'" :readonly="readonly"
-                  :border="border"
-                  :required="required"
-                  v-model="district"
-                  :load="loadDistrictOption"/>
+    <my-many-2-one-select :serviceName="serviceName" :readonly="readonly" :required="required" :border="border"
+                          v-model="province"
+                          :load="loadProvinceOption"/>
+    <my-many-2-one-select v-if="type == 'city' || type == 'district'" :serviceName="serviceName"
+                          :border="border"
+                          :readonly="readonly"
+                          :required="required"
+                          v-model="city"
+                          :load="loadCityOption"/>
+    <my-many-2-one-select v-if="type == 'district'" :serviceName="serviceName" :readonly="readonly"
+                          :border="border"
+                          :required="required"
+                          v-model="district"
+                          :load="loadDistrictOption"/>
   </div>
 </template>
 

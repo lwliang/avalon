@@ -54,6 +54,7 @@ public class FileService extends AbstractService {
 
     protected final Field originName = Fields.createString("源文件名");//包含后缀
     protected final Field url = Fields.createString("url");
+    protected final Field cacheType = Fields.createString("缓存类型");
     protected final Field mime = Fields.createString("web文件类型", 100);
     protected final Field ext = Fields.createString("文件扩展名", 20);
     protected final Field filePath = Fields.createString("文件存放路径");
@@ -64,6 +65,23 @@ public class FileService extends AbstractService {
         return Fields.createString("文件名", 256);
     }
 
+
+    public RecordRow saveMinioRecord(String fileName, String mime, String minioFileName, Integer size) {
+        RecordRow recordRow = new RecordRow();
+        recordRow.put("originName", fileName);
+        recordRow.put("mime", mime);
+        recordRow.put("cacheType", "minio");
+        String fileExt = FileUtils.getFileExt(fileName);
+        recordRow.put("ext", fileExt);//唯一值
+
+        recordRow.put("filePath", minioFileName);//文件相对路径
+        recordRow.put("url", minioFileName);//文件下载路径
+        recordRow.put("size", size);
+
+        insert(recordRow);
+
+        return recordRow;
+    }
 
     /**
      * 保存文件
@@ -78,6 +96,7 @@ public class FileService extends AbstractService {
             RecordRow recordRow = new RecordRow();
             recordRow.put("originName", fileName);
             recordRow.put("mime", mime);
+            recordRow.put("cacheType", "file");
 
             String token = BCryptUtil.simpleUUID();
             String first = PathUtil.getFirst(fileConfig.getMode());

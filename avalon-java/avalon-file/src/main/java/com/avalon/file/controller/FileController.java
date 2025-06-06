@@ -11,6 +11,8 @@ import com.avalon.core.util.ClassUtils;
 import com.avalon.core.util.StringUtils;
 import com.avalon.file.config.FileConfig;
 import com.avalon.core.exception.FileIOException;
+import com.avalon.file.enums.CacheTypeEnum;
+import com.avalon.file.minio.MinioService;
 import com.avalon.file.service.FileService;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.condition.EqualCondition;
@@ -18,6 +20,7 @@ import com.avalon.core.context.Context;
 import com.avalon.core.model.RecordRow;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +47,11 @@ public class FileController {
     private FileService fileService;
     @Autowired
     private FileConfig fileConfig;
+    @Autowired
+    private MinioService minioService;
+
+    @Value("${application.cache-type}")
+    private CacheTypeEnum cacheType;
 
     @ResponseBody
     @GetMapping("/test")
@@ -60,13 +68,24 @@ public class FileController {
             String fileName = file.getOriginalFilename();
             String mime = file.getContentType();
             byte[] content = file.getBytes();
+            RecordRow result = RecordRow.build();
+            if (cacheType == CacheTypeEnum.file) {
+                RecordRow recordRow = fileService.saveFile(fileName, mime, content);
+                result.put("url", recordRow.get("url"));
+                result.put("originName", recordRow.get("originName"));
+                result.put("mine", recordRow.get("mime"));
+                result.put("size", recordRow.get("size"));
+            } else {
+                String minioFileName = minioService.getFileName(file.getOriginalFilename());
+                minioService.uploadFile(context.getBaseName(), minioFileName, file.getInputStream(), file.getContentType());
+                String url = "/minio/down/" + context.getBaseName() + "/" + minioFileName;
+                fileService.saveMinioRecord(file.getOriginalFilename(), mime, url, content.length);
+                result.put("url", url);
+                result.put("originName", file.getOriginalFilename());
+                result.put("mine", mime);
+                result.put("size", content.length);
+            }
 
-            RecordRow recordRow = fileService.saveFile(fileName, mime, content);
-            RecordRow result = new RecordRow();
-            result.put("url", recordRow.get("url"));
-            result.put("originName", recordRow.get("originName"));
-            result.put("mine", recordRow.get("mime"));
-            result.put("size", recordRow.get("size"));
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -82,10 +101,24 @@ public class FileController {
             String mime = file.getContentType();
             byte[] content = file.getBytes();
 
-            RecordRow recordRow = fileService.saveImageFile(fileName, mime, content);
-            RecordRow result = new RecordRow();
-            result.put("url", recordRow.get("url"));
-            result.put("originName", recordRow.get("originName"));
+            RecordRow result = RecordRow.build();
+            if (cacheType == CacheTypeEnum.file) {
+                RecordRow recordRow = fileService.saveFile(fileName, mime, content);
+                result.put("url", recordRow.get("url"));
+                result.put("originName", recordRow.get("originName"));
+                result.put("mine", recordRow.get("mime"));
+                result.put("size", recordRow.get("size"));
+            } else {
+                String minioFileName = minioService.getFileName(file.getOriginalFilename());
+                minioService.uploadFile(context.getBaseName(), minioFileName, file.getInputStream(), file.getContentType());
+                String url = "/minio/down/" + context.getBaseName() + "/" + minioFileName;
+                fileService.saveMinioRecord(file.getOriginalFilename(), mime, url, content.length);
+                result.put("url", url);
+                result.put("originName", file.getOriginalFilename());
+                result.put("mine", mime);
+                result.put("size", content.length);
+            }
+
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -101,10 +134,24 @@ public class FileController {
             String mime = file.getContentType();
             byte[] content = file.getBytes();
 
-            RecordRow recordRow = fileService.saveVideoFile(fileName, mime, content);
-            RecordRow result = new RecordRow();
-            result.put("url", recordRow.get("url"));
-            result.put("originName", recordRow.get("originName"));
+            RecordRow result = RecordRow.build();
+            if (cacheType == CacheTypeEnum.file) {
+                RecordRow recordRow = fileService.saveFile(fileName, mime, content);
+                result.put("url", recordRow.get("url"));
+                result.put("originName", recordRow.get("originName"));
+                result.put("mine", recordRow.get("mime"));
+                result.put("size", recordRow.get("size"));
+            } else {
+                String minioFileName = minioService.getFileName(file.getOriginalFilename());
+                minioService.uploadFile(context.getBaseName(), minioFileName, file.getInputStream(), file.getContentType());
+                String url = "/minio/down/" + context.getBaseName() + "/" + minioFileName;
+                fileService.saveMinioRecord(file.getOriginalFilename(), mime, url, content.length);
+                result.put("url", url);
+                result.put("originName", file.getOriginalFilename());
+                result.put("mine", mime);
+                result.put("size", content.length);
+            }
+
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -121,10 +168,24 @@ public class FileController {
             String mime = file.getContentType();
             byte[] content = file.getBytes();
 
-            RecordRow recordRow = fileService.saveFile(fileName, mime, content);
-            RecordRow result = new RecordRow();
-            result.put("url", recordRow.get("url"));
-            result.put("originName", recordRow.get("originName"));
+            RecordRow result = RecordRow.build();
+            if (cacheType == CacheTypeEnum.file) {
+                RecordRow recordRow = fileService.saveFile(fileName, mime, content);
+                result.put("url", recordRow.get("url"));
+                result.put("originName", recordRow.get("originName"));
+                result.put("mine", recordRow.get("mime"));
+                result.put("size", recordRow.get("size"));
+            } else {
+                String minioFileName = minioService.getFileName(file.getOriginalFilename());
+                minioService.uploadFile(context.getBaseName(), minioFileName, file.getInputStream(), file.getContentType());
+                String url = minioFileName + "/" + minioFileName + "?cache=minio";
+                fileService.saveMinioRecord(file.getOriginalFilename(), mime, url, content.length);
+                result.put("url", url);
+                result.put("originName", file.getOriginalFilename());
+                result.put("mine", mime);
+                result.put("size", content.length);
+            }
+
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -132,6 +193,20 @@ public class FileController {
         }
     }
 
+    @RequestMapping(value = {"minio/down/{bucket}/{first}/{second}/{filename}"}, method = {RequestMethod.POST, RequestMethod.GET})
+    public void minioDownloadFile(@PathVariable(value = "bucket", required = false) String bucket,
+                                  @PathVariable("first") String first,
+                                  @PathVariable("second") String second,
+                                  @PathVariable("filename") String filename,
+                                  HttpServletResponse response) throws IOException {
+        byte[] bytes = minioService.downloadFile(bucket, first + "/" + second + "/" + filename);
+        response.setHeader("content-disposition", "attachment;fileName=" +
+                URLEncoder.encode(filename, StandardCharsets.UTF_8));
+        ServletOutputStream outputStream = response.getOutputStream();
+        outputStream.write(bytes);
+        outputStream.flush();
+        outputStream.close();
+    }
 
     @RequestMapping(value = {"file/down/{first}/{second}/{filename}",
             "file/down/{db}/{first}/{second}/{filename}"}, method = {RequestMethod.POST, RequestMethod.GET})
@@ -174,7 +249,7 @@ public class FileController {
             //设置下载响应头
             //response.setContentType(recordRow.get("mime").toString());
             response.setHeader("content-disposition", "attachment;fileName=" +
-                    URLEncoder.encode("file", StandardCharsets.UTF_8));
+                    URLEncoder.encode(filename, StandardCharsets.UTF_8));
             ServletOutputStream outputStream = response.getOutputStream();
             outputStream.write(content);
             outputStream.flush();
@@ -220,7 +295,7 @@ public class FileController {
             byte[] content = byteBuffer.array();
             Condition condition = new EqualCondition("name", filename);
             response.setHeader("content-disposition", "attachment;fileName=" +
-                    URLEncoder.encode("video", StandardCharsets.UTF_8));
+                    URLEncoder.encode(filename, StandardCharsets.UTF_8));
             ServletOutputStream outputStream = response.getOutputStream();
             outputStream.write(content);
             outputStream.flush();
@@ -265,7 +340,7 @@ public class FileController {
             byte[] content = byteBuffer.array();
             Condition condition = new EqualCondition("name", filename);
             response.setHeader("content-disposition", "attachment;fileName=" +
-                    URLEncoder.encode("image", StandardCharsets.UTF_8));
+                    URLEncoder.encode(filename, StandardCharsets.UTF_8));
             ServletOutputStream outputStream = response.getOutputStream();
             outputStream.write(content);
             outputStream.flush();

@@ -85,7 +85,7 @@ const goDatabaseManagerClick = () => {
         <MyDivider margin="1rem auto"></MyDivider>
         <div class="pb-2" v-if="allDBS.length">
           <my-label class="my-2" htmlFor="account">数据库</my-label>
-          <MyInput ref="db_input" v-model="db" htmlId="db" htmlName="db" disabled :readonly="true" right-content="选择"
+          <MyInput ref="db_input" v-model="db" disabled :readonly="true" right-content="选择"
                    :required="true">
             <template #append>
               <my-icon @click="goDatabaseManagerClick" class="cursor-pointer" icon="database" type="fas"/>
@@ -94,14 +94,13 @@ const goDatabaseManagerClick = () => {
         </div>
         <div class="pb-2">
           <my-label class="my-2" htmlFor="account">账户</my-label>
-          <MyInput ref="account_input" @keyup.enter="loginClick" v-model="account" htmlId="account" htmlName="account"
+          <MyInput ref="account_input" @keyup.enter="loginClick" v-model="account"
                    :required="true"></MyInput>
           <div v-show="!account.isValidate" class="absolute text-danger">请填写账号</div>
         </div>
         <div class="pb-2">
           <my-label class="my-2" html-for="password">密码</my-label>
-          <MyPassword @keyup.enter="loginClick" ref="password_input" v-model="password" htmlId="password"
-                      htmlName="password"
+          <MyPassword @keyup.enter="loginClick" ref="password_input" v-model="password"
                       :required="true"></MyPassword>
           <div v-show="!password.isValidate" class="text-danger absolute">请填写密码</div>
         </div>

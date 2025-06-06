@@ -96,6 +96,7 @@ const stateClass = computed(() => {
         : 'text-text-disabled cursor-not-allowed bg-background-disabled border-border-disabled'
   }
   if (isChecked.value) return 'bg-primary border-primary text-white'
+  if (props.indeterminate) return 'bg-primary border-primary text-white'
   return 'bg-background border-border text-text'
 })
 
@@ -141,7 +142,7 @@ defineExpose({validate})
 
 <template>
   <label
-      class="inline-flex items-center select-none relative"
+      class="inline-flex items-center select-none relative align-middle"
       :class="[
       props.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
       borderClass,
@@ -154,7 +155,7 @@ defineExpose({validate})
         @blur="inputBlurClick"
         :checked="isChecked"
         :disabled="props.disabled"
-        class="peer appearance-none transition-all duration-150
+        class="peer appearance-none transition-all duration-150 align-middle
         rounded
         focus:ring-2 focus:ring-primary focus:ring-opacity-50
         outline-none

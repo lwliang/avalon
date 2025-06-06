@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_partner_action" name="联系人" action="common.crm_partner_action"/>
+</avalon>

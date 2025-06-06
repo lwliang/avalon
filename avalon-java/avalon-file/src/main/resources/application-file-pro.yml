@@ -4,6 +4,7 @@ spring:
 
 application:
   multiDb: false
+  cache-type: file
 
 pulsar:
   url: pulsar://${spring.profiles.host}:6650
@@ -13,4 +14,10 @@ file:
   file: /data/
   image: ./image/
   video: /video/
+  mode: date
+
+minio:
+  endpoint: http://localhost:9000
+  accessKey: minioadmin
+  secretKey: minioadmin
   mode: date

@@ -364,7 +364,7 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                             htmlFor = dotToUnderscore(field.name);
                         }
                         if (useInfoStore.user.debug) {
-                            this.getTemplate().template += `<my-label class="mb-[5px]" htmlFor="${htmlFor}">${serviceField?.label}`
+                            this.getTemplate().template += `<my-label htmlFor="${htmlFor}">${serviceField?.label}`
                             this.getTemplate().template += ` <my-debug service="${this.service}" field="${field.name}"></my-debug>`
                             this.getTemplate().template += `</my-label>`;
                         } else {
@@ -462,39 +462,39 @@ export class FormXMLParserVisitor extends XMLParserVisitor<any> {
                 return `<${componentName} v-model="${field.name}" ${vModelStr} ${propStr}/>`
             }
         } else if (serviceField.type == FieldTypeEnum.SelectionField) {
-            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" serviceName="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
+            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" serviceName="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} ></MySelectionSelect>`
         } else if (serviceField.type == FieldTypeEnum.FieldSelectionField) {
-            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" serviceName="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MySelectionSelect>`
+            return `<MySelectionSelect border="bottom" ref="${htmlRef}_input" field="${field.name}" serviceName="${this.service}" v-model="${field.name}" ${vModelStr} ${propStr} ></MySelectionSelect>`
         } else if (serviceField.type == FieldTypeEnum.Many2oneField) {
             if (!componentName) {
                 componentName = `MyMany2OneSelect`
             }
-            return `<${componentName} border="bottom" ref="${htmlRef}_input" serviceName="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
+            return `<${componentName} border="bottom" ref="${htmlRef}_input" serviceName="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} ></${componentName}>`
         } else if (serviceField.type == FieldTypeEnum.ImageField) {
-            return `<MyImageUpload ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyImageUpload>`
+            return `<MyImageUpload ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} ></MyImageUpload>`
         } else if (serviceField.type == FieldTypeEnum.VideoField) {
-            return `<MyVideoUpload ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyVideoUpload>`
+            return `<MyVideoUpload ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} ></MyVideoUpload>`
         } else if (serviceField.type == FieldTypeEnum.PasswordField) {
-            return `<MyPassword ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}" border="bottom"></MyPassword>`
+            return `<MyPassword ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr}  border="bottom"></MyPassword>`
         } else if (serviceField.type == FieldTypeEnum.DateField) {
-            return `<my-date ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></my-date>`
+            return `<my-date ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} ></my-date>`
         } else if (serviceField.type == FieldTypeEnum.BooleanField) {
-            return `<MyCheckBox class=" " ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyCheckBox>`
+            return `<MyCheckBox class=" " ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} ></MyCheckBox>`
         } else if (serviceField.type == FieldTypeEnum.HtmlField) {
-            return `<MyTextarea border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyTextarea>`
+            return `<MyTextarea border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} ></MyTextarea>`
         } else if (serviceField.type == FieldTypeEnum.TextField) {
             if (!componentName) {
                 componentName = `MyTextarea`
             }
-            return `<${componentName}  border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></${componentName}>`
+            return `<${componentName}  border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} ></${componentName}>`
         } else if (serviceField.type == FieldTypeEnum.Many2manyField) {
-            return `<MyMany2manySelect border="bottom" ref="${htmlRef}_input" serviceName="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyMany2manySelect>`
+            return `<MyMany2manySelect border="bottom" ref="${htmlRef}_input" serviceName="${serviceField.relativeServiceName}" field="${field.name}" v-model="${field.name}" ${vModelStr} ${propStr} ></MyMany2manySelect>`
         } else if (serviceField.type == FieldTypeEnum.TimeField) {
-            return `<MyTime ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyTime>`
+            return `<MyTime ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} ></MyTime>`
         } else if (serviceField.type == FieldTypeEnum.DateTimeField) {
-            return `<MyDatetime border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}"></MyDatetime>`
+            return `<MyDatetime border="bottom" ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} ></MyDatetime>`
         } else {
-            return `<MyInput ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr} htmlId="${field.name}" htmlName="${htmlName}" border="bottom"></MyInput>`
+            return `<MyInput ref="${htmlRef}_input" v-model="${field.name}" ${vModelStr} ${propStr}  border="bottom"></MyInput>`
         }
     }
 

@@ -233,6 +233,12 @@ const saveServiceClick = async () => {
         const urlObj = await uploadFile(row[fieldName])
         row[fieldName] = urlObj.url
       }
+      const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
+      const field = serviceFields.find(x => x.name == fieldName)
+      if (field && field.type == FieldTypeEnum.Many2oneField) { // many2one
+        const primaryKeyField = await serviceStore.getServiceByNameAsync(field.relativeServiceName)
+        row[fieldName] = row[fieldName][primaryKeyField.keyField]
+      }
       if (fieldName == serviceKeyField.value && isModelKeyValue(row[fieldName])) { // 去除前端新增主键
         row[fieldName] = undefined
       }

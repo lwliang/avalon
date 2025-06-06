@@ -187,6 +187,7 @@ const getFormField = (obj: any, value: any, field: Field) => {
 }
 
 const allSelect = ref(new FormField(false))
+const allSelect_indeterminate = ref(false)
 const web_select = 'web_select';
 let selectChange = (value: any) => {
   let selectedSum = 0
@@ -195,10 +196,15 @@ let selectChange = (value: any) => {
       selectedSum++;
     }
   }
+  allSelect_indeterminate.value = false;
   if (selectedSum == props.record.length && selectedSum != 0) {
     allSelect.value.value = true;
   } else {
-    allSelect.value.value = false;
+    if (selectedSum == 0) {
+      allSelect.value.value = false;
+    } else {
+      allSelect_indeterminate.value = true;
+    }
   }
   const ids = props.record.filter(x => x[web_select].value).map(y => y.id);
   emits('rowSelectChange', selectedSum, ids)
@@ -281,7 +287,7 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
       <tr class="border-b">
         <th v-if="showSelectBtn" class="w-[28px] pl-3 pr-3">
           <div class="w-full h-full flex justify-center items-center pl-3 pr-3">
-            <MyCheckBox v-model="allSelect"/>
+            <MyCheckBox v-model="allSelect" :indeterminate="allSelect_indeterminate"/>
           </div>
         </th>
         <template v-for="field in fields" :key="field.Field.id">

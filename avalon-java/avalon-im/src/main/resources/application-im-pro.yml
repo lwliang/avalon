@@ -1,9 +1,9 @@
 application:
   multiDb: false
   dataSource:
-    database: im
-    username: avalon
-    password: avalon
+    database: pet
+    username: odoo16
+    password: odoo16
 spring:
   profiles:
     host: localhost

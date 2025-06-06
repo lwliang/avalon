@@ -4,17 +4,21 @@ spring:
 
 application:
   multiDb: false
-  dataSource:
-  database: resource8
-  username: odoo16
-  password: odoo16
+  cache-type: file
 
 pulsar:
   url: pulsar://${spring.profiles.host}:6650
   enable: false
 
+
 file:
   file: ./data/
   video: ./video/
   image: ./image/
+  mode: date
+
+minio:
+  endpoint: http://localhost:9000
+  accessKey: minioadmin
+  secretKey: minioadmin
   mode: date

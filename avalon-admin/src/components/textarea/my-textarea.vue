@@ -8,8 +8,6 @@ import {watch} from "vue";
 import {borderStyleType} from "../icon/types.ts";
 
 const props = defineProps({
-  htmlId: String,
-  htmlName: String,
   required: Boolean,
   readonly: Boolean,
   border: {
@@ -67,9 +65,8 @@ defineExpose({validate})
             }]"
             v-if="formField"
             type="checkbox"
-            v-model="formField.value" :id="htmlId" :readonly="readonly"
-            @keydown.enter.stop="enterHandler"
-            :name="htmlName">
+            v-model="formField.value" :readonly="readonly"
+            @keydown.enter.stop="enterHandler">
         </textarea>
   </div>
 
