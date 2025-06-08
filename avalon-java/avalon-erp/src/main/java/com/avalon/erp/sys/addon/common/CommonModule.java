@@ -1,4 +1,4 @@
-package com.avalon.erp.sys.addon.crm.common;
+package com.avalon.erp.sys.addon.common;
 
 import com.avalon.core.module.AbstractModule;
 import lombok.extern.slf4j.Slf4j;
@@ -10,15 +10,15 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class CRMCommonModule extends AbstractModule {
+public class CommonModule extends AbstractModule {
     @Override
     public String getModuleName() {
-        return "crm_common";
+        return "common";
     }
 
     @Override
     public String getLabel() {
-        return "CRM基础数据";
+        return "业务基础数据";
     }
 
     @Override
