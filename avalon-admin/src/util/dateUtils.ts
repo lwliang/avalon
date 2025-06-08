@@ -6,6 +6,29 @@
 import dayjs from 'dayjs';
 
 /**
+ * 将 '12:33:99' 这种字符串归一化为合法时间，并格式化输出
+ * @param timeStr 形如 '12:33:99'
+ * @param format 输出格式，默认 'yyyy-mm-dd HH:mm:ss'
+ * @returns 格式化后的字符串
+ */
+export function normalizeAndFormatTime(timeStr: string, format:string): string {
+    // 拆分
+    const [h = 0, m = 0, s = 0] = timeStr.split(':').map(Number)
+    // 创建一个"零点"时间
+    const base = dayjs().startOf('day')
+    // 加上小时、分钟、秒（dayjs自动处理进位）
+    const normalized = base.add(h, 'hour').add(m, 'minute').add(s, 'second')
+    return normalized.format(`YYYY-mm-DD ${format}`)
+}
+
+export function isValidTime(timeStr: string, format:string): boolean {
+    // dayjs严格模式解析
+    const parsed = dayjs(timeStr, format, true)
+    // 必须是有效时间
+    return parsed.isValid()
+}
+
+/**
  * 获取当前时间的时间戳（单位是毫秒）
  */
 export function getTick() {

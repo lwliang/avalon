@@ -141,7 +141,7 @@ const rowSelectChangeEvent = (selectedSum: number, ids: any[]) => {
       <div class="flex-1"></div>
       <div class="flex-4">
         <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
-                  :service="service"/>
+                  :serviceName="service"/>
       </div>
       <div class="flex-1 flex justify-end pr-2 items-center">
         <MyPagination v-model:total="total" v-model:begin="begin" v-model:end="end"

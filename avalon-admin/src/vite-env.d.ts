@@ -1,14 +1,15 @@
 /// <reference types="vite/client" />
 
 import {ComponentCustomProperties} from "@vue/runtime-core";
+import {CreateNotificationOptions} from "./components/notification";
 
 declare module '@vue/runtime-core' {
     interface ComponentCustomProperties {
         $notify: {
-            success: (title: String, content: String, duration?: Number) => void;
-            warn: (title: String, content: String, duration?: Number) => void;
-            error: (title: String, content: String, duration?: Number) => void;
-            info: (title: String, content: String, duration?: Number) => void;
+            success: (title: string, message: string, duration?: number, options: Partial<CreateNotificationOptions> = {}) => void,
+            warning: (title: string, message: string, duration?: number, options: Partial<CreateNotificationOptions> = {}) => void,
+            error: (title: string, message: string, duration?: number, options: Partial<CreateNotificationOptions> = {}) => void,
+            info: (title: string, message: string, duration?: number, options: Partial<CreateNotificationOptions> = {}) => void
         }; // 这里填类型
     }
 }

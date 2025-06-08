@@ -5,12 +5,14 @@
 
 package com.avalon.erp.sys.addon.base.controller;
 
+import com.avalon.core.context.Context;
 import com.avalon.core.exception.FieldCheckException;
 import com.avalon.core.exception.IAvalonException;
 import com.avalon.core.exception.PermissionException;
 import com.avalon.core.field.Field;
 import com.avalon.core.util.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -30,6 +32,8 @@ import java.util.Map;
 @ControllerAdvice
 @Slf4j
 public class AvalonControllerAdvice implements ResponseBodyAdvice<Object> {
+    @Autowired
+    Context context;
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
@@ -98,7 +102,7 @@ public class AvalonControllerAdvice implements ResponseBodyAdvice<Object> {
         map.put("code", code);
         map.put("msg", ex.getMessage());
         if (!(ex instanceof PermissionException)) {
-            log.error(ex.getMessage(), ex);
+            log.error(context.getBaseName() + " " + ex.getMessage(), ex);
         }
         return map;
     }

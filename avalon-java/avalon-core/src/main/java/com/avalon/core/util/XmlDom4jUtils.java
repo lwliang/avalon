@@ -24,6 +24,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 
@@ -98,7 +99,7 @@ public class XmlDom4jUtils {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream inputStream = new ByteArrayInputStream(xmlStr.getBytes());
+            InputStream inputStream = new ByteArrayInputStream(xmlStr.getBytes(StandardCharsets.UTF_8));
             return builder.parse(inputStream);
         } catch (Exception ex) {
             throw new AvalonException("识别xml字符串出错: " + ex.getMessage(), ex);
@@ -110,7 +111,7 @@ public class XmlDom4jUtils {
             xmlStr = "<inherit>" + xmlStr + "</inherit>";
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream inputStream = new ByteArrayInputStream(xmlStr.getBytes());
+            InputStream inputStream = new ByteArrayInputStream(xmlStr.getBytes(StandardCharsets.UTF_8));
             Document document = builder.parse(inputStream);
 
             return document.getDocumentElement().getElementsByTagName("xpath");

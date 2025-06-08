@@ -180,7 +180,7 @@ const exportSure = async (fields: string) => {
     let condition = "";
     const ids = nodeSelects.value.map(x => x[primaryKeyField.keyField])
     if (nodeSelects.value.length) {
-        condition = `(in,${primaryKeyField.keyField},${ids.join(",")})`
+        condition = `('${primaryKeyField.keyField}',in,${ids.join(",")})`
     }
     exportExcel(serviceName.value, fields, condition, "").then(data => {
         proxy?.$notify.success("提示", "导出成功");
@@ -553,7 +553,7 @@ const loadChildrenData = async (data: TreeData) => {
             </div>
             <div class="flex-1 px-4">
                 <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
-                          :service="serviceName"></MySearch>
+                          :serviceName="serviceName"></MySearch>
             </div>
             <div class="flex-1 flex justify-end">
 

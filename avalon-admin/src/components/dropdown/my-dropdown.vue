@@ -3,32 +3,31 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import {popoverTrigger} from "../popover/my-popover.ts";
-
-const props = defineProps({
-    trigger: {
-        type: popoverTrigger,
-        default: 'hover'
-    },
-})
+import {PlacementType, TriggerType} from "../popover/types.ts";
 import MyPopover from "../popover/my-popover.vue";
+
+const props = withDefaults(defineProps<{
+  trigger?: TriggerType;
+  placement?: PlacementType,
+  teleported?:boolean
+}>(), {
+  trigger: 'hover',
+  placement: 'bottom',
+  teleported: true
+})
 </script>
 
 <template>
-    <MyPopover ref="popper" placement="bottom" :trigger="trigger">
-        <template #default>
-            <div class="inline-flex cursor-pointer">
-                <slot name="default"></slot>
-            </div>
-
-        </template>
-
-        <template #option>
-            <div class="dropdown-item flex flex-col">
-                <slot name="dropdown"></slot>
-            </div>
-        </template>
-    </MyPopover>
+  <MyPopover ref="popper" placement="bottom" :trigger="trigger" popper-class="px-0 py-1" :teleported="teleported">
+    <template #default>
+      <div class="flex cursor-pointer items-center">
+        <slot name="default"></slot>
+      </div>
+    </template>
+    <template #content>
+      <slot name="dropdown"></slot>
+    </template>
+  </MyPopover>
 </template>
 
 <style scoped>

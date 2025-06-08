@@ -151,5 +151,11 @@ public class TimestampField extends Field implements IFieldFormat {
         public static TimestampField.Builder getInstance() {
             return new Builder();
         }
+
+        @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
+        }
     }
 }

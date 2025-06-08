@@ -16,6 +16,18 @@ ORM介绍：[https://www.bilibili.com/video/BV1xBdhYCEeK/?spm_id_from=333.1387.h
 
 前端介绍：[https://www.bilibili.com/video/BV1xBdhYCEKY/?spm_id_from=333.1387.homepage.video_card.click](https://gitee.com/link?target=https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1xBdhYCEKY%2F%3Fspm_id_from%3D333.1387.homepage.video_card.click)
 
+
+
+# 绿色版
+
+Avalon 绿色版 0.1.1 内含数据库，nacos，redis，avalon运行环境，可以一键运行，支持window
+
+百度云：https://pan.baidu.com/s/1QpnS9NAwbfDkClM9p8rRFw?pwd=zzxf 提取码: zzxf
+
+天翼：https://cloud.189.cn/web/share?code=7jAzIviqeEFv（访问码：6dfi）
+
+
+
 ## 开发环境准备
 
 ## 1、安装docker
@@ -633,7 +645,7 @@ public interface IField {
 RecordRow create(RecordRow defaultRow) throws AvalonException;
 ```
 
-#### 新增接口
+### 新增接口
 
 ```java
 PrimaryKey insert(RecordRow recordRow) throws AvalonException;//插入记录 会检查当前记录 及联插入
@@ -650,7 +662,7 @@ Integer update(RecordRow recordRow) throws AvalonException;//更新记录 检查
 Integer updateMulti(Record record) throws AvalonException;//批量更新
 ```
 
-#### 删除接口
+### 删除接口
 
 ```java
 Integer delete(Object id) throws AvalonException;//删除指定主键记录 不会检查是否满足删除条件， 直接删除
@@ -660,14 +672,50 @@ Integer delete(Condition condition, String serviceName) throws AvalonException;/
 Integer delete(RecordRow row) throws AvalonException;//删除记录 会检查当前记录 及联删除
 ```
 
-#### 调用服务接口
+### 调用服务接口
 
 ```java
 // 调用服务方法
 Object invokeMethod(String service, String methodName, Object... args) 
 ```
 
-#### 数据库接口
+### OnChange注解
+
+前端数据修改之后，会触发模型方法调用
+
+例子：
+
+```java
+    @OnChange("active") // 单字段修改
+    public ChangeRecordRow onChangeActive(RecordRow newRow, RecordRow oldRow) {
+        log.info("active is modified");
+        return new ChangeRecordRow();
+    }
+
+    @OnChange("serviceAccess") // 如果是one2many，则会整个字段触发，含新增，删除，某行的字段修改
+    public ChangeRecordRow onChangeServiceAccess(RecordRow newRow, RecordRow oldRow) {
+        log.info("serviceAccess is modified count=" + newRow.getRecord(serviceAccess).size());
+        return new ChangeRecordRow();
+    }
+   @OnChange({"debug", "name"}) // 支持多个字段 返回值有value是个键值对，则会覆盖前端的值，warings则会前端报错提醒
+    public ChangeRecordRow onDebugNameChange(RecordRow newRow, RecordRow oldRow) {
+        log.info("3" + newRow.getString("name").toString());
+        ChangeRecordRow changeRecordRow = new ChangeRecordRow();
+        if (!newRow.getString("name").contains("_java")) {
+            newRow.put("name", newRow.getString("name") + "_java");
+            changeRecordRow.addWarning("错误", "名字必须含_java");
+        }
+        changeRecordRow.setValue(newRow);
+
+        return changeRecordRow;
+    }
+```
+
+结果：
+
+![image-20250507173431511](img/image-20250507173431511.png)
+
+### 数据库接口
 
 ```java
  	/**
@@ -986,6 +1034,99 @@ service对应base.action.window
 
 ![image-20250408213235236](img/image-20250408213235236.png)
 
+### 增加顶部按钮
+
+在base.user模型上增加demo按钮
+
+```xml
+    <record id="base_user_view_tree" service="base.action.view">
+        <field name="name">base_user_view_tree</field>
+        <field name="label">用户</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.user</field>
+        <field name="arch" type="xml">
+            <tree>
+                <header>
+                    <MyButton :rounded="true" type="primary" action="demoClick"
+                              action-type="object">Demo
+                    </MyButton>
+                </header>
+                <field name="id"/>
+                <field name="avatar"/>
+                <field name="name"/>
+                <field name="account"/>
+                <field name="password"/>
+            </tree>
+        </field>
+    </record>
+```
+
+action-type="object"：意思是调用模型的方法
+
+action="demoClick"：方法名
+
+user模型代码
+
+```java
+@Service
+@Slf4j
+@Primary
+public class UserService extends AbstractService implements IUserService {
+    @Override
+    public String getServiceName() {
+        return "base.user";
+    }
+
+   //....
+
+    //参数param 会根据选中的记录的id列表，没有选中，则{}，有则{ids:[1,2]}
+	public RecordRow demoClick(RecordRow param) {
+        return null; // 返回null 前端会提示操作成功
+	}
+}
+
+```
+
+前端未选择记录效果:
+
+![image-20250506180330036](img/image-20250506180330036.png)
+
+前端选择记录效果：
+
+![image-20250506180442915](img/image-20250506180442915.png)
+
+### 支持在tree视图中直接修改与新增记录
+
+支持在tree视图的表格内修改，新增记录，而不用弹窗，这样的操作方式，适用于字段比较少的表
+
+效果：
+
+![image-20250517115222147](img/image-20250517115222147.png)
+
+用法：
+
+```xml
+<record id="base_user_view_tree" service="base.action.view">
+        <field name="name">base_user_view_tree</field>
+        <field name="label">用户</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">base.user</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom"> <!--使用editable 属性 值bottom 新增的记录在下方，top在上方-->
+                <field name="id"/>
+                <field name="avatar"/>
+                <field name="name"/>
+                <field name="account"/>
+                <field name="createTime"/>
+                <field name="myTime"/>
+                <field name="myDate"/>
+            </tree>
+        </field>
+    </record>
+```
+
+
+
 ## form
 
 **Form 视图** 是用于显示单条记录的详细信息的视图类型。它是 Avalon中最常用的视图之一，通常用于创建、编辑和查看记录的详细内容。通过 Form 视图，用户可以管理模型的所有字段，并定义交互式的用户界面。
@@ -1094,6 +1235,63 @@ service对应base.action.window
 
 ![image-20250504134820996](img/image-20250504134820996.png)
 
+## search视图
+
+search视图一般在tree视图的顶部显示，用于搜索tree数据
+
+例子：以下是在pet.train.item模型上增加search视图，可搜索name，petTypeIds.typeId，tag,creator,difficulty字段
+
+注意：仅最多支持二级字段
+
+```xml
+   <record id="pet_train_item_view_search" service="base.action.view">
+        <field name="name">pet_train_item_view_search</field>
+        <field name="label">项目查询</field>
+        <field name="viewMode">search</field>
+        <field name="ref_serviceId">pet.train.item</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/> <!--String字段 使用like条件-->
+                <field name="petTypeIds.typeId"/><!--many2many字段 使用like条件-->
+                <field name="tag"/> <!--selection字段 使用like-->
+                <field name="creator"/> <!--many2one字段 使用like-->
+                <field name="difficulty"/> <!--integer字段 使用 = 条件-->
+            </search>
+        </field>
+    </record>
+```
+
+效果如下：
+
+![image-20250506215446811](img/image-20250506215446811.png)
+
+## down视图
+
+down作用于many2one的下拉界面中，当需要对某个模型的下来进行定制，则可以定义down视图，不定义，则会显示name字段列表
+
+例子：
+
+```xml
+ <record id="pet_train_item_view_down" service="base.action.view">
+        <field name="name">pet train item down</field>
+        <field name="label">训练项目</field>
+        <field name="viewMode">down</field>
+        <field name="ref_serviceId">pet.train.item</field>
+        <field name="arch" type="xml">
+            <down>
+                <field name="name"/>
+                <field name="petTypeIds"/>
+                <field name="tag"/>
+                <field name="vip"/>
+            </down>
+        </field>
+    </record>
+```
+
+页面效果：
+
+![a58cc0c29d3548579656b5e47d57eba](img/a58cc0c29d3548579656b5e47d57eba.png)
+
 # 菜单
 
 创建前端菜单入口,只能三级
@@ -1179,58 +1377,147 @@ service对应base.action.window
 
 
 
-# HTTP 接口
+
+
+# 创建模型记录
+
+可以在数据库模型，创建时，在模型表中增加记录
+
+## 创建模型记录
+
+介绍创建模型的一般方式
+
+### 在base模块的resource/record目录下新增对应模型的base.group.xml文件
+
+![image-20250515124753595](img/image-20250515124753595.png)
+
+### 在base.group.xml文件添加如下内容
+
+record标签的id表示资源id唯一值，service对应模型名称，field标签的name属性则是字段值，内容则对应的值。field都复制有很多方式
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_group" service="base.group">
+        <field name="name">基础权限组</field>
+        <field name="active">true</field>
+    </record>
+    <!--介绍field复制方式-->
+	<record>
+    	 <field name="serviceId" eval="refServiceId('base.user')"/> <!--refServiceId 获取base.user模型的id-->
+         <field name="groupId" eval="refId('base.base_group')"/><!--refId 获取 base模型下 base_group资源id-->
+    </record>
+</avalon>
+```
+
+### base模块类上启用base.group.xml文件
+
+![image-20250515133237396](img/image-20250515133237396.png)
+
+
+
+#  avlon-erp HTTP 接口
 
 erp服务：http://localhost:8089/erp
 
 ## 登录
 
-```json
-url:/login
-method:post
-param:{
-	db:'avalon' // 数据库
-	username:'avalon',
-	password:'avalon'
-	}
-```
+接口：/login
 
-## 创建模型默认记录
+方式：POST
+
+参数：
 
 ```json
 {
-url:/service/{serviceName}/create
-method:post
-param:{
-	value:{
-        "{fieldName}":value
-    	}
-	}
+    "db":"avalon",
+    "username": "admin",
+    "password": "123456"
 }
 ```
 
-## 新增模型记录
+返回值：
 
 ```json
 {
-url:/service/{serviceName}/add
-method:post
-param:{
-	value:{
-        "{fieldName}":value
-    	}
-	}
+    "id": 1, // 账户主键
+    "db": "avalon",
+    "token": "239b19788adc452ebe57e06f0ae95461" // 登录token
 }
 ```
+
+
+
+## 创建模型默认值
+
+不会保存到数据库中，只是返回给前端
+
+接口:url:/service/{serviceName}/create
+
+方式：POST
+
+参数：可传可不传，传了以参数为准返回默认值
+
+```json
+{
+    "value": {
+        "name": "演示账号"
+    }
+}
+```
+
+返回值:serviceName=base.user
+
+```json
+{
+    "name": "演示账号"
+}
+```
+
+
+
+## 插入模型记录
+
+保存到数据库中
+
+接口:/service/{serviceName}/add
+
+方式：POST
+
+参数 serviceName=base.user
+
+```json
+{
+	"value": {
+        "name": "演示账号",
+        "account": "demo",
+        "password": "123456"
+    }
+}
+```
+
+返回值:
+
+```json
+{
+    "id":2//新增的主键
+}
+```
+
+
 
 ## 更新模型记录
 
+接口:/service/{serviceName}/update
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/service/{serviceName}/update
-method:post
-param:{
 	value:{
+        "id":1,// 主键 需要包括
         "{fieldName}":value,
         "one2ManyField":[
             {
@@ -1243,29 +1530,68 @@ param:{
 }
 ```
 
-## 删除模型记录
+返回值: 原值返回
 
 ```json
 {
-url:/service/{serviceName}/delete
-method:post
-param:{
-	id:1
-	}
+     "id":1,// 主键 需要包括
+        "{fieldName}":value,
+        "one2ManyField":[
+            	{
+                 	"{fieldName}":value,
+            	    "op":"insert|delete|update"
+            	}
+        	]
+    	}
 }
 ```
 
-## 查询模型详情
+
+
+## 删除模型记录
+
+接口:/service/{serviceName}/delete
+
+方式：POST
+
+参数：serviceName=base.user
 
 ```json
 {
-url:/get/{serviceName}/detail
-method:post
-param:{
-	fields:"id,name,many2One.id",
-    condition:"('a',=,2)",
-    order:"field asc, field.field desc"
-	}
+	id:1
+}
+```
+
+返回值：
+
+```json
+1// 删除的个数
+```
+
+
+
+## 查询模型详情
+
+接口:/service/get/{serviceName}/detail
+
+方式：POST
+
+参数：serviceName=base.user
+
+```json
+{
+	"fields":"id,name,account",
+    "condition":"('id',=,1)"
+}
+```
+
+返回值：
+
+```json
+{
+    "name": "管理管理员",
+    "id": 1,
+    "account": "admin"
 }
 ```
 
@@ -1273,94 +1599,241 @@ param:{
 
 ## 查询模型全部记录
 
+接口:/service/get/{serviceName}/all
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/get/{serviceName}/all
-method:post
-param:{
-	fields:"id,name,many2One.id",
-    condition:"('a',=,2)",
-    order:"field asc, field.field desc"
-	}
+	"fields":"id,name,account",
+    "condition":"('id',=,1)",
+	"order":"id asc, name desc"
 }
 ```
+
+返回值：
+
+```json
+[
+    {
+        "name": "管理管理员",
+        "id": 1,
+        "account": "admin"
+    }
+]
+```
+
+
 
 ## 分页查询模型记录
 
+接口:/service/get/{serviceName}/page
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/get/{serviceName}/page
-method:post
-param:{
-    page:{
-        pageNum:1,
-        pageSize:10
-    }
-	fields:"id,name,many2One.id",
-    condition:"('a',=,2)",
-    order:"field asc, field.field desc"
-	}
+    "page": {
+        "pageNum": 1,
+        "pageSize": 10
+    },
+    "fields": "id,name,account",
+    "condition": "('id',=,1)",
+    "order": "id asc, account desc"
+}
+
+```
+
+返回值
+
+```json
+{
+    "total": 1,
+    "pageCur": 1,
+    "pageSize": 10,
+    "pageCount": 1,
+    "nextPage": false,
+    "prePage": false,
+    "data": [
+        {
+            "name": "管理管理员",
+            "id": 1,
+            "account": "admin"
+        }
+    ]
 }
 ```
+
+
 
 ## 获取模型的字段
 
+接口:/service/get/{serviceName}/fields
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/get/{serviceName}/fields
-method:post
-param:{
-    field:"" // 可选 label like
+   "field":"主键"// 模糊匹配lable，不传字段则获取全部
 }
 ```
+
+```json
+[
+    {
+        "isRequired": true,
+        "isReadonly": true,
+        "relativeServiceName": null,
+        "defaultValue": "0",
+        "maxValue": 2147483647.000000,
+        "isUnique": false,
+        "isPrimaryKey": true,
+        "label": "主键",
+        "type": "IntegerField",
+        "manyServiceTable": null,
+        "isAutoIncrement": true,
+        "masterForeignKeyName": null,
+        "minValue": -2147483648.000000,
+        "name": "id",
+        "allowNull": true,
+        "id": 6,
+        "serviceId": 1,
+        "relativeForeignKeyName": null,
+        "relativeFieldName": null
+    }
+]
+```
+
+
 
 ## 获取模型的枚举字段取值范围
 
+接口:/service/get/{serviceName}/selection/map
+
+方式：POST
+
+参数：serviceName=hr.org
+
 ```json
 {
-url:/get/{serviceName}/selection/map
-method:post
-param:{
-    fields:"" // 一个字段
+ fields:"type" // 一个字段
 }
 ```
+
+返回值：
+
+```json
+{
+    "company": "公司",
+    "department": "部门"
+}
+```
+
+
 
 ## 导出Excel文件
 
+接口:/service/export/{serviceName}/excel
+
+方式：POST
+
+参数：serviceName=base.user
+
 ```json
 {
-url:/export/{serviceName}/excel
-method:post
-param:{
-    field:"a,b" // 一个字段
-    condition:"('a',=,2)",
-    order:"field asc, field.field desc"
+    "order": "",
+    "field": "id,account,name",
+    "condition": "('id',in,3,1)"
 }
 ```
+
+返回值：excel文件
 
 ## 读取excel的记录
 
+接口：/service/read/{serviceName}/excel
+
+接口：POST
+
+参数：FormData
+
+```json
+file:File
+```
+
+返回值：excel文件内容
+
 ```json
 {
-url:/read/{serviceName}/excel
-method:post
-param:{
-    file:File
+    "headers": [
+        "账号",
+        "昵称"
+    ],
+    "data": [
+        {
+            "账号": "admin1",
+            "昵称": "管理管理员1"
+        },
+        {
+            "账号": "demo2",
+            "昵称": "演示账号1"
+        }
+    ],
+    "fields": [
+        "account",
+        "name"
+    ]
 }
 ```
+
+
 
 ## 导入模型记录
 
+接口：/service/import/{serviceName}/excel
+
+接口：POST
+
+参数：
+
 ```json
 {
-url:/import/{serviceName}/excel
-method:post
-param:{
-    headers:['fieldLabel1','field2'],
-    fields:['fieldName1','fieldName2']
-    data:[]
+    "headers": [
+        "账号",
+        "昵称"
+    ],
+    "data": [
+        {
+            "账号": "admin1",
+            "昵称": "管理管理员1"
+        },
+        {
+            "账号": "demo2",
+            "昵称": "演示账号1"
+        }
+    ],
+    "fields": [
+        "account",
+        "name"
+    ]
 }
 ```
+
+返回值：
+
+```json
+{
+    "imported": 2 // 成功导入的个数
+}
+```
+
+
 
 # condition 
 
@@ -1400,7 +1873,41 @@ param:{
 "('field',=,2)|('field',=,2)"
 ```
 
+# avlon-erp 配置文件
 
+### application.yml 配置文件
+
+```yml
+server:
+  port: 8090
+  servlet:
+    context-path: /erp
+spring:
+  banner:
+    location: banner.txt
+  profiles:
+    active: dev,erp-dev
+  application:
+    name: avalon-server
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    encoding: UTF-8
+    suffix: .html
+    mode: HTML
+```
+
+### application-erp-dev.yml配置文件
+
+```yml
+spring:
+  profiles:
+    host: localhost
+
+pulsar:
+  url: pulsar://${spring.profiles.host}:6650
+  enable: false
+```
 
 
 
@@ -1515,7 +2022,96 @@ minio:
   mode: date
 ```
 
+## HTTP接口
 
+通用文件上传与与下载接口
+
+host：http://localhost:8091/file
+
+### 上传文件
+
+接口：/file/upload
+
+方式：POST
+
+传参方式：form-data
+
+参数：
+
+```json
+{
+    "file":File
+}
+```
+
+返回值：
+
+```json
+{
+    "mine": "image/png",
+    "size": 3101421,
+    "url": "/file/down/pet/2025/05/a4b57c788727474eae13734acbd0f7b3.png",
+    "originName": "color4bg_2025-05-12 14_14_25.png"
+}
+```
+
+### 上传图片文件
+
+接口：/image/upload
+
+方式：POST
+
+传参方式：form-data
+
+参数：
+
+```json
+{
+    "file":File
+}
+```
+
+返回值：
+
+```json
+{
+    "mine": "image/png",
+    "size": 3101421,
+    "url": "/file/down/pet/2025/05/a4b57c788727474eae13734acbd0f7b3.png",
+    "originName": "color4bg_2025-05-12 14_14_25.png"
+}
+```
+
+### 上传视频文件
+
+接口：/video/upload
+
+方式：POST
+
+传参方式：form-data
+
+参数：
+
+```json
+{
+    "file":File
+}
+```
+
+返回值：
+
+```json
+{
+    "mine": "image/png",
+    "size": 3101421,
+    "url": "/file/down/pet/2025/05/a4b57c788727474eae13734acbd0f7b3.png",
+    "originName": "color4bg_2025-05-12 14_14_25.png"
+}
+```
+
+### 下载图片
+
+地址：http://localhost:8091/file+返回值.url
 
 
 
@@ -1530,6 +2126,420 @@ minio:
      ...
 </form>
 ```
+
+# avalon-im 服务器
+
+用于IM通讯，可以单独部署，不依赖avalon-erp
+
+## 配置文件
+
+### application.yml
+
+```yml
+server:
+  port: 8093
+  servlet:
+    context-path: /im
+spring:
+  profiles:
+    active: dev,im-dev
+  application:
+    name: avalon-im
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: ${spring.profiles.host}:8848
+im:
+  wss: false 不启用
+```
+
+### application-im-dev.yml
+
+```yml
+application:
+  multiDb: false
+  dataSource:
+    database: im
+    username: avalon
+    password: avalon
+spring:
+  profiles:
+    host: localhost
+```
+
+## 数据库文件
+
+需要自己进行安装
+
+![image-20250514104430482](img/image-20250514104430482.png)
+
+## HTTP接口
+
+```
+http-host:http://localhost:8093/im
+```
+
+### 注册用户
+
+接口：/user/register
+
+method:POST
+
+参数：
+
+```json
+{
+	company: "公司名字，可以随便填",
+	app: "app名称，可以随便填",
+	thirdUserId: "app下的用户唯一标识"
+}
+```
+
+返回值：
+
+```json
+{
+	userId: 5 // 文件
+}
+```
+
+### 注册用户
+
+接口：/user/register
+
+method:POST
+
+参数：
+
+```json
+{
+	company: "公司名字，可以随便填",
+	app: "app名称，可以随便填",
+	thirdUserId: "app下的用户唯一标识"
+}
+```
+
+返回值：
+
+```json
+{
+	userId: 5 // 文件
+}
+```
+
+### 创建群组
+
+接口：/team/add
+
+method:POST
+
+参数：
+
+```json
+{
+	"name": "群名字"
+}
+```
+
+返回值：
+
+```json
+{
+	id: 5 // 群id
+}
+```
+
+### 修改群组
+
+接口：/team/update
+
+method:POST
+
+参数：
+
+```json
+{
+	"name": "修改群名字"
+}
+```
+
+返回值：
+
+```json
+
+```
+
+### 删除群组
+
+接口：/team/delete
+
+method:POST
+
+参数：
+
+```json
+{
+	"teamId": 1
+}
+```
+
+返回值：
+
+```json
+
+```
+
+
+
+### 分页获取用户消息
+
+请求,返回值小于pageSize说明是最后一页了
+
+接口：/message/user/get/page
+
+method:POST
+
+参数：
+
+```json
+{
+    "userId": 3,
+    "pageNum": 1,
+    "pageSize": 10
+}
+```
+
+返回值：
+
+```json
+[
+    {
+        "msgType": "Text",//消息类型，Text文本，Image图片，
+        "fromUserId": 2,// 发送用户id
+        "isRead": false,
+        "eventType": null,
+        "toUserId": 3,//目的用户id
+        "content": "消息内容",//消息内容
+        "stateEnum": "Client",
+        "teamId": null,
+        "name": null,
+        "serverSendTime": null,
+        "id": 1267898438633263104, // id 
+        "chatType": "Single",
+        "timestamp": 1722332144206 //
+    }
+]
+```
+
+### 获取离线消息
+
+接口：/message/offline
+
+method:POST
+
+参数：
+
+```json
+{
+    "userId": 3
+}
+```
+
+返回值：
+
+```json
+[
+    {
+        "msgType": "Text",
+        "fromUserId": 2,
+        "isRead": false,
+        "eventType": null,
+        "toUserId": 3,
+        "content": "消息内容",
+        "stateEnum": "Server",
+        "teamId": null,
+        "name": null,
+        "serverSendTime": null,
+        "id": 1267905873892741120,
+        "chatType": "Single",
+        "timestamp": 1722333916896
+    }
+]
+```
+
+
+
+### 获取消息id
+
+接口：/message/get/id
+
+method:POST
+
+参数：
+
+```json
+{
+}
+```
+
+返回值：
+
+```json
+{
+	"id":1268242042090295296
+}
+```
+
+### 清空消息列表的未读消息
+
+接口：/user/chat/clear/unread
+
+method:POST
+
+参数：
+
+```json
+{
+    "id":2
+}
+```
+
+返回值：
+
+```json
+{
+}
+```
+
+### 获取聊天列表
+
+接口：/user/chat/list
+
+method:POST
+
+参数：
+
+```json
+{
+    "id":2
+}
+```
+
+返回值：
+
+```json
+[
+    {
+        "top": false, // 置顶
+        "lastMsgId": { // 最后一条消息
+            "msgType": "Image",
+            "id": 1268572304611348480,
+            "content": "/file/down/123123.png",
+            "timestamp": 1722492806373
+        },
+        "createTime": "2024-08-01 13:29:50",
+        "fromUserId": 2, // 发送方
+        "teamId": null,
+        "updateTime": "2024-08-01 14:13:26",
+        "id": 2,
+        "unReadCount": 2, // 未读消息数
+        "toUserId": 3,
+        "chatType": "Single"
+    }
+]
+```
+
+## ws 连接 
+
+### 发送消息的流程
+
+**建立连接->鉴权->发送消息->服务器回发ack确认消息**
+
+### 建立连接 ws地址
+
+```json
+ws://localhost:6666/ws
+```
+
+### 鉴权消息
+
+```json
+{
+    "msgType":"Auth",
+    "fromUserId":3,
+    "content": "token" // token 是 唯一标识，可以自定义
+}
+```
+
+### 发送单聊文本消息
+
+```json
+{
+    "id":1268242042090295296,
+    "fromUserId":3,
+    "toUserId":2,
+    "chatType":"Single", // 单聊
+    "msgType":"Text", 
+    "content": "Hello,World" 
+}
+```
+
+### 服务器返回单聊文本ACK消息
+
+```json
+{
+    "id":1268242042090295296
+    "chatType":"Single",
+    "msgType":"Ack",
+    "content": "{'srcId': 1268242042090295295}" // srcId 是确认收到消息的id
+}
+```
+
+
+
+## 接受消息的流程
+
+**建立连接->鉴权->接受消息->向服务器发送ack确认消息**
+
+### 鉴权消息
+
+```json
+{
+    "msgType":"Auth",
+    "fromUserId":3,
+    "content": "{token}"
+}
+```
+
+### 接受单聊文本消息
+
+```json
+{
+    "id":1268242042090295296,
+    "fromUserId":3,
+    "toUserId":2,
+    "chatType":"Single",
+    "msgType":"Text", // Text 文本， Image 图片
+    "content": "Hello,World" 
+}
+```
+
+### 向服务器发送单聊文本ack消息
+
+```json
+{
+    "id":1268242042090295297,
+    "chatType":"Single",
+    "msgType":"Ack",
+    "content": "{'srcId': 1268242042090295296}" // srcId 是确认收到消息的id
+}
+```
+
+
+
+
 
 
 
@@ -1580,6 +2590,50 @@ minio:
         </field>
     </record>
 ```
+
+
+
+# 用户教程
+
+## 权限设置
+
+### 入口
+
+![image-20250515121847804](img/image-20250515121847804.png)
+
+### 权限组
+
+拥有规则，菜单，模型等权限的组合，用户可以属于多个权限组
+
+#### 增加用户
+
+被增加的用户拥有当前权限组的所有权限
+
+![image-20250515122148396](img/image-20250515122148396.png)
+
+#### 增加规则
+
+设置模型记录的访问条件,创建规则时，使用的是查询字符串，内部支持的变量，有userId，表示当前用户
+
+![image-20250515124018909](img/image-20250515124018909.png)
+
+#### 增加菜单
+
+用户可以访问的菜单，但不能表示用户可以访问菜单对应的模型，方法等，需要保证菜单所有执行的权限足够。正常情况下主要设置模型足够满足要求。
+
+![image-20250515124231907](img/image-20250515124231907.png)
+
+#### 增加模型
+
+用户对模型有访问，修改，新增，删除的权限，有访问，则对应的菜单会显示。
+
+![image-20250515124425813](img/image-20250515124425813.png)
+
+
+
+
+
+
 
 ## 快捷键
 

@@ -18,7 +18,7 @@ public class SupplierService extends AbstractService {
     @Override
     public DelegateInheritMap getDelegateInherit() {
         DelegateInheritMap delegateInheritMap = new DelegateInheritMap();
-        delegateInheritMap.put("crm.partner", "partnerId");
+        delegateInheritMap.put("common.partner", "partnerId");
         return delegateInheritMap;
     }
 
@@ -32,7 +32,7 @@ public class SupplierService extends AbstractService {
         return "供应商";
     }
 
-    public final Field partnerId = Fields.createMany2one("联系人", "crm.partner");
+    public final Field partnerId = Fields.createMany2one("联系人", "common.partner");
     public Field rank = Fields.createInteger("供应商评分", 0, 5, 0);
     public Field companyType = Fields.createSelection("公司类型", new SelectionHashMap() {{
         put("company", "公司");

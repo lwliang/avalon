@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_group_base_user" service="base.service.access">
+        <field name="serviceId" eval="refServiceId('base.user')"/>
+        <field name="groupId" eval="refId('base.base_group')"/>
+        <field name="permRead">true</field>
+        <field name="permWrite">true</field>
+        <field name="permCreate">false</field>
+        <field name="permUnlink">false</field>
+    </record>
+</avalon>

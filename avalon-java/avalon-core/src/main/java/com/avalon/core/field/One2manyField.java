@@ -174,5 +174,11 @@ public class One2manyField extends RelationField {
         public static Builder getInstance() {
             return new Builder();
         }
+
+        @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
+        }
     }
 }

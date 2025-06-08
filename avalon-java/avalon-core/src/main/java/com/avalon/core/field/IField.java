@@ -69,4 +69,10 @@ public interface IField {
     Object getClientValue(Object value); // 得到前端显示的值
 
     String getClassType();
+
+    /**
+     * 字段是否可以查询，用于web端
+     * @return 查询
+     */
+    Boolean getCanSearch();
 }

@@ -1,4 +1,4 @@
-package com.avalon.core.antlr4.condition;// Generated from Expression.g4 by ANTLR 4.13.2
+package com.avalon.core.antlr4.condition;// Generated from ./Expression.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -71,6 +71,13 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitInComparison(ExpressionParser.InComparisonContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code NotInComparison}
+	 * labeled alternative in {@link ExpressionParser#comparisonExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNotInComparison(ExpressionParser.NotInComparisonContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code LikeComparison}
 	 * labeled alternative in {@link ExpressionParser#comparisonExpr}.

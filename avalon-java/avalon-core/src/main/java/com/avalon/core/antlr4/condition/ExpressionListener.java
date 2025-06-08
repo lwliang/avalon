@@ -1,4 +1,4 @@
-package com.avalon.core.antlr4.condition;// Generated from Expression.g4 by ANTLR 4.13.2
+package com.avalon.core.antlr4.condition;// Generated from ./Expression.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -112,6 +112,18 @@ public interface ExpressionListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInComparison(ExpressionParser.InComparisonContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code NotInComparison}
+	 * labeled alternative in {@link ExpressionParser#comparisonExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterNotInComparison(ExpressionParser.NotInComparisonContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code NotInComparison}
+	 * labeled alternative in {@link ExpressionParser#comparisonExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitNotInComparison(ExpressionParser.NotInComparisonContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code LikeComparison}
 	 * labeled alternative in {@link ExpressionParser#comparisonExpr}.

@@ -12,9 +12,3 @@ spring:
       enabled: true
       max-file-size: 200MB
       max-request-size: 200MB
-  cloud:
-    nacos:
-      discovery:
-        username: nacos
-        password: nacos
-        server-addr: ${spring.profiles.host}:8848

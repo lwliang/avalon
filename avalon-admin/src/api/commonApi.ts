@@ -27,7 +27,7 @@ export async function getModuleMenu(module: string) {
 export function getFieldsByServiceName(serviceName: string): Promise<any> {
     return getModelAllApi("id,label,name,isPrimaryKey,isAutoIncrement,isRequired,isReadonly,defaultValue," +
         "type,serviceId,isUnique,allowNull,minValue,maxValue,masterForeignKeyName,relativeForeignKeyName," +
-        "relativeServiceName,manyServiceTable,relativeFieldName",
+        "relativeServiceName,manyServiceTable,relativeFieldName,isMulti,canSearch",
         `('serviceId.name',=,'${serviceName}')`,
         "base.field")
 }
@@ -61,6 +61,11 @@ export function getActionXTreeView(serviceName: string) {
 export function getActionFormView(serviceName: string) {
     return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
         `('serviceId.name',=,'${serviceName}')&('viewMode',=,'form')`);
+}
+
+export function getActionDownView(serviceName: string) {
+    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'down')`);
 }
 
 export function getActionKanbanView(serviceName: string) {
@@ -115,4 +120,16 @@ export function readExcelContent(serviceName: string, file: File) {
 
 export function importExcel(serviceName: string, param: any) {
     return postErpHttp(`/service/import/${serviceName}/excel`, param)
+}
+
+export function getOnChangeFields(serviceName: string) {
+    return postErpHttp(`/service/get/${serviceName}/onchange/field`, {})
+}
+
+export function onChangeValue(serviceName: string, changeFields: any, newRow: any, oldRow: any) {
+    return postErpHttp(`/service/value/${serviceName}/onchange`, {
+        changeFieldRow: changeFields,
+        newRow: newRow,
+        oldRow: oldRow
+    })
 }

@@ -77,7 +77,11 @@ public class BigIntegerField extends Field implements INumberField<Long> {
 
     @Override
     public Object getSqlValue(Object value) {
-        return value;
+        if (value instanceof Long) {
+            return value;
+        }
+
+        return Long.valueOf(value.toString());
     }
 
     @Override
@@ -190,6 +194,12 @@ public class BigIntegerField extends Field implements INumberField<Long> {
         public Builder setMinValue(Long minValue) {
             min = minValue;
             return this;
+        }
+
+        @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
         }
 
         public static Builder getInstance() {

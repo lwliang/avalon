@@ -39,6 +39,11 @@ public class UserService extends AbstractService implements IUserService {
         return "base.user";
     }
 
+    @Override
+    public String getLabel() {
+        return "登录账户";
+    }
+
     protected final Field password = Fields.createPasswordField("密码");
 
     protected final Field account = Fields.createString("账号", true);
@@ -76,6 +81,12 @@ public class UserService extends AbstractService implements IUserService {
                 recordRow.put(this.avatar, avatar.getString("url"));
             }
         }
-        return super.insert(recordRow);
+        PrimaryKey insert = super.insert(recordRow);
+        Object groupId = invokeMethod("base.service.data", "refId", "base", "base_group"); // 获取权限id
+        if (ObjectUtils.isNotNull(groupId)) {
+            invokeMethod("base.group", "addGroupUser", groupId, insert.getInteger());
+        }
+
+        return insert;
     }
 }

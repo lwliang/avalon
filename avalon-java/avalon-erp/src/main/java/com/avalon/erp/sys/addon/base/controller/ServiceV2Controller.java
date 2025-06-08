@@ -12,6 +12,7 @@ import com.avalon.core.exception.ParamCheckException;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.FieldList;
 import com.avalon.core.field.SelectionField;
+import com.avalon.core.model.ChangeRecordRow;
 import com.avalon.core.model.PageInfo;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
@@ -62,6 +63,14 @@ public class ServiceV2Controller {
         return RecordRow.build().put(serviceBean.getPrimaryKeyName(), serviceBean.insert(recordRow));
     }
 
+    @PostMapping("{serviceName}/save")
+    public List<Object> saveMultiModel(@PathVariable("serviceName") String serviceName,
+                              @RequestBody Record param) throws AvalonException {
+        AbstractService serviceBean = context.getServiceBean(serviceName);
+
+        return serviceBean.saveMulti(param);
+    }
+
     @PostMapping("{serviceName}/update")
     public RecordRow updateModel(@PathVariable("serviceName") String serviceName,
                                  @RequestBody ServiceModelParam param) throws AvalonException {
@@ -107,7 +116,7 @@ public class ServiceV2Controller {
     public RecordRow getDetail(@PathVariable("serviceName") String serviceName,
                                @RequestBody ServiceModelField param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
-        Condition condition = context.conditionManager.interpreter(param.getCondition());
+        Condition condition = context.interpreter(param.getCondition());
         Record select = serviceBean.select(condition, FieldUtils.getFieldArray(param.getFields()));
         if (select.isEmpty()) {
             return RecordRow.build();
@@ -127,7 +136,7 @@ public class ServiceV2Controller {
                          @RequestBody ServiceModelField serviceConditionPage) {
         AbstractService serviceBean = context.getServiceBean(serviceName);
         return serviceBean.select(serviceConditionPage.getOrder(),
-                context.conditionManager.interpreter(serviceConditionPage.getCondition()),
+                context.interpreter( serviceConditionPage.getCondition()),
                 FieldUtils.getFieldList(serviceConditionPage.getFields()).toArray(new String[0]));
     }
 
@@ -138,7 +147,7 @@ public class ServiceV2Controller {
 
         return serviceBean.selectPage(serviceModelPage.getPage(),
                 serviceModelPage.getOrder(),
-                context.conditionManager.interpreter(serviceModelPage.getCondition()),
+                context.interpreter( serviceModelPage.getCondition()),
                 FieldUtils.getFieldList(serviceModelPage.getFields()).toArray(new String[0]));
     }
 
@@ -155,7 +164,7 @@ public class ServiceV2Controller {
                 "relativeServiceName,manyServiceTable,relativeFieldName";
         Condition condition = Condition.equalCondition("serviceId.name", serviceName);
         if (StringUtils.isNotEmpty(field)) {
-            condition = Condition.andCondition(condition, Condition.likeCondition("label", field));
+            condition = Condition.andCondition(condition, Condition.likeCondition("label", "'" + field + "'"));
         }
 
         return serviceBean.select(condition, FieldUtils.getFieldArray(fields));
@@ -287,5 +296,19 @@ public class ServiceV2Controller {
                                 @RequestBody ServiceInvokeParam param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
         return serviceBean.invokeMethod(param.getServiceName(), param.getMethod(), param.getParam());
+    }
+
+    @PostMapping("get/{serviceName}/onchange/field")
+    public List<String> getOnChangeFields(@PathVariable("serviceName") String serviceName) {
+        AbstractService serviceBean = context.getServiceBean(serviceName);
+
+        return serviceBean.getOnChangeFields();
+    }
+
+    @PostMapping("value/{serviceName}/onchange")
+    public ChangeRecordRow onChangeRecordRow(@PathVariable("serviceName") String serviceName,
+                                             @RequestBody ServiceChangeParam param) {
+        AbstractService serviceBean = context.getServiceBean(serviceName);
+        return serviceBean.onChange(param.getChangeFieldRow(), param.getNewRow(), param.getOldRow());
     }
 }

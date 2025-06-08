@@ -4,6 +4,7 @@
  */
 import {compile, createVNode, defineComponent} from "vue";
 import {getModuleIcon} from "../../../../api/moduleApi.ts";
+import {ButtonClickEvent} from "../../../../model/ButtonClickEvent.ts";
 
 interface Props {
     template: string,
@@ -24,8 +25,8 @@ export default defineComponent({
     },
     setup(props: Props, {emit}) {
         const vNode = compile(props.template)
-        const btnClickHandler = (actionType: string, action: string) => {
-            emit('btnClick', actionType, action, props.fields)
+        const btnClickHandler = (actionType: ButtonClickEvent) => {
+            emit('btnClick', actionType, props.fields)
         }
         return () => {
             return createVNode(vNode, {...props.fields, getModuleIcon, btnClickHandler})

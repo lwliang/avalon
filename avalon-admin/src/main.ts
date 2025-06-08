@@ -6,10 +6,11 @@
 import {createApp, version} from 'vue'
 import {createPinia} from 'pinia'
 import router from './router'
+import './reset.css'
 import './style.css'
 import App from './App.vue'
 import log from 'loglevel'
-import {loadSvg} from "./components/icon/my-icon.ts";
+import {registerIcons} from "./components/icon";
 import MyNotification from "./components/notification/index.ts";
 import MyButton from "./components/button/my-button.vue";
 import MyImage from "./components/image/my-image.vue";
@@ -18,10 +19,10 @@ import MyLabel from "./components/label/my-label.vue";
 import MyInput from "./components/input/my-input.vue";
 import MyIcon from "./components/icon/my-icon.vue";
 import Sheet from "./components/form-layout/sheel/sheet.vue";
-import Row from "./components/form-layout/row/row.vue";
+import MyRow from "./components/form-layout/row/my-row.vue";
 import MyCol from "./components/form-layout/col/my-col.vue";
 import MySelectionSelect from "./components/select/selection-select/my-selection-select.vue";
-import MyIdSelect from "./components/select/id-select/my-id-select.vue";
+import MyMany2OneSelect from "./components/select/many2one-select/my-many2one-select.vue";
 import MyTabs from "./components/tabs/my-tabs.vue";
 import MyTabPanel from "./components/tabs/my-tab-panel.vue";
 import MySubTree from './pages/window/action/form/my-sub-tree.vue';
@@ -30,7 +31,8 @@ import MyFormModel from "./components/model/form-model/my-form-model.vue";
 import MyImageUpload from "./components/upload/my-image-upload.vue";
 import MyPassword from "./components/password/my-password.vue";
 import MyDate from "./components/date/my-date.vue";
-import MyCheck from "./components/check/my-check.vue";
+import MyCheckBox from "./components/checkbox/my-check-box.vue";
+import MyCheckBoxGroup from "./components/checkbox-group/my-check-box-group.vue";
 import MyTextarea from "./components/textarea/my-textarea.vue";
 import MyTag from "./components/tag/my-tag.vue";
 import MyMany2manySelect from "./components/select/many2may-select/my-many2many-select.vue";
@@ -52,13 +54,31 @@ import RegistryPlugin from "./global/registry/registryPlugin.ts";
 import {registerActions} from './global/registry/actions'
 import MarkdownVue from "./components/markdown/markdown.vue";
 import ExcalidrawEditorVue from "./components/excalidraw/ExcalidrawVue.vue";
+import Address from "./components/address/address.vue";
+import MyText from "./components/text/my-text.vue";
+import MyRadio from "./components/radio/my-radio.vue";
+import MyRadioGroup from "./components/radio-group/my-radio-group.vue";
+import MySwitch from "./components/switch/my-switch.vue";
+import MyCard from './components/card/my-card.vue'
+import MyProgress from "./components/progress/my-progress.vue";
+import dayjs from 'dayjs'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import MyPopover from './components/popover/my-popover.vue'
+
+
+// 注册插件
+dayjs.extend(isSameOrAfter)
+dayjs.extend(isSameOrBefore)
+dayjs.extend(customParseFormat)
 
 
 window.ReconnectingWebSocket = ReconnectingWebSocket;
 
 
 const app = createApp(App)
-loadSvg(app)
+registerIcons(app)
 
 app.use(createPinia())
 app.use(router)
@@ -69,10 +89,10 @@ app.component('MyLabel', MyLabel)
 app.component('MyInput', MyInput)
 app.component('MyIcon', MyIcon)
 app.component('Sheet', Sheet)
-app.component('Row', Row)
+app.component('MyRow', MyRow)
 app.component('MyCol', MyCol)
 app.component('MySelectionSelect', MySelectionSelect)
-app.component('MyIdSelect', MyIdSelect)
+app.component('MyMany2OneSelect', MyMany2OneSelect)
 app.component('MyTabs', MyTabs)
 app.component('MyTabPanel', MyTabPanel)
 app.component('MySubTree', MySubTree)
@@ -82,7 +102,8 @@ app.component('MyImageUpload', MyImageUpload)
 app.component('MyVideoUpload', MyVideoUpload)
 app.component('MyPassword', MyPassword)
 app.component('MyDate', MyDate)
-app.component('MyCheck', MyCheck)
+app.component('MyCheckBox', MyCheckBox)
+app.component('MyCheckBoxGroup', MyCheckBoxGroup)
 app.component('MyTextarea', MyTextarea)
 app.component('MyTag', MyTag)
 app.component('MyMany2manySelect', MyMany2manySelect)
@@ -98,6 +119,14 @@ app.component('DocumentList', DocumentList)
 app.component('Markdown', MarkdownVue)
 app.component('Excalidraw', ExcalidrawEditorVue)
 app.component('MyTree', MyTree)
+app.component('MyAddress', Address)
+app.component('MyText', MyText)
+app.component('MyRadio', MyRadio)
+app.component('MyRadioGroup', MyRadioGroup)
+app.component('MySwitch', MySwitch)
+app.component('MyCard', MyCard)
+app.component('MyProgress', MyProgress)
+app.component('MyPopover', MyPopover)
 
 // 使用注册表插件
 app.use(RegistryPlugin);

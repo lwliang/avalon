@@ -1,8 +1,9 @@
-.my-menu:hover {
-    @apply bg-menu-hover;
+/**
+ * @author lwlianghehe@gmail.com
+ * @date 2025/05/22 15:43
+ */
+
+.menu-item {
+    @apply px-3 py-1 rounded-sm hover:bg-background-component;
 }
 
-.my-menu {
-    @apply px-2;
-    @apply rounded;
-}

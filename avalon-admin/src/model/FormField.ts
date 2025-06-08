@@ -37,6 +37,13 @@ export default class FormField {
         this.originalValue = cloneDeep(value);
     }
 
+    async getOldRawValue() {
+        if (!this.Field) {
+            return this.originalValue;
+        }
+        return this.originalValue;
+    }
+
     async getRawValue() {
         if (!this.Field) {
             return this.value;
@@ -66,10 +73,11 @@ export default class FormField {
             if (!value) return value;
             return getDateTimeWithAll(value);
         } else if (field.type == FieldTypeEnum.ImageField) {
-            if (value) {
+            if (value && value instanceof File) { // 需要上传
                 const result = await uploadImage(value)
                 return result.url
             }
+            return value
         } else if (field.type == FieldTypeEnum.VideoField) {
             if (value) {
                 const result = await uploadVideo(value)

@@ -99,7 +99,7 @@ public class WebLogAspect {
         webLog.setMethod(method.getName());
 
         long endTime = System.currentTimeMillis();
-        //webLog.setResult(result);
+        webLog.setResult(result);
         webLog.setUserId(context.getUserId());
         webLog.setSpendTime(endTime - startTime);
 

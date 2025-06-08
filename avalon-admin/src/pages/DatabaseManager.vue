@@ -6,7 +6,7 @@
 import MyImage from "../components/image/my-image.vue";
 import {ComponentInternalInstance, ref} from 'vue'
 import MyButton from "../components/button/my-button.vue";
-import MyBtnGroup from "../components/button-group/my-btn-group.vue";
+import MyBtnGroup from "../components/button-group/my-button-group.vue";
 import MyDivider from "../components/divider/my-divider.vue";
 import {createDB, dropDB, getDB} from "../api/dbAPI.ts";
 import {getCurrentInstance} from "vue";
@@ -24,19 +24,19 @@ const databases = ref<any[]>([])
 const selectDB = useStorage('db', '')
 
 const loadDB = () => {
-    getDB().then(data => {
-        databases.value.splice(0, databases.value.length)
-        databases.value.push(...data)
-    })
+  getDB().then(data => {
+    databases.value.splice(0, databases.value.length)
+    databases.value.push(...data)
+  })
 }
 loadDB();
 
 const developerClick = () => {
-    proxy?.$notify.info('提示', '开发中敬请期待');
+  proxy?.$notify.info('提示', '开发中敬请期待');
 }
 
 const createDBClick = () => {
-    show.value = true
+  show.value = true
 
 }
 
@@ -47,82 +47,81 @@ const db = ref(new FormField(""))
 const db_input = ref<InputExpose>()
 
 const hideClick = () => {
-    show.value = false
+  show.value = false
 }
 
 const sureClick = () => {
-    if (!db_input.value?.validate()) {
-        proxy?.$notify.error('提示', "请填写数据库名称");
-        return;
-    }
-
-    createDB(db.value.value).then(() => {
-        proxy?.$notify.success('成功', '创建数据库完成');
-        show.value = false
-        loadDB();
-    })
+  if (!db_input.value?.validate()) {
+    proxy?.$notify.error('提示', "请填写数据库名称");
+    return;
+  }
+  // proxy?.$notify.error('提示', "不在支持在线演示,请下载绿色版进行体验");
+  // return;
+  createDB(db.value.value).then(() => {
+    proxy?.$notify.success('成功', '创建数据库完成');
+    show.value = false
+    loadDB();
+  })
 }
 
 const dropDBClick = (db: string) => {
-    dropDB(db).then(() => {
-        proxy?.$notify.success('成功', `删除${db}数据库完成`);
-        loadDB();
-    })
+  dropDB(db).then(() => {
+    proxy?.$notify.success('成功', `删除${db}数据库完成`);
+    loadDB();
+  })
 }
 
 const selectDBClick = (db: string) => {
-    selectDB.value = db
-    goLogin({db})
+  selectDB.value = db
+  goLogin({db})
 }
 </script>
 
 <template>
-    <div class="w-full h-full bg">
-        <div class="w-full pt-8">
-            <div class="max-w-[700px] mx-auto">
-                <div>
-                    <my-image class="mx-auto" src="/avalon.png" width="300"></my-image>
-                </div>
-                <div class="mt-8 rounded max-h-[600px] overflow-y-auto">
-                    <div class="p-2 bg-background" v-for="(db,index) in databases" :key="index">
-                        <div class="flex justify-between">
-                            <my-button type="primary" is-link @click="selectDBClick(db.dataName)">{{
-                                    db.dataName
-                                }}
-                            </my-button>
-                            <div>
-                                <my-btn-group>
-                                    <my-button icon="floppy-disk" @click="developerClick" icon-color="#FFF">备份</my-button>
-                                    <my-button type="info" icon="clone" @click="developerClick" icon-color="#FFF">复制</my-button>
-                                    <my-button type="warning" icon="window-restore" @click="developerClick" icon-color="#FFF">恢复</my-button>
-                                    <MyPopoverConfirm @click="dropDBClick(db.dataName)" content="确认删除?">
-                                        <my-button type="danger" icon="trash-can" icon-color="#FFF">删除
-                                        </my-button>
-                                    </MyPopoverConfirm>
-                                </my-btn-group>
-                            </div>
-                        </div>
-                        <my-divider v-if="databases.length != 1 && index != databases.length -1"
-                                    margin="16px auto 0"></my-divider>
-                    </div>
-
-                </div>
-                <div class="pt-4 pb-4">
-                    <my-button icon-style="fas" type="success" icon="plus" @click="createDBClick">创建数据库</my-button>
-                    <div class="inline-block w-5"></div>
-                    <my-button icon-style="fas" type="danger" icon="lock" @click="developerClick">设置主密码</my-button>
-                </div>
-            </div>
+  <div class="w-full h-full bg-color-img">
+    <div class="w-full pt-8 ">
+      <div class="max-w-[700px] mx-auto ">
+        <div>
+          <my-image class="mx-auto" src="/avalon.png" width="300"></my-image>
         </div>
-    </div>
+        <div class="mt-8 rounded max-h-[600px] overflow-y-auto bg-background">
+          <div class="p-2 " v-for="(db,index) in databases" :key="index">
+            <div class="flex justify-between items-center">
+              <my-text type="primary" class="cursor-pointer" @click="selectDBClick(db.dataName)">{{
+                  db.dataName
+                }}
+              </my-text>
+              <div>
+                <my-btn-group>
+                  <my-button icon="floppy-disk" @click="developerClick" icon-color="#FFF">备份</my-button>
+                  <my-button type="info" icon="clone" @click="developerClick" icon-color="#FFF">复制</my-button>
+                  <my-button type="warning" icon="window-restore" @click="developerClick" icon-color="#FFF">恢复
+                  </my-button>
+                  <MyPopoverConfirm @click="dropDBClick(db.dataName)" content="确认删除?">
+                    <my-button type="danger" icon="trash-can" icon-color="#FFF">删除
+                    </my-button>
+                  </MyPopoverConfirm>
+                </my-btn-group>
+              </div>
+            </div>
+            <my-divider v-if="databases.length != 1 && index != databases.length -1"
+                        margin="16px auto 0"></my-divider>
+          </div>
 
-    <MyDialog :show="show" @close="hideClick" @sure="sureClick" title="创建数据库">
-        <MyInput ref="db_input" v-model="db" :required="true"></MyInput>
-    </MyDialog>
+        </div>
+        <div class="pt-4 pb-4">
+          <my-button icon-style="fas" type="success" icon="plus" @click="createDBClick">创建数据库</my-button>
+          <div class="inline-block w-5"></div>
+          <my-button icon-style="fas" type="danger" icon="lock" @click="developerClick">设置主密码</my-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <MyDialog :show="show" @close="hideClick" @sure="sureClick" title="创建数据库">
+    <MyInput ref="db_input" v-model="db" :required="true"></MyInput>
+  </MyDialog>
 </template>
 
 <style scoped>
-.bg {
-    background-image: url("/background-light.svg");
-}
 </style>

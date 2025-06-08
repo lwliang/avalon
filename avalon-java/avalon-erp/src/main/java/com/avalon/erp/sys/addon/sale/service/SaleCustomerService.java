@@ -33,11 +33,11 @@ public class SaleCustomerService extends AbstractService {
     @Override
     public DelegateInheritMap getDelegateInherit() {
         DelegateInheritMap delegateInheritMap = new DelegateInheritMap();
-        delegateInheritMap.put("crm.partner", "partnerId");
+        delegateInheritMap.put("common.partner", "partnerId");
         return delegateInheritMap;
     }
 
-    public Field partnerId = Fields.createMany2one("联系人", "crm.partner");
+    public Field partnerId = Fields.createMany2one("联系人", "common.partner");
     public Field rank = Fields.createInteger("排名", 0, 5);// 客户排名 标识客户的活跃度
     public Field companyType = Fields.createSelection("公司类型", new SelectionHashMap() {{
         put("company", "公司");

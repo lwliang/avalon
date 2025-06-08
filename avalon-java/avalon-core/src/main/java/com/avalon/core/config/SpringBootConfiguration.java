@@ -6,6 +6,7 @@
 package com.avalon.core.config;
 
 import com.avalon.core.db.DynamicDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -23,6 +25,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
+@Slf4j
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
 @Configuration
 @EnableAsync
@@ -66,5 +69,13 @@ public class SpringBootConfiguration {
         Map<Object, Object> dataSourceMap = new Hashtable<>(2);
 
         return new DynamicDataSource(dataSourceMap);
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dynamicDataSource) {
+        if (log.isDebugEnabled()) {
+            log.debug("Creating JDBC Template: {}", dynamicDataSource);
+        }
+        return new JdbcTemplate(dynamicDataSource);
     }
 }

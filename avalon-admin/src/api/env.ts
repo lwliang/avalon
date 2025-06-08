@@ -5,7 +5,7 @@
 
 const erpPrefixRoot = '/erp'
 const filePrefixRoot = '/file'
-const pageSize = 80
+const pageSize = 30
 
 export function getFileUploadUrl(url: any) {
     return filePrefixRoot + url

@@ -23,7 +23,7 @@ public class StaffService extends AbstractService {
     @Override
     public DelegateInheritMap getDelegateInherit() {
         DelegateInheritMap delegateInheritMap = new DelegateInheritMap();
-        delegateInheritMap.put("crm.partner", "partnerId");
+        delegateInheritMap.put("common.partner", "partnerId");
         return delegateInheritMap;
     }
 
@@ -32,7 +32,7 @@ public class StaffService extends AbstractService {
         return "员工";
     }
 
-    public final Field partnerId = Fields.createMany2one("联系人", "crm.partner");
+    public final Field partnerId = Fields.createMany2one("联系人", "common.partner");
     public final Field code = Fields.createString("员工编码");
     public final Field jobId = Fields.createMany2one("岗位", "hr.job");
     public final Field orgId = Fields.createMany2one("组织", "hr.org");

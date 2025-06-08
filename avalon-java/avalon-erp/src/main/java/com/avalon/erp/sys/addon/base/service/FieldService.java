@@ -39,6 +39,7 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
     protected final Field isAutoIncrement = Fields.createBoolean("自增", false, false);
     protected final Field isRequired = Fields.createBoolean("必填", false, false);
     protected final Field isReadonly = Fields.createBoolean("只读", false, false);
+    protected final Field canSearch = Fields.createBoolean("可查询", false, true);
     protected final Field defaultValue = Fields.createText("默认值", false);
     protected final Field type = Fields.createFieldSelectionField();
     protected final Field serviceId = Fields.createMany2one("服务", "base.service");
@@ -110,7 +111,7 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         Record fieldRecord = select(condition, "id", "name", "label", "isPrimaryKey", "isRequired", "isReadonly",
                 "defaultValue", "type", "serviceId", "isUnique", "allowNull", "isMulti", "minValue", "maxValue",
                 "masterForeignKeyName", "relativeForeignKeyName", "relativeServiceName", "manyServiceTable",
-                "relativeFieldName", "sourceType", "isAutoIncrement");
+                "relativeFieldName", "sourceType", "isAutoIncrement", "canSearch");
         FieldList fields = new FieldList();
         for (RecordRow recordRow : fieldRecord) {
             Field field = buildField(recordRow, service);
@@ -142,69 +143,70 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
                 recordRow.isNotNull(relativeForeignKeyName) ? recordRow.getString("relativeForeignKeyName") : "",
                 recordRow.isNotNull(relativeServiceName) ? recordRow.getString("relativeServiceName") : "",
                 recordRow.isNotNull(manyServiceTable) ? recordRow.getString("manyServiceTable") : "",
-                recordRow.isNotNull(relativeFieldName) ? recordRow.getString("relativeFieldName") : "");
+                recordRow.isNotNull(relativeFieldName) ? recordRow.getString("relativeFieldName") : "",
+                recordRow.getBoolean("canSearch"));
     }
 
     protected Field buildField(String type, String name, String label, boolean isPrimaryKey, boolean isRequired,
                                boolean isReadonly, String defaultValue, String serviceId, boolean isUnique,
                                boolean allowNull, boolean isMulti, boolean isAutoIncrement, BigDecimal minValue, BigDecimal maxValue,
                                String masterForeignKeyName, String relativeForeignKeyName, String relativeServiceName,
-                               String manyServiceTable, String relativeFieldName) {
+                               String manyServiceTable, String relativeFieldName, boolean canSearch) {
         if (IntegerField.class.getSimpleName().equals(type)) {
             return buildIntegerField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, minValue, maxValue);
+                    allowNull, isAutoIncrement, minValue, maxValue, canSearch);
         } else if (StringField.class.getSimpleName().equals(type)) {
             return buildStringField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, minValue, maxValue);
+                    allowNull, isAutoIncrement, minValue, maxValue, canSearch);
         } else if (TextField.class.getSimpleName().equals(type)) {
             return buildTextField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, minValue, maxValue);
+                    allowNull, isAutoIncrement, minValue, maxValue, canSearch);
         } else if (HtmlField.class.getSimpleName().equals(type)) {
             return buildHtmlField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, minValue, maxValue);
+                    allowNull, isAutoIncrement, minValue, maxValue, canSearch);
         } else if (DrawField.class.getSimpleName().equals(type)) {
             return buildDrawField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, minValue, maxValue);
+                    allowNull, isAutoIncrement, minValue, maxValue, canSearch);
         } else if (BooleanField.class.getSimpleName().equals(type)) {
             return buildBooleanField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement);
+                    allowNull, isAutoIncrement, canSearch);
         } else if (BigDecimalField.class.getSimpleName().equals(type)) {
             return buildBigDecimalField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, minValue, maxValue);
+                    allowNull, isAutoIncrement, minValue, maxValue, canSearch);
         } else if (BigIntegerField.class.getSimpleName().equals(type)) {
             return buildBigIntegerField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, minValue, maxValue);
+                    allowNull, isAutoIncrement, minValue, maxValue, canSearch);
         } else if (DateField.class.getSimpleName().equals(type)) {
             return buildDateField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull);
+                    allowNull, canSearch);
         } else if (DateTimeField.class.getSimpleName().equals(type)) {
             return buildDateTimeField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull);
+                    allowNull, canSearch);
         } else if (DoubleField.class.getSimpleName().equals(type)) {
             return buildDoubleField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, minValue, maxValue);
+                    allowNull, isAutoIncrement, minValue, maxValue, canSearch);
         } else if (ImageField.class.getSimpleName().equals(type)) {
             return buildImageField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement);
+                    allowNull, isAutoIncrement, canSearch);
         } else if (Many2manyField.class.getSimpleName().equals(type)) {
             return buildMany2manyField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
                     allowNull, isAutoIncrement, masterForeignKeyName, relativeForeignKeyName, relativeServiceName,
-                    manyServiceTable);
+                    manyServiceTable, canSearch);
         } else if (Many2oneField.class.getSimpleName().equals(type)) {
             return buildMany2oneField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, relativeServiceName);
+                    allowNull, isAutoIncrement, relativeServiceName, canSearch);
         } else if (One2manyField.class.getSimpleName().equals(type)) {
             return buildOne2manyField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, relativeServiceName, relativeFieldName);
+                    allowNull, isAutoIncrement, relativeServiceName, relativeFieldName, canSearch);
         } else if (One2oneField.class.getSimpleName().equals(type)) {
             return buildOne2oneField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull, isAutoIncrement, relativeServiceName, relativeFieldName);
+                    allowNull, isAutoIncrement, relativeServiceName, relativeFieldName, canSearch);
         } else if (PasswordField.class.getSimpleName().equals(type)) {
             return buildPasswordField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull);
+                    allowNull, canSearch);
         } else if (TimeField.class.getSimpleName().equals(type)) {
             return buildTimeField(name, label, isPrimaryKey, isRequired, isReadonly, defaultValue, serviceId, isUnique,
-                    allowNull);
+                    allowNull, canSearch);
         } else {
             return null;
         }
@@ -212,7 +214,7 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
 
     private Field buildIntegerField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                     String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                    BigDecimal minValue, BigDecimal maxValue) {
+                                    BigDecimal minValue, BigDecimal maxValue, Boolean canSearch) {
         IntegerField.Builder builder = new IntegerField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -228,13 +230,14 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setMinValue(minValue.intValue());
         builder.setMaxValue(maxValue.intValue());
         builder.setService(getContext().getServiceBean(service));
+        builder.setCanSearch(canSearch);
 
         return builder.build();
     }
 
     private Field buildStringField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                    String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                   BigDecimal minValue, BigDecimal maxValue) {
+                                   BigDecimal minValue, BigDecimal maxValue, boolean canSearch) {
         StringField.Builder builder = new StringField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -252,12 +255,15 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setMinLength(minValue.intValue());
         builder.setMaxLength(maxValue.intValue());
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildTextField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                  String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                 BigDecimal minValue, BigDecimal maxValue) {
+                                 BigDecimal minValue, BigDecimal maxValue, boolean canSearch) {
         TextField.Builder builder = new TextField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -275,12 +281,13 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setMinLength(minValue.intValue());
         builder.setMaxLength(maxValue.intValue());
         builder.setService(getContext().getServiceBean(service));
+        builder.setCanSearch(canSearch);
         return builder.build();
     }
 
     private Field buildDrawField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                  String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                 BigDecimal minValue, BigDecimal maxValue) {
+                                 BigDecimal minValue, BigDecimal maxValue, boolean canSearch) {
         DrawField.Builder builder = new DrawField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -298,12 +305,13 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setMinLength(minValue.intValue());
         builder.setMaxLength(maxValue.intValue());
         builder.setService(getContext().getServiceBean(service));
+        builder.setCanSearch(canSearch);
         return builder.build();
     }
 
     private Field buildHtmlField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                  String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                 BigDecimal minValue, BigDecimal maxValue) {
+                                 BigDecimal minValue, BigDecimal maxValue, boolean canSearch) {
         HtmlField.Builder builder = new HtmlField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -321,11 +329,13 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setMinLength(minValue.intValue());
         builder.setMaxLength(maxValue.intValue());
         builder.setService(getContext().getServiceBean(service));
+        builder.setCanSearch(canSearch);
         return builder.build();
     }
 
     private Field buildBooleanField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
-                                    String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement) {
+                                    String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
+                                    boolean canSearch) {
         BooleanField.Builder builder = new BooleanField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -341,12 +351,15 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setIsUnique(isUnique);
         builder.setAllowNull(allowNull);
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildBigDecimalField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                        String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                       BigDecimal minValue, BigDecimal maxValue) {
+                                       BigDecimal minValue, BigDecimal maxValue, boolean canSearch) {
         BigDecimalField.Builder builder = new BigDecimalField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -365,12 +378,14 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setMaxValue(maxValue);
         builder.setService(getContext().getServiceBean(service));
 
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildBigIntegerField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                        String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                       BigDecimal minValue, BigDecimal maxValue) {
+                                       BigDecimal minValue, BigDecimal maxValue, boolean canSearch) {
         BigIntegerField.Builder builder = new BigIntegerField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -389,11 +404,13 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setMaxValue(maxValue.toBigInteger().longValue());
         builder.setService(getContext().getServiceBean(service));
 
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildDateField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
-                                 String defaultValue, String service, boolean isUnique, boolean allowNull) {
+                                 String defaultValue, String service, boolean isUnique, boolean allowNull, boolean canSearch) {
         DateField.Builder builder = new DateField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -409,11 +426,13 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setAllowNull(allowNull);
         builder.setService(getContext().getServiceBean(service));
 
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildDateTimeField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
-                                     String defaultValue, String service, boolean isUnique, boolean allowNull) {
+                                     String defaultValue, String service, boolean isUnique, boolean allowNull, boolean canSearch) {
         DateTimeField.Builder builder = new DateTimeField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -429,12 +448,14 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setAllowNull(allowNull);
         builder.setService(getContext().getServiceBean(service));
 
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildDoubleField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                    String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                   BigDecimal minValue, BigDecimal maxValue) {
+                                   BigDecimal minValue, BigDecimal maxValue, boolean canSearch) {
         DoubleField.Builder builder = new DoubleField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -452,12 +473,13 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setMinValue(minValue.doubleValue());
         builder.setMaxValue(maxValue.doubleValue());
         builder.setService(getContext().getServiceBean(service));
-
+        builder.setCanSearch(canSearch);
         return builder.build();
     }
 
     private Field buildImageField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
-                                  String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement) {
+                                  String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
+                                  boolean canSearch) {
         ImageField.Builder builder = new ImageField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -473,13 +495,16 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setIsUnique(isUnique);
         builder.setAllowNull(allowNull);
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildMany2manyField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                       String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
                                       String masterForeignKeyName, String relativeForeignKeyName, String relativeServiceName,
-                                      String manyServiceTable) {
+                                      String manyServiceTable, boolean canSearch) {
         Many2manyField.Builder builder = new Many2manyField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -501,12 +526,15 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setTableName(manyServiceTable);
 
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildMany2oneField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                      String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                     String relativeServiceName) {
+                                     String relativeServiceName, boolean canSearch) {
         Many2oneField.Builder builder = new Many2oneField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -525,12 +553,15 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setRelativeServiceName(relativeServiceName);
 
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildOne2manyField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                      String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                     String relativeServiceName, String relativeFieldName) {
+                                     String relativeServiceName, String relativeFieldName, boolean canSearch) {
         One2manyField.Builder builder = new One2manyField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -550,13 +581,16 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setRelativeFieldName(relativeFieldName);
 
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
 
     private Field buildOne2oneField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
                                     String defaultValue, String service, boolean isUnique, boolean allowNull, boolean isAutoIncrement,
-                                    String relativeServiceName, String relativeFieldName) {
+                                    String relativeServiceName, String relativeFieldName, boolean canSearch) {
         One2oneField.Builder builder = new One2oneField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -576,11 +610,14 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setRelativeFieldName(relativeFieldName);
 
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildPasswordField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
-                                     String defaultValue, String service, boolean isUnique, boolean allowNull) {
+                                     String defaultValue, String service, boolean isUnique, boolean allowNull, boolean canSearch) {
         PasswordField.Builder builder = new PasswordField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -596,11 +633,14 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setAllowNull(allowNull);
 
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 
     private Field buildTimeField(String name, String label, boolean isPrimaryKey, boolean isRequired, boolean isReadonly,
-                                 String defaultValue, String service, boolean isUnique, boolean allowNull) {
+                                 String defaultValue, String service, boolean isUnique, boolean allowNull, boolean canSearch) {
         TimeField.Builder builder = new TimeField.Builder();
         builder.setFieldName(name);
         builder.setLabel(label);
@@ -616,6 +656,9 @@ public class FieldService extends AbstractService implements IExtendFieldSupport
         builder.setAllowNull(allowNull);
 
         builder.setService(getContext().getServiceBean(service));
+
+        builder.setCanSearch(canSearch);
+
         return builder.build();
     }
 }

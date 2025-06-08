@@ -7,6 +7,7 @@ import {getModelAllApi} from "../../api/modelApi.ts";
 import {useGlobalMenuDataStore} from "../store/menuStore.ts";
 import {useGlobalModuleDataStore} from "../store/moduleStore.ts";
 import {useGlobalServiceDataStore} from "../store/serviceStore.ts";
+
 import {useUserInfoStore} from "../store/userInfoStore.ts"
 import mitt from "mitt";
 import {getUserDetail} from "../../api/loginApi.ts";
@@ -26,6 +27,7 @@ import {render, h, createVNode} from 'vue';
 type MittEvent = {
     changeModule: { module: string, click?: boolean }
     login: void,
+    logout: void,
     loadUserInfo: void,
     loadMenu: void,
     loadModule: void,
@@ -44,7 +46,12 @@ const handleLoginEvent = () => {
     handleLoadModuleEvent();
     loadUserInfo();
 }
+
+const handleLogoutEvent = () => {
+    useGlobalMenuDataStore().clearMenu();
+}
 mittBus.on('login', handleLoginEvent);
+mittBus.on('logout', handleLogoutEvent);
 mittBus.on('loadUserInfo', () => {
     loadUserInfo();
 });
@@ -66,7 +73,7 @@ async function goFirstMenu(menus: MenuModel[]) {
         }
         if (menu) {
             console.log("changeModule", menu)
-            goModelWindow(menu.action.serviceId.moduleId.name,
+            goModelWindow(menu.moduleId ? menu.moduleId.name : menu.action.serviceId.moduleId.name,
                 menu.action.serviceId.name,
                 {})
         }
@@ -120,6 +127,10 @@ mittBus.on('loadService', handleLoadServiceEvent)
 
 export const emitLogin = () => {
     mittBus.emit('login')
+}
+
+export const emitLogout = () => {
+    mittBus.emit('logout')
 }
 
 // 动态显示组件的函数

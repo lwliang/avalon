@@ -355,5 +355,11 @@ public class Many2manyField extends RelationField {
         public static Many2manyField.Builder getInstance() {
             return new Many2manyField.Builder();
         }
+
+        @Override
+        public Builder setCanSearch(Boolean canSearch) {
+            this.canSearch = canSearch;
+            return Builder.this;
+        }
     }
 }

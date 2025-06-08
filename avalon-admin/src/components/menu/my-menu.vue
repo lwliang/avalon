@@ -6,24 +6,26 @@
 import './my-menu.css';
 import {useGlobalMenuDataStore} from "../../global/store/menuStore.ts";
 import MenuModel from "../../model/MenuModel.ts";
-import myMenuItem from './menu-item/my-menu-item.vue';
+import myMenuItem from './my-menu-item.vue';
 
 
-const emit = defineEmits(['menuClick'])
+const emit = defineEmits<{
+  (e: 'menuClick', menu: MenuModel): void
+}>()
 
 const menuStore = useGlobalMenuDataStore().getModuleMenu();
 
 const menuClickHandler = (menu: MenuModel) => {
-    emit('menuClick', menu)
+  emit('menuClick', menu)
 }
 
 </script>
 
 <template>
-    <div class="flex overflow-x-auto px-1 w-full">
-        <myMenuItem v-for="menu in menuStore" :key="menu.id" :menu="menu"
-                    @menuClick="menuClickHandler"/>
-    </div>
+  <div class="flex overflow-x-auto px-1 w-full">
+    <myMenuItem v-for="menu in menuStore" :key="menu.id" :menu="menu"
+                @menuClick="menuClickHandler"/>
+  </div>
 </template>
 
 <style scoped>

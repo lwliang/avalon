@@ -5,6 +5,7 @@
 
 package com.avalon.core.service;
 
+import com.avalon.core.annotation.OnChange;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.context.Context;
 import com.avalon.core.context.SystemConstant;
@@ -53,7 +54,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
 @Lazy
-public abstract class AbstractService implements IAvalonService, IAliasRequire, ICheckPermission, IExtendFieldService, IExportImportService {
+public abstract class AbstractService implements IAvalonService, IAliasRequire, ICheckPermission, IExtendFieldService,
+        IExportImportService, IChangeService {
     public final static String CREATE_TIME = "createTime";
     public final static String CREATOR = "creator";
     public final static String UPDATE_TIME = "updateTime";
@@ -63,7 +65,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     public final static String OPERATE = "op";//系统使用的字段，子类不能使用
 
     public Condition getCondition(String script) {
-        return context.conditionManager.interpreter(script);
+        return context.interpreter(script);
     }
 
     /**
@@ -385,6 +387,13 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
                 context.addServiceName(this.getClass().getName(), this);
             }
         }
+
+        getRelationFieldMap().forEach((fieldName, field) -> {
+            if (field instanceof Many2manyField) {
+                Many2manyField manyField = (Many2manyField) field;
+                context.putMany2manyService(manyField);
+            }
+        });
     }
 
 
@@ -940,7 +949,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         RecordRow recordRow = RecordRow.build();
         if (getNeedDefaultField()) {
             if (!recordRow.containsKey(CREATE_TIME)) {
-                recordRow.put(CREATE_TIME, new RecordColumn(DateTimeUtils.getCurrentDate()));
+                RecordColumn recordColumn = new RecordColumn(DateTimeUtils.getCurrentDateTime());
+                recordColumn.setField((IFieldFormat) getField(CREATE_TIME));
+                recordRow.put(CREATE_TIME, recordColumn);
             }
             if (!recordRow.containsKey(CREATOR)) {
                 Integer userId = context.getUserId();
@@ -1599,6 +1610,8 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         row.put("allowNull", field.allowNull());
         row.put("type", field.getClassType());
         row.put("sourceType", "system");
+        row.put("canSearch", field.getCanSearch());
+
         if (ObjectUtils.isNotEmpty(field.getDefaultValue())) {
             row.put("defaultValue", field.getDefaultValue().getDefaultString());
         }
@@ -1706,6 +1719,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
             }
         }
     }
+
     /*
      数据库表是否存在
      */
@@ -1798,9 +1812,17 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
             }
             if (ObjectUtils.isNotNull(field.getDefaultValue())) {
                 if (ObjectUtils.isNotNull(field.getDefaultValue().getDefaultValue())) {
-                    recordRow.put(field.getName(), field.getDefaultValue().getDefaultValue());
+                    RecordColumn recordColumn = new RecordColumn(field.getDefaultValue().getDefaultValue());
+                    if (field instanceof IFieldFormat) {
+                        recordColumn.setField((IFieldFormat) field);
+                    }
+                    recordRow.put(field, recordColumn);
                 } else if (StringUtils.isNotEmpty(field.getDefaultValue().getDefaultString())) {
-                    recordRow.put(field.getName(), field.getDefaultValue().getDefault(getContext()));
+                    RecordColumn recordColumn = new RecordColumn(field.getDefaultValue().getDefault(getContext()));
+                    if (field instanceof IFieldFormat) {
+                        recordColumn.setField((IFieldFormat) field);
+                    }
+                    recordRow.put(field, recordColumn);
                 }
             }
         });
@@ -1825,6 +1847,9 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     }
 
     public AbstractService getService() {
+        if (this instanceof ExternalService) {
+            return this;
+        }
         return context.getServiceBean(getServiceName());
     }
 
@@ -2220,7 +2245,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
 
     @Override
     public Record exportExcel(String field, String condition, String order) {
-        Condition con = context.conditionManager.interpreter(condition);
+        Condition con = context.interpreter(condition);
         SelectBuilder selectBuilder = DataBaseTools.selectSql(getService(),
                 field.split(","),
                 con,
@@ -2235,5 +2260,85 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     @Override
     public Integer importExcel(Record record) {
         return insertMulti(record).size();
+    }
+
+
+    @Override
+    public ChangeRecordRow onChange(RecordRow changeFieldRow, RecordRow newRow, RecordRow oldRow) throws AvalonException {
+        ChangeRecordRow changeRecordRow = new ChangeRecordRow();
+
+        ChangeMethodList onChangeMethods = getOnChangeMethods();
+        changeFieldRow.forEach((fieldName, value) -> { // 变化的字段
+            for (ChangeMethod onChangeMethod : onChangeMethods) { // 全部的监听方法
+                if (onChangeMethod.containField(fieldName)) {
+                    try {
+                        ChangeRecordRow invokeResult = (ChangeRecordRow) onChangeMethod.getMethod().invoke(this, newRow, oldRow);
+
+                        if (ObjectUtils.isNotEmpty(invokeResult.getValue())) { // 合并值
+                            changeRecordRow.combineValue(invokeResult.getValue());
+                        }
+
+                        if (ObjectUtils.isNotEmpty(invokeResult.getWarnings())) { // 合并警告
+                            changeRecordRow.addWarnings(invokeResult.getWarnings());
+                        }
+                    } catch (Exception e) {
+                        throw new AvalonException(e.getMessage(), e);
+                    }
+                }
+            }
+        });
+
+
+        return changeRecordRow;
+    }
+
+    private ChangeMethodList changeMethodList = null;
+
+    @Override
+    public ChangeMethodList getOnChangeMethods() {
+        if (!ObjectUtils.isNull(changeMethodList)) {
+            return changeMethodList;
+        }
+        ChangeMethodList changeMethodListTemp = new ChangeMethodList();
+        Method[] methods = this.getClass().getMethods();
+        for (Method method : methods) {
+            if (!method.isAnnotationPresent(OnChange.class)) {
+                continue;
+            }
+            String[] value = method.getAnnotation(OnChange.class).value();
+            ChangeMethod changeMethod = new ChangeMethod(value, method);
+            changeMethodListTemp.add(changeMethod);
+        }
+        changeMethodList = changeMethodListTemp;
+        return changeMethodListTemp;
+    }
+
+    @Override
+    public List<String> getOnChangeFields() {
+        ChangeMethodList onChangeMethods = getOnChangeMethods();
+
+        List<String> fieldList = new ArrayList<>();
+
+        for (ChangeMethod onChangeMethod : onChangeMethods) {
+            fieldList.addAll(onChangeMethod.getFields());
+        }
+        return fieldList;
+    }
+
+    @Override
+    public List<Object> saveMulti(Record record) throws AvalonException {
+        if (ObjectUtils.isNull(record)) {
+            return Collections.emptyList();
+        }
+        List<Object> ids = new ArrayList<>();
+        record.forEach(row -> {
+            if (row.containsKey(getPrimaryKeyName()) && row.isNotNull(getPrimaryKeyName())) { // 存在主键
+                update(row);
+                ids.add(row.getRawValue(getPrimaryKeyField()));
+            } else {
+                ids.add(insert(row).getValue());
+            }
+        });
+        return ids;
     }
 }

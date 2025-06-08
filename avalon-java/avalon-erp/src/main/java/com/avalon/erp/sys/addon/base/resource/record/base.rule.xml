@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_rule_base_user_search_self" service="base.rule">
+        <field name="name">登录账户只能查询自己</field>
+        <field name="domainForce">('id',=,userId)</field>
+        <field name="permRead">true</field>
+        <field name="permWrite">true</field>
+        <field name="permCreate">true</field>
+        <field name="permUnlink">true</field>
+        <field name="active">true</field>
+        <field name="global">false</field>
+        <field name="serviceId" eval="refServiceId('base.user')"/>
+    </record>
+
+    <record id="base_group_rule_ref_search_self" service="base.group.rule.ref">
+        <field name="groupId" eval="refId('base.base_group')"/>
+        <field name="ruleId" eval="refId('base.base_rule_base_user_search_self')"/>
+    </record>
+</avalon>

@@ -27,6 +27,7 @@ public interface IFieldBuilder<R> {
 
     R setLabel(String label);
 
+    R setCanSearch(Boolean canSearch);
     /**
      * 创建字段
      *

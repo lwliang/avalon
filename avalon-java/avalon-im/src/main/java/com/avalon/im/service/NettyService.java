@@ -60,7 +60,7 @@ public class NettyService {
                             if (config.getWss()) {
                                 KeyStore ks = KeyStore.getInstance("jks");
                                 InputStream ksInputStream = new FileInputStream(
-                                        NettyService.class.getResource("/955980.com.cn.jks").getPath());
+                                        NettyService.class.getResource("/***.jks").getPath());
                                 ks.load(ksInputStream, "t4wlpnfo".toCharArray());
                                 KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                                 kmf.init(ks, "t4wlpnfo".toCharArray());

@@ -111,7 +111,11 @@ public class ExcelUtil {
         //1.创建一个工作簿  07XSSFWorkbook
         XSSFWorkbook workbook = new XSSFWorkbook();
         //2.创建一个工作表
-        Sheet sheet = workbook.createSheet(service.getLabel());
+        String sheetName = service.getLabel();
+        if(StringUtils.isEmpty(sheetName)) {
+            sheetName = service.getServiceTableName();
+        }
+        Sheet sheet = workbook.createSheet(sheetName);
 
         renderHeaderRow(sheet, fields, service);
 

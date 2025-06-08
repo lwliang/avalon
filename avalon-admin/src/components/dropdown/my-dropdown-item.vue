@@ -7,15 +7,18 @@ const props = defineProps<{ label: string }>()
 const emit = defineEmits(['itemClick'])
 
 const itemClick = (label: string) => {
-    emit('itemClick', label)
+  emit('itemClick', label)
 }
 </script>
 
 <template>
-    <div class="cursor-pointer box-border whitespace-nowrap  hover:bg-gray-200 px-4"
-         @click="itemClick(label)">
-        {{ label }}
-    </div>
+  <div class="cursor-pointer box-border whitespace-nowrap  hover:bg-background-component px-4 py-1"
+       @click="itemClick(label)">
+    <template v-if="$slots.default">
+      <slot></slot>
+    </template>
+    <template v-else>{{ label }}</template>
+  </div>
 </template>
 
 <style scoped>

@@ -18,7 +18,7 @@ const props = defineProps({
 })
 
 
-const emit = defineEmits(['change'])
+const emit = defineEmits(['change', 'blur'])
 
 const formField = defineModel({
   type: FormField,
@@ -53,6 +53,10 @@ const indeterminateClick = () => {
   formField.value.value = true
 }
 
+const inputBlurClick = ()=>{
+  emit('blur')
+}
+
 defineExpose({validate})
 
 </script>
@@ -63,6 +67,7 @@ defineExpose({validate})
       <div class="check-indeterminate-inner"></div>
     </div>
     <input v-else
+           @blur="inputBlurClick"
            :class="[' cursor-pointer','form-input-control', 'w-5', {'form-input-control-error': !formField.isValidate}]"
            v-if="formField && !indeterminate"
            type="checkbox"

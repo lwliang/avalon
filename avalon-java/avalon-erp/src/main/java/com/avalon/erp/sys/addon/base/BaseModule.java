@@ -48,8 +48,10 @@ public class BaseModule extends AbstractModule {
     @Override
     public String[] getResource() {
         return new String[]{
-                "resource/record/base.user.xml",
                 "resource/record/base.group.xml",
+                "resource/record/base.user.xml",
+                "resource/record/base.service.access.xml",
+                "resource/record/base.rule.xml",
                 "resource/view/base.field.views.xml",
                 "resource/view/base.service.views.xml",
                 "resource/view/module.views.xml",

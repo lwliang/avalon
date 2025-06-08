@@ -9,7 +9,6 @@ import MenuModel from "../../model/MenuModel.ts";
 import {getModuleMenu} from "../../api/commonApi.ts";
 
 
-
 export const useGlobalMenuDataStore = createGlobalState(() => {
     const menus = ref<MenuModel[]>([])
     const currentModuleMenus = ref<MenuModel[]>([])
@@ -18,6 +17,12 @@ export const useGlobalMenuDataStore = createGlobalState(() => {
     function setMenuStore(value: MenuModel[]) {
         menus.value.splice(0, menus.value.length);
         menus.value.push(...value);
+    }
+
+    function clearMenu() {
+        menus.value.splice(0, menus.value.length);
+        currentModuleMenus.value.splice(0, currentModuleMenus.value.length);
+        moduleMenus.value = {}
     }
 
     function addMenu(value: MenuModel) {
@@ -45,5 +50,5 @@ export const useGlobalMenuDataStore = createGlobalState(() => {
         return currentModuleMenus;
     }
 
-    return {getMenuStore, setMenuStore, addMenu, setModuleMenu, getModuleMenu: getCurrentModuleMenu}
+    return {getMenuStore, clearMenu, setMenuStore, addMenu, setModuleMenu, getModuleMenu: getCurrentModuleMenu}
 })
