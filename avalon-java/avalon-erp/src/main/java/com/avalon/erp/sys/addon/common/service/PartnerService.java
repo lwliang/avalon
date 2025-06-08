@@ -3,7 +3,7 @@
  * @date 2024/11/22
  */
 
-package com.avalon.erp.sys.addon.crm.common.service;
+package com.avalon.erp.sys.addon.common.service;
 
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class PartnerService extends AbstractTreeService {
     @Override
     public String getServiceName() {
-        return "crm.partner";
+        return "common.partner";
     }
 
     @Override

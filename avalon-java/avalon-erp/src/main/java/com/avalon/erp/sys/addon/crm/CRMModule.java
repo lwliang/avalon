@@ -1,4 +1,4 @@
-package com.avalon.erp.sys.addon.crm.common;
+package com.avalon.erp.sys.addon.crm;
 
 import com.avalon.core.module.AbstractModule;
 import lombok.extern.slf4j.Slf4j;
@@ -10,25 +10,25 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class CRMCommonModule extends AbstractModule {
+public class CRMModule extends AbstractModule {
     @Override
     public String getModuleName() {
-        return "crm.common";
+        return "crm";
     }
 
     @Override
     public String getLabel() {
-        return "CRM基础数据";
+        return "CRM";
     }
 
     @Override
     public String getDescription() {
-        return "基础数据";
+        return "客户关系管理依托于持续收集和分析客户数据、然后利用这些洞察来深化客户关系和改善业务成效";
     }
 
     @Override
     public Boolean getDisplay() {
-        return false;
+        return true;
     }
 
     @Override
@@ -37,9 +37,14 @@ public class CRMCommonModule extends AbstractModule {
     }
 
     @Override
+    public String[] depends() {
+        return new String[]{"crm.common"};
+    }
+
+    @Override
     public String[] getResource() {
         return new String[]{
-                "resource/view/partner.views.xml"
+                "resource/view/menu.xml",
         };
     }
 }

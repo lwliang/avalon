@@ -4,7 +4,7 @@
         <field name="name">crm_partner_view_form</field>
         <field name="label">联系人表单</field>
         <field name="viewMode">form</field>
-        <field name="ref_serviceId">crm.partner</field>
+        <field name="ref_serviceId">common.partner</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
@@ -20,9 +20,8 @@
                     </row>
                     <row>
                         <col>
-                            <field name="provinceId"/>
-                            <field name="cityId"/>
-                            <field name="districtId"/>
+                            <field name="provinceId" name.city="cityId" name.district="districtId" widget="address"
+                                   props="{'type':'district'}"/>
                         </col>
                         <col>
                             <field name="street"/>
@@ -42,7 +41,7 @@
         <field name="name">crm_partner_view_tree</field>
         <field name="label">联系人</field>
         <field name="viewMode">tree</field>
-        <field name="ref_serviceId">crm.partner</field>
+        <field name="ref_serviceId">common.partner</field>
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
@@ -58,6 +57,6 @@
         <field name="name">partner</field>
         <field name="label">联系人</field>
         <field name="viewMode">tree</field>
-        <field name="ref_serviceId">crm.partner</field>
+        <field name="ref_serviceId">common.partner</field>
     </record>
 </avalon>
