@@ -1,74 +1,25 @@
 <template>
-  <MyPopover ref="popoverRef" placement="bottom" trigger="click" popperClass="w-fit">
-    <!-- 触发输入框 -->
-    <template #default>
-      <div v-if="props.type === 'datetimerange'" class="date-range-inputs flex">
-        <MyInput
-            v-model="startDate"
-            :border="false"
-            :readonly="!editable"
-            :disabled="disabled"
-            :clearable="clearable"
-            :placeholder="props.startPlaceholder ?? '开始日期'"
-            @clear="onClear"
-            @change="onStartInput"
-            @focus="onFocus"
-            @blur="onBlur"
-            style="width: 180px;"
-        />
-        <span class="range-separator" style="margin: 0 8px;">{{ rangeSeparator }}</span>
-        <MyInput v-if="endDate"
-                 v-model="endDate"
-                 :border="false"
-                 :readonly="!editable"
-                 :disabled="disabled"
-                 :clearable="clearable"
-                 :placeholder="props.endPlaceholder ?? '结束日期'"
-                 @clear="onClear"
-                 @change="onEndInput"
-                 @focus="onFocus"
-                 @blur="onBlur"
-                 style="width: 180px;"
-        />
-      </div>
-      <MyInput
-          v-else
-          v-model="startDate"
-          suffix-icon-type="far"
-          suffix-icon="calendar"
-          :border="border"
-          :readonly="!editable"
-          :disabled="disabled"
-          :clearable="clearable"
-          :placeholder="displayPlaceholder"
-          @clear="onClear"
-          @change="onStartInput"
-          @blur="onBlur"
-      />
-    </template>
-
-    <!-- 弹出内容：日历面板 -->
-    <template #content>
-      <CalendarPanel
-          :type="type"
-          :startDate="startDate.value"
-          :endDate="endDate?.value"
-          :format="format"
-          @select="onSelect"
-          @sure="sureClick"
-          @click="onCalendarClick"
-      />
-    </template>
-  </MyPopover>
+  <el-date-picker
+      v-model="dateValue"
+      :type="pickerType"
+      :format="format"
+      :value-format="format"
+      :editable="editable"
+      :disabled="disabled"
+      :clearable="clearable"
+      :placeholder="displayPlaceholder"
+      :start-placeholder="startPlaceholder"
+      :end-placeholder="endPlaceholder"
+      :range-separator="rangeSeparator"
+      @change="onChange"
+      @focus="onFocus"
+      @blur="onBlur"
+      @clear="onClear"
+  />
 </template>
 
-
 <script setup lang="ts">
-import {ref, computed} from 'vue'
-import dayjs from 'dayjs'
-import MyPopover from "../popover/my-popover.vue";
-import CalendarPanel from "../calendar/CalendarPanel.vue";
-import FormField from "../../model/FormField.ts";
+import {ref, computed, watch} from 'vue'
 
 // 类型定义
 type DateTimePickerType = 'datetime' | 'datetimerange'
@@ -91,14 +42,17 @@ const props = withDefaults(defineProps<{
   clearable: true,
   border: false,
   format: 'YYYY-MM-DD HH:mm:ss',
+  startPlaceholder: '开始日期',
+  endPlaceholder: '结束日期',
+  rangeSeparator: ' - '
 })
 
 /** 内部日期状态 */
-const startDate = defineModel<FormField>({
-  required: true,
+const startDate = defineModel<string>({
+  default: ''
 })
-const endDate = defineModel<FormField>('end', {
-  required: false,
+const endDate = defineModel<string>('end', {
+  default: ''
 })
 
 // emits 定义
@@ -108,98 +62,90 @@ const emit = defineEmits<{
   (e: 'blur'): void
 }>()
 
-// popover 控制
-const popoverRef = ref()
+// Element Plus date picker 类型映射
+const pickerType = computed(() => {
+  if (props.type === 'datetimerange') {
+    return 'datetimerange'
+  }
+  return 'datetime'
+})
 
-function onStartInput(val: string) {
-  if (!props.editable) return
-  if (dayjs(val, format.value, true).isValid()) {
-    startDate.value.value = val
+// 内部日期值，用于 el-date-picker
+const dateValue = ref<string | [string, string] | null>(null)
+
+// 初始化日期值
+function initDateValue() {
+  if (props.type === 'datetimerange') {
+    const start = startDate.value || ''
+    const end = endDate.value || ''
+    if (start || end) {
+      dateValue.value = [start, end]
+    } else {
+      dateValue.value = null
+    }
   } else {
-    startDate.value.value = ''
+    const start = startDate.value || ''
+    dateValue.value = start || null
   }
 }
 
-function onEndInput(val: string) {
-  if (!props.editable) return
-  if (dayjs(val, format.value, true).isValid()) {
-    if (endDate.value) endDate.value.value = val
-  } else {
-    if (endDate.value) endDate.value.value = ''
-  }
-}
+// 监听 string 变化，更新 dateValue
+watch(() => [startDate.value, endDate.value], () => {
+  initDateValue()
+}, { immediate: true })
 
-/** 分隔符 */
-const rangeSeparator = computed(() => props.rangeSeparator ?? ' - ')
+// 监听 dateValue 变化，更新 string
+watch(dateValue, (newVal) => {
+  if (props.type === 'datetimerange') {
+    if (Array.isArray(newVal)) {
+      startDate.value = newVal[0] || ''
+      endDate.value = newVal[1] || ''
+    } else {
+      startDate.value = ''
+      endDate.value = ''
+    }
+  } else {
+    startDate.value = (typeof newVal === 'string' ? newVal : '') || ''
+  }
+})
+
 /** 格式 */
-const format = computed(() => props.format ?? 'YYYY-MM-DD')
-
-/** 输入框内容 */
-const inputString = ref('')
-
+const format = computed(() => props.format)
 
 /** 占位符 */
-const displayPlaceholder = computed(() =>
-    props.type === 'datetimerange'
-        ? `${props.startPlaceholder ?? '开始日期'}${rangeSeparator.value}${props.endPlaceholder ?? '结束日期'}`
-        : props.startPlaceholder ?? '请选择日期'
-)
+const displayPlaceholder = computed(() => {
+  if (props.type === 'datetimerange') {
+    return undefined // 范围选择器不需要单独的 placeholder
+  }
+  return props.startPlaceholder || '请选择日期时间'
+})
+
+/** 日期选择变化事件 */
+function onChange(value: string | [string, string] | null) {
+  if (props.type === 'datetimerange') {
+    if (Array.isArray(value)) {
+      const [start, end] = value
+      startDate.value = start || ''
+      endDate.value = end || ''
+      emit('change', [start || '', end || ''])
+    } else {
+      startDate.value = ''
+      endDate.value = ''
+      emit('change', ['', ''])
+    }
+  } else {
+    const stringValue = (typeof value === 'string' ? value : '') || ''
+    startDate.value = stringValue
+    emit('change', stringValue)
+  }
+}
 
 /** 清空 */
 function onClear() {
-  startDate.value.value = ''
-  if (endDate.value) {
-    endDate.value.value = ''
-  }
-
-  inputString.value = ''
+  startDate.value = ''
+  endDate.value = ''
+  dateValue.value = null
   emit('change', props.type === 'datetimerange' ? ['', ''] : '')
-}
-
-/** 支持直接输入 */
-function onInput(val: string) {
-  if (!props.editable) return
-  if (props.type === 'datetimerange') {
-    const [startStr, endStr] = val.split(rangeSeparator.value).map(s => s.trim())
-    if (dayjs(startStr, format.value, true).isValid()) {
-      startDate.value.value = startStr
-    } else {
-      startDate.value.value = ''
-    }
-    if (endDate.value) {
-      if (dayjs(endStr, format.value, true).isValid()) {
-        endDate.value.value = endStr
-      } else {
-        endDate.value.value = ''
-      }
-    }
-  } else {
-    if (dayjs(val, format.value, true).isValid()) {
-      startDate.value.value = val
-    } else {
-      startDate.value.value = ''
-    }
-  }
-}
-
-/** 日历面板选择事件 */
-function onSelect(val: Date | [Date | null, Date | null]) {
-  if (props.type === 'datetimerange') {
-    if (Array.isArray(val)) {
-      startDate.value.value = val[0] ? formatValue(val[0]) : ''
-      if (endDate.value) {
-        endDate.value.value = val[1] ? formatValue(val[1]) : ''
-      }
-      inputString.value = startDate.value && endDate.value
-          ? `${startDate.value}${rangeSeparator.value}${endDate.value}`
-          : ''
-      emit('change', [startDate.value.value, endDate.value?.value])
-    }
-  } else {
-    startDate.value.value = val ? formatValue(val as Date) : ''
-    inputString.value = startDate.value.value
-    emit('change', startDate.value.value)
-  }
 }
 
 /** focus/blur 事件 */
@@ -210,24 +156,9 @@ function onFocus() {
 function onBlur() {
   emit('blur')
 }
-
-/** 关闭 Popover */
-function closePopover() {
-  if (popoverRef.value && typeof popoverRef.value.hide === 'function') {
-    popoverRef.value.hide()
-  }
-}
-
-/** 工具：日期格式化 */
-function formatValue(val: string | Date): string {
-  if (!val) return ''
-  return dayjs(val).format(format.value)
-}
-
-const sureClick = () => {
-  closePopover()
-}
-const onCalendarClick = (e: MouseEvent) => {
-  //e.stopPropagation()
-}
 </script>
+
+<style scoped>
+/* 可以根据需要添加样式 */
+</style>
+

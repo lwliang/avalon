@@ -1,7 +1,10 @@
 package com.avalon.erp.sys.addon.product.service;
 
+import com.avalon.core.annotation.OnChange;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
+import com.avalon.core.model.ChangeRecordRow;
+import com.avalon.core.model.RecordRow;
 import com.avalon.core.service.AbstractService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,4 +33,9 @@ public class UnitCategoryService extends AbstractService {
 
     public Field defaultUnit = Fields.createMany2one("默认单位", "product.unit");
     public Field unitIds = Fields.createOne2many("单位", "product.unit", "unitCategoryId");
+
+    @OnChange("name")
+    public ChangeRecordRow onChangeName(RecordRow newRow, RecordRow oldRow) {
+        return new ChangeRecordRow();
+    }
 }

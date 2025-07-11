@@ -1,6 +1,9 @@
 package com.avalon.core.service;
 
 import com.avalon.core.model.Record;
+import com.avalon.core.model.RecordRow;
+
+import java.util.List;
 
 /**
  * @author lwlianghehe@gmail.com
@@ -10,4 +13,6 @@ public interface IExportImportService {
     Record exportExcel(String field, String condition, String order);
 
     Integer importExcel(Record record);
+
+    RecordRow readExcel(List<List<Object>> record);
 }

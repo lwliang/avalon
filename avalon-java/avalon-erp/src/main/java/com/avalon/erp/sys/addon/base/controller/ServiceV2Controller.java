@@ -65,7 +65,7 @@ public class ServiceV2Controller {
 
     @PostMapping("{serviceName}/save")
     public List<Object> saveMultiModel(@PathVariable("serviceName") String serviceName,
-                              @RequestBody Record param) throws AvalonException {
+                                       @RequestBody Record param) throws AvalonException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
 
         return serviceBean.saveMulti(param);
@@ -136,7 +136,7 @@ public class ServiceV2Controller {
                          @RequestBody ServiceModelField serviceConditionPage) {
         AbstractService serviceBean = context.getServiceBean(serviceName);
         return serviceBean.select(serviceConditionPage.getOrder(),
-                context.interpreter( serviceConditionPage.getCondition()),
+                context.interpreter(serviceConditionPage.getCondition()),
                 FieldUtils.getFieldList(serviceConditionPage.getFields()).toArray(new String[0]));
     }
 
@@ -147,7 +147,7 @@ public class ServiceV2Controller {
 
         return serviceBean.selectPage(serviceModelPage.getPage(),
                 serviceModelPage.getOrder(),
-                context.interpreter( serviceModelPage.getCondition()),
+                context.interpreter(serviceModelPage.getCondition()),
                 FieldUtils.getFieldList(serviceModelPage.getFields()).toArray(new String[0]));
     }
 
@@ -234,35 +234,24 @@ public class ServiceV2Controller {
         try (XSSFWorkbook workbook = new XSSFWorkbook(file.getInputStream())) {
             // 读取第一个工作表
             Sheet sheet = workbook.getSheetAt(0);
-            List<String> headers = ExcelUtil.readFirstRow(sheet);
-
-            // 获取headers 对应的字段名称
-            List<String> fields = new ArrayList<>();
-            for (String header : headers) {
-                FieldList serviceBeanFields = serviceBean.getFields();
-                Optional<Field> first = serviceBeanFields.stream().filter(field -> field.getLabel().equals(header)).findFirst();
-                fields.add(first.isPresent() ? first.get().getName() : "");
-            }
-
             // 读取数据行
-            List<RecordRow> dataRows = new ArrayList<>();
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            List<List<Object>> dataRows = new ArrayList<>();
+            for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
-                RecordRow dataRow = new RecordRow();
-                for (int j = 0; j < headers.size(); j++) {
+                List<Object> dataRow = new ArrayList<>();
+                for (int j = 0; j < row.getLastCellNum(); j++) {
                     Cell cell = row.getCell(j);
-                    dataRow.put(headers.get(j), ExcelUtil.getCellValue(cell));
+                    if (ObjectUtils.isNotNull(cell)) {
+                        dataRow.add(ExcelUtil.getCellValue(cell));
+                    } else {
+                        dataRow.add(null);
+                    }
                 }
                 dataRows.add(dataRow);
             }
 
             // 将数据转换为 RecordRow
-            RecordRow result = new RecordRow();
-            result.put("headers", headers);
-            result.put("fields", fields);
-            result.put("data", dataRows);
-
-            return result;
+            return serviceBean.readExcel(dataRows);
         } catch (IOException e) {
             throw new RuntimeException("读取 Excel 文件失败：" + e.getMessage(), e);
         }
@@ -311,4 +300,6 @@ public class ServiceV2Controller {
         AbstractService serviceBean = context.getServiceBean(serviceName);
         return serviceBean.onChange(param.getChangeFieldRow(), param.getNewRow(), param.getOldRow());
     }
+
+
 }

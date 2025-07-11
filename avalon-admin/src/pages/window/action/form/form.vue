@@ -19,9 +19,8 @@ import ActionView from "../../../../model/view/ActionView.ts";
 import {addModelApi, createModelApi, editModelApi, getModelDetailApi, invokeMethod} from "../../../../api/modelApi.ts";
 import {getTemplate, XMLParserResult} from "../../../../xml/XMLParserResult.ts";
 import {parserEx} from "../../../../xml/XMLParser.ts";
-import {useGlobalFieldDataStore} from "../../../../global/store/fieldStore.ts";
-import {useGlobalServiceDataStore} from "../../../../global/store/serviceStore.ts";
-import FormField from "../../../../model/FormField.ts";
+import {useFieldStore} from "../../../../global/store/fieldStore.ts";
+import {useServiceStore} from "../../../../global/store/serviceStore.ts";
 import MyButton from "../../../../components/button/my-button.vue";
 import {FieldTypeEnum} from "../../../../model/enum-type/FieldTypeEnum.ts";
 import Field from "../../../../model/Field.ts";
@@ -35,12 +34,12 @@ import Service from "../../../../model/Service.ts";
 import Form from "../../../../model/form/Form.ts";
 import ServiceInvokeParam from "../../../../model/ServiceInvokeParam.ts";
 import {isObjectEmpty} from "../../../../util/ObjectUtils.ts";
-import {ButtonClickEvent} from "../../../../model/ButtonClickEvent.ts";
+import {getChangeFieldRecordRow, getAllFieldRecordRow} from "../../../../util/fieldUtils.ts";
+import {objectCloneDeep} from "../../../../util/ObjectUtils.ts";
 
-const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 const route = useRoute();
-const serviceFieldStore = useGlobalFieldDataStore()
-const serviceStore = useGlobalServiceDataStore()
+const serviceFieldStore = useFieldStore()
+const serviceStore = useServiceStore()
 
 const moduleName = ref<string>(route.params.module as string)
 const row_id = ref<number | undefined>(parseInt(route.query.id as string))
@@ -48,6 +47,7 @@ const serviceName = ref<string>(route.params.service as string)
 const form_container = ref()
 
 const servicePropInstance = ref<Service>()
+const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 serviceStore.getServiceByNameAsync(serviceName.value).then(data => {
   servicePropInstance.value = data
 })
@@ -143,27 +143,16 @@ const parserXml = async (str: string) => {
 }
 
 const recordRow = ref<any>({})
-const recordRowWithField = ref<Record<string, FormField | any>>({})
-const recordRowIsChange = computed(() => { // 字段是否有变量
-  for (let key in recordRowWithField.value) {
-    if (recordRowWithField.value[key] instanceof FormField) {
-      if (recordRowWithField.value[key].isChanged()) {
-        return true
-      }
-    } else { // 对象
-      for (const value in recordRowWithField.value[key]) {
-        if (recordRowWithField.value[key][value].isChanged()) {
-          return true
-        }
-      }
-    }
-  }
-  return false
+const originalRecordRow = ref<any>({}) // 保存原始数据用于比较变化
+const recordRowIsChange = computed(() => { // 字段是否有变化
+  return JSON.stringify(recordRow.value) !== JSON.stringify(originalRecordRow.value)
 })
+
 const loadDetailData = async (id: number) => {
   return getModelDetailApi(id, template_fields.value.join(","),
       serviceName.value);
 }
+
 const loadDataWithLayout = async () => {
   if (!(serviceName.value && moduleName.value && self_service_fields.value.length)) {
     return;
@@ -173,38 +162,7 @@ const loadDataWithLayout = async () => {
     const data = await loadDetailData(row_id.value);
     if (data) {
       Object.assign(recordRow.value, data)
-      const serviceInstance = await serviceStore.getServiceByNameAsync(serviceName.value);
-      for (let key in recordRow.value) {
-        const field = serviceFields.find(f => f.name === key) as Field
-        if (field.type == FieldTypeEnum.One2manyField) {
-          recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
-        } else if (field.type == FieldTypeEnum.Many2oneField) {
-          if (serviceInstance.delegateField) {
-            const delegateField = JSON.parse(serviceInstance.delegateField)
-            let delegate = false;
-            for (let s in delegateField) {
-              if (delegateField[s] == field.name) {
-                delegate = true;
-                recordRowWithField.value[key] = {}
-                const delegateServiceFields = await serviceFieldStore.getFieldByServiceNameAsync(s)
-                for (const sKey in recordRow.value[key]) {
-                  const dField = delegateServiceFields.find(f => f.name == sKey)
-                  recordRowWithField.value[key][sKey] = new FormField(recordRow.value[key][sKey], dField)
-                }
-                break;
-              }
-            }
-            if (!delegate) {
-              recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
-            }
-          } else {
-            recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
-          }
-        } else {
-          recordRowWithField.value[key] = new FormField(recordRow.value[key], field)
-        }
-
-      }
+      originalRecordRow.value = objectCloneDeep(data)
       template_component.value = createFormTemplateVNode();
       createHeaderTemplateVNode();
     }
@@ -221,11 +179,12 @@ const createModelRecordRow = async (defaultValue: any, serviceFields: Field[]) =
   for (let key in defaultValue) {
     let field = serviceFields.find(f => f.name === key)
     if (field) {
-      recordRowWithField.value[key] = new FormField(defaultValue[key], field)
+      recordRow.value[key] = defaultValue[key]
     }
   }
+  // 保存原始数据
+  originalRecordRow.value = JSON.parse(JSON.stringify(recordRow.value))
 }
-
 
 const createNewRecordRow = async (serviceFields: Field[]) => {
   for (let key of self_service_fields.value) {
@@ -234,34 +193,41 @@ const createNewRecordRow = async (serviceFields: Field[]) => {
       const firstField = await getServiceField(serviceName.value, first);
       const last = getJoinLastField(key);
       const lastField = await getServiceField(serviceName.value, key);
-      if (!recordRowWithField.value[first]) {
-        recordRowWithField.value[first] = {}
+      if (!recordRow.value[first]) {
+        recordRow.value[first] = {}
       }
       if (lastField && (lastField.type == FieldTypeEnum.One2manyField ||
           lastField.type == FieldTypeEnum.Many2manyField)) {
-        recordRowWithField.value[first][last] = new FormField([], lastField)
+        recordRow.value[first][last] = []
       } else if (lastField) {
-        recordRowWithField.value[first][last] = new FormField(undefined, lastField)
+        recordRow.value[first][last] = undefined
       }
     } else {
       let field = serviceFields.find(f => f.name === key)
       if (field && (field.type == FieldTypeEnum.One2manyField ||
           field.type == FieldTypeEnum.Many2manyField)) {
-        recordRowWithField.value[key] = new FormField([], field)
+        recordRow.value[key] = []
       } else if (field) {
-        recordRowWithField.value[key] = new FormField(undefined, field)
+        recordRow.value[key] = undefined
       }
     }
   }
+  // 保存原始数据
+  Object.assign(originalRecordRow.value, recordRow.value)
 }
-
 
 const createFormTemplateVNode = () => {
   let component = defineComponent({
     setup() {
       const vNode = compile(xmlTemplate.value)
       return () => {
-        return createVNode(vNode, {...recordRowWithField.value})
+        return createVNode(vNode, {
+          ...recordRow.value,
+          recordRow: recordRow.value,
+          rules: {
+            'a':[{required: true, message: 'a', trigger: 'blur'}]
+          }
+        })
       }
     }
   })
@@ -271,26 +237,29 @@ const createFormTemplateVNode = () => {
 const createHeaderTemplateVNode = () => {
   if (!headerTemplate.value) return
   const vNode = compile(headerTemplate.value)
-  const btnClickHandler = async (btnEvent: ButtonClickEvent) => {
-    console.log('btnClick', btnEvent)
+  const btnClickHandler = async (btnEvent: any) => {
+    const action = btnEvent.action || btnEvent.currentTarget.getAttribute('action')
     let param = null;
     if (row_id.value) {
       param = {
         serviceName: serviceName.value,
-        method: btnEvent.action,
-        param: {"id": row_id.value}
+        method: action,
+        param: recordRow.value
       }
     } else {
       param = {
         serviceName: serviceName.value,
-        method: btnEvent.action,
-        param: {}
+        method: action,
+        param: recordRow.value
       }
     }
     if (serviceName.value) {
       const result = await invokeMethod(serviceName.value, param as any);
       if (!result) { // 没有返回值
-        proxy?.$notify.success("提示", "操作成功");
+        proxy?.$notify.success({
+          title: "提示",
+          message: "操作成功",
+        });
       } else {
         if (result.type && result.type == 'ir.actions.client') { // 判断前端动作
           const service = proxy?.$registry.getAll('actions').get(result.tag) as any
@@ -298,27 +267,28 @@ const createHeaderTemplateVNode = () => {
             service.execute(result.param);
           }
         }
-
       }
     }
   }
   header_component.value = () => {
-    return createVNode(vNode, {...recordRowWithField.value, btnClickHandler})
+    return createVNode(vNode, {
+      ...recordRow.value,
+      recordRow: recordRow.value, 
+      btnClickHandler,
+    })
   }
 }
+
 // 新增，初始化对象
 const createClick = async () => {
   row_id.value = undefined;
-
-  for (let fieldKey in recordRowWithField.value) {
-    const field = recordRowWithField.value[fieldKey].Field;
-    if (field && (field.type == FieldTypeEnum.One2manyField ||
-        field.type == FieldTypeEnum.Many2manyField)) {
-      recordRowWithField.value[fieldKey].reset([])
-    } else if (field) {
-      recordRowWithField.value[fieldKey].reset(null)
-    }
-  }
+  recordRow.value = {}
+  originalRecordRow.value = {}
+  
+  const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
+  await createNewRecordRow(serviceFields);
+  const defaultValue = await createModelApi({}, serviceName.value)
+  await createModelRecordRow(defaultValue, serviceFields)
 }
 
 const backClick = () => {
@@ -330,9 +300,7 @@ const saveClick = async () => {
     update().then(() => {
       loadDetailData(row_id.value as number).then(data => {
         Object.assign(recordRow.value, data)
-        for (let key in recordRow.value) {
-          recordRowWithField.value[key].reset(recordRow.value[key])
-        }
+        Object.assign(originalRecordRow.value, data) // 更新原始数据
       })
     })
   } else {
@@ -343,80 +311,39 @@ const saveClick = async () => {
 }
 
 const insert = async () => {
-  const recordRow = await getFieldRecordRow(recordRowWithField.value)
+  const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
+  const changedData = await getChangeFieldRecordRow(recordRow.value, {}, serviceFields)
 
-  return await addModelApi(recordRow, serviceName.value).then(data => {
-    proxy?.$notify.success("新增", "新增成功");
+  return await addModelApi(changedData, serviceName.value).then(data => {
+    proxy?.$notify.success({
+      title: "新增",
+      message: "新增成功",
+    });
     row_id.value = data.id
     return data
   })
 }
 
-const getFieldRecordRow = async (recordRowField: Record<string, FormField | any>) => {
-  const recordRow = {} as any;
-  for (let fieldKey in recordRowField) {
-    if (recordRowField[fieldKey] instanceof FormField) {
-      if (recordRowField[fieldKey].isChanged()) {
-        recordRow[fieldKey] = await recordRowField[fieldKey].getRawValue()
-      }
-    } else {
-      if (!recordRow[fieldKey]) {
-        recordRow[fieldKey] = {}
-      }
-      for (let x in recordRowField[fieldKey]) {
-        recordRow[fieldKey][x] = await recordRowField[fieldKey][x].getRawValue()
-      }
-    }
-  }
-  return recordRow
-}
 
-// 获取全部的值
-const getFieldAllRecordRow = async (recordRowField: Record<string, FormField | any>) => {
-  const recordRow = {} as any;
-  for (let fieldKey in recordRowField) {
-    if (recordRowField[fieldKey] instanceof FormField) {
-      recordRow[fieldKey] = await recordRowField[fieldKey].getRawValue()
-    } else {
-      if (!recordRow[fieldKey]) {
-        recordRow[fieldKey] = {}
-      }
-      for (let x in recordRowField[fieldKey]) {
-        recordRow[fieldKey][x] = await recordRowField[fieldKey][x].getRawValue()
-      }
-    }
-  }
-  return recordRow
-}
-
-const getOldFieldRecordRow = async (recordRowField: Record<string, FormField | any>) => {
-  const recordRow = {} as any;
-  for (let fieldKey in recordRowField) {
-    if (recordRowField[fieldKey] instanceof FormField) {
-      recordRow[fieldKey] = await recordRowField[fieldKey].getOldRawValue()
-    } else {
-      if (!recordRow[fieldKey]) {
-        recordRow[fieldKey] = {}
-      }
-      for (let x in recordRowField[fieldKey]) {
-        recordRow[fieldKey][x] = await recordRowField[fieldKey][x].getOldRawValue()
-      }
-    }
-  }
-  return recordRow
-}
 
 const update = async () => {
-  const recordRow = await getFieldRecordRow(recordRowWithField.value)
-
-  if (Object.keys(recordRow).length === 0) {
-    proxy?.$notify.success("修改", "修改成功");
+  const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
+  const changedData = await getChangeFieldRecordRow(recordRow.value, originalRecordRow.value, serviceFields)
+  
+  if (Object.keys(changedData).length === 0) {
+    proxy?.$notify.success({
+      title: "修改",
+      message: "修改成功",
+    });
     return;
   }
-  recordRow["id"] = row_id.value
+  changedData["id"] = row_id.value
 
-  return editModelApi(recordRow, serviceName.value).then(data => {
-    proxy?.$notify.success("修改", "修改成功");
+  return editModelApi(changedData, serviceName.value).then(data => {
+    proxy?.$notify.success({
+      title: "修改",
+      message: "修改成功",
+    });
   })
 }
 
@@ -438,28 +365,29 @@ const loadOnChangeField = async (serviceName: string) => {
 loadOnChangeField(serviceName.value).then(data => {
   onChangeFields.value.push(...data)
 })
-watch(recordRowWithField.value, async () => {
+
+watch(recordRow.value, async () => {
   let changeFields: any = {}
-  for (let fieldKey in recordRowWithField.value) {
-    const fieldValue = recordRowWithField.value[fieldKey]
-    if (fieldValue.isChanged()) {
+  for (let fieldKey in recordRow.value) {
+    if (JSON.stringify(recordRow.value[fieldKey]) !== JSON.stringify(originalRecordRow.value[fieldKey])) {
       if (onChangeFields.value.includes(fieldKey)) {
         changeFields[fieldKey] = true
       }
     }
   }
   if (!isObjectEmpty(changeFields)) {
-    const newRow = await getFieldAllRecordRow(recordRowWithField.value)
-    const oldRow = await getOldFieldRecordRow(recordRowWithField.value)
-    const changeRecordRow = await onChangeValue(serviceName.value, changeFields, newRow, oldRow)
+    const changeRecordRow = await onChangeValue(serviceName.value, changeFields, recordRow.value, originalRecordRow.value)
     if (changeRecordRow.value) { // 返回值
       for (const fieldKey in changeRecordRow.value) {
-        recordRowWithField.value[fieldKey].value = changeRecordRow.value[fieldKey]
+        recordRow.value[fieldKey] = changeRecordRow.value[fieldKey]
       }
     }
     if (changeRecordRow.warnings && changeRecordRow.warnings.length > 0) { // 有异常
       for (const warning of changeRecordRow.warnings) {
-        proxy?.$notify.error(warning.title, warning.message)
+        proxy?.$notify.error({
+          title: warning.title,
+          message: warning.message,
+        });
       }
     }
   }
@@ -469,32 +397,38 @@ watch(recordRowWithField.value, async () => {
 </script>
 
 <template>
-  <div class="p-4 w-full overflow-hidden h-full box-border">
-    <div class="py-4 border-b border-t-0 border-l-0 border-r-0 border-border border-solid">
-      <MyButton type="success" class="mr-4" @click="backClick" icon="chevron-left" plain circle
-                icon-style="fas">
-      </MyButton>
-      <MyButton type="primary" rounded @click="createClick" v-if="form.create">新增</MyButton>
-      <MyButton type="success" rounded @click="saveClick" class="ml-2"
-                v-if="recordRowIsChange && (form.edit || form.create)">
-        保存
-      </MyButton>
-      <component :is="header_component"/>
-    </div>
-
-    <div class="w-full flex min-h-[500px] h-fit max-h-full pb-[50px] ">
-      <div class="w-full overflow-x-auto box-border border border-border border-solid mt-4 rounded-sm" style="flex: 2" @scroll="onScrollClick">
-        <component :is="template_component"/>
-      </div>
-      <div class="flex-1 h-full box-border hidden 2xl:block">
-        <!--                <div class="w-full overflow-auto h-full">-->
-        <!--                    <MyServiceLog :service="serviceName" :service-id="row_id"></MyServiceLog>-->
-        <!--                </div>-->
+  <div class="p-4 flex flex-col w-full overflow-hidden h-full box-border">
+    <div class="h-[50px] flex items-start border-b border-t-0 border-l-0 border-r-0 border-border border-solid ">
+      <div class="h-[50px] flex items-center">
+        <el-button-group>
+          <el-button type="success"  @click="backClick" icon="Back"  
+          size="small" circle/>
+          <el-button type="primary" round @click="createClick" v-if="form.create" size="small">新增</el-button>
+          <el-button type="success" round @click="saveClick" class="ml-2" size="small"
+                    v-if="recordRowIsChange && (form.edit || form.create)">
+            保存
+          </el-button>
+          <component :is="header_component"/>
+        </el-button-group>
       </div>
     </div>
+    
+      <div class="w-full flex flex-1 h-full box-border overflow-hidden">
+          <el-scrollbar class="h-full flex-1">
+            <div class="w-full box-border" style="flex: 2"
+                @scroll="onScrollClick">
+              <component :is="template_component"/>
+            </div>
+          </el-scrollbar>
+      </div>
+  
   </div>
 </template>
 
 <style scoped>
-
+/* 确保滚动条视图容器占满高度 */
+:deep(.el-scrollbar__view) {
+  height: 100%;
+  @apply flex;
+}
 </style>

@@ -6,5 +6,6 @@ import {InputProps} from "../../input/types.ts";
 
 export interface MySelectionSelectProps extends InputProps {
     serviceName: string,
-    field:string
+    field: string,
+    isMulti?: boolean
 }

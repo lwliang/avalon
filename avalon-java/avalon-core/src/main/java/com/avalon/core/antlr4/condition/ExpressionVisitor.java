@@ -1,4 +1,4 @@
-package com.avalon.core.antlr4.condition;// Generated from ./Expression.g4 by ANTLR 4.13.2
+package com.avalon.core.antlr4.condition;// Generated from Expression.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -113,13 +113,6 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitNullValue(ExpressionParser.NullValueContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code IdentifierValue}
-	 * labeled alternative in {@link ExpressionParser#value}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIdentifierValue(ExpressionParser.IdentifierValueContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code IntegerValue}
 	 * labeled alternative in {@link ExpressionParser#value}.
 	 * @param ctx the parse tree
@@ -147,6 +140,13 @@ public interface ExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitBooleanValue(ExpressionParser.BooleanValueContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code IdentifierValue}
+	 * labeled alternative in {@link ExpressionParser#value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIdentifierValue(ExpressionParser.IdentifierValueContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code DotSeparatedIdentifier}
 	 * labeled alternative in {@link ExpressionParser#identifier}.

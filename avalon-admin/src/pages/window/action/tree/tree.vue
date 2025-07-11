@@ -26,9 +26,8 @@ import {
 } from "../../../../api/modelApi.ts";
 import {getTemplate, XMLParserResult} from "../../../../xml/XMLParserResult.ts";
 import {parserEx} from "../../../../xml/XMLParser.ts";
-import MyButton from "../../../../components/button/my-button.vue";
-import {useGlobalFieldDataStore} from "../../../../global/store/fieldStore.ts";
-import {useGlobalServiceDataStore} from "../../../../global/store/serviceStore.ts";
+import {useFieldStore} from "../../../../global/store/fieldStore.ts";
+import {useServiceStore} from "../../../../global/store/serviceStore.ts";
 import Field from "../../../../model/Field.ts";
 import {getSelectionValueByServiceAndField} from "../../../../cache/SelectionValueMemory.ts";
 import {FieldTypeEnum} from "../../../../model/enum-type/FieldTypeEnum.ts";
@@ -39,6 +38,7 @@ import FormField from "../../../../model/FormField.ts";
 import MySearch from "../../../../components/search/my-search.vue";
 import MyDialog from "../../../../components/dialog/my-dialog.vue";
 import MyExportDialog from "../../../../components/dialog/my-export-dialog.vue";
+import MyFormModel from "../../../../components/model/form-dialog/my-form-dialog.vue";
 import {goModelImport} from "../../../../util/routerUtils.ts";
 import {getModelKeyValue, getServiceField, hasJoin, isModelKeyValue} from "../../../../util/fieldUtils.ts";
 import ShowField from "../../../../model/ShowField.ts";
@@ -46,12 +46,13 @@ import TreeXml from "../../../../xml/TreeXml.ts";
 import {EditableType} from "../../../../xml/xmlType.ts";
 import {objectCloneDeep} from "../../../../util/ObjectUtils.ts";
 import {uploadFile} from "../../../../api/fileUploadApi.ts";
-
-
-const serviceFieldStore = useGlobalFieldDataStore()
-const serviceStore = useGlobalServiceDataStore()
+import {getActionFormView} from "../../../../api/commonApi.ts";
+import {addModelApi} from "../../../../api/modelApi.ts";
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
+const serviceFieldStore = useFieldStore()
+const serviceStore = useServiceStore()
+
 const route = useRoute();
 
 const moduleName = ref<string>(route.params.module as string)
@@ -147,7 +148,10 @@ const createHeaderTemplateVNode = () => {
     if (serviceName.value) {
       const result = await invokeMethod(serviceName.value, param);
       if (!result) { // 没有返回值
-        proxy?.$notify.success("提示", "操作成功");
+        proxy?.$notify.success({
+          title: "提示",
+          message: "操作成功",
+        });
       } else {
         if (result.type && result.type == 'ir.actions.client') { // 判断前端动作
           const service = proxy?.$registry.getAll('actions').get(result.tag) as any
@@ -179,28 +183,27 @@ const loadData = async () => {
   if (!(serviceName.value && moduleName.value && template_fields.value.length)) {
     return;
   }
-  const recordTemp: any = []
-  await getModelPageApi(template_full_fields.value.join(","),
+  let pageInfo = await getModelPageApi(template_full_fields.value.join(","),
       condition.value,
       serviceName.value,
-      pageNum.value).then(pageInfo => {
-    if (pageInfo.data) {
-      recordTemp.push(...pageInfo.data)
-    }
-    begin.value = (pageInfo.pageCur - 1) * getPageSize() + 1
-    end.value = begin.value + pageInfo.data.length - 1
-    total.value = pageInfo.total
-  })
+      pageNum.value)
+
+  if (pageInfo.data) {
+    record.value.splice(0, record.value.length);
+    record.value = pageInfo.data
+    recordOrigin.value.splice(0, recordOrigin.value.length)
+    recordChange.value.splice(0, recordChange.value.length)
+    recordOrigin.value.push(...objectCloneDeep(pageInfo.data))
+  }
+  begin.value = (pageInfo.pageCur - 1) * getPageSize() + 1
+  end.value = begin.value + pageInfo.data.length - 1
+  total.value = pageInfo.total
+
   for (let field of services_fields.value) {
     if (field.Field.type == FieldTypeEnum.SelectionField) { // 得到字段对应的selection的值
       selectionDynamic.value[field.Field.name] = await getSelectionValueByServiceAndField(serviceName.value, field.Field.name)
     }
   }
-  record.value.splice(0, record.value.length);
-  record.value.push(...recordTemp)
-  recordOrigin.value.splice(0, recordOrigin.value.length)
-  recordChange.value.splice(0, recordChange.value.length)
-  recordOrigin.value.push(...objectCloneDeep(recordTemp))
 }
 
 
@@ -210,9 +213,58 @@ const rowClick = (row: any) => {
   })
 }
 
+const rowTargetShow = ref(false)
+const rowTargetTitle = ref('')
+const rowTargetId = ref()
+const selectRow = ref()
+const subRowSureClick = (row: any) => {
+  rowTargetShow.value = false
+  if (selectRow.value) {
+    Object.assign(selectRow.value, row)
+  } 
+  
+  addModelApi(selectRow.value, serviceName.value).then(data => {
+    loadData()
+  })
+}
+
+const subRowCloseClick = () => {
+  rowTargetShow.value = false
+}
+const getFieldRecordRow = async (recordRowField: Record<string, FormField | any>) => {
+  const recordRow = {} as any;
+  for (let fieldKey in recordRowField) {
+    if (recordRowField[fieldKey] instanceof FormField) {
+      if (recordRowField[fieldKey].isChanged()) {
+        recordRow[fieldKey] = await recordRowField[fieldKey].getRawValue()
+      }
+    } else {
+      if (!recordRow[fieldKey]) {
+        recordRow[fieldKey] = {}
+      }
+      for (let x in recordRowField[fieldKey]) {
+        recordRow[fieldKey][x] = await recordRowField[fieldKey][x].getRawValue()
+      }
+    }
+  }
+  return recordRow
+}
+
 const createServiceClick = async () => {
   if (!editable.value) { // 不在tree中编辑
-    rowClickHandler(undefined)
+    const formView = await getActionFormView(serviceName.value)
+    if (formView && formView.length && formView[0].target == 'new') { // 弹出Form窗口
+      rowTargetShow.value = true
+      rowTargetId.value = undefined
+      const defaultValue = await createModelApi({}, serviceName.value)
+      if (serviceKeyField.value) {
+        defaultValue[serviceKeyField.value] = getModelKeyValue()
+      }
+      rowTargetTitle.value = formView[0].label
+      selectRow.value = defaultValue
+    } else {
+      rowClickHandler(undefined)
+    }
   } else {
     const defaultValue = await createModelApi({}, serviceName.value)
     if (serviceKeyField.value) {
@@ -265,6 +317,7 @@ const getFormField = (obj: any, value: any, field: Field) => {
 const conditionChange = (search: string) => {
   condition.value = search;
   pageNum.value = 1
+
   loadData();
 }
 
@@ -301,7 +354,10 @@ const hideClick = () => {
 }
 const sureClick = () => {
   deleteMultiModelApi(rowSelectIds.value, serviceName.value as string).then(data => {
-    proxy?.$notify.success('提示', '删除完成');
+    proxy?.$notify.success({
+      title: "提示",
+      message: "删除完成",
+    });
     deleteShow.value = false
 
     for (let deleteIdsKey of rowSelectIds.value) {
@@ -328,7 +384,10 @@ const exportSure = async (fields: string) => {
     condition = `('${primaryKeyField.keyField}',in,${rowSelectIds.value.join(",")})`
   }
   exportExcel(serviceName.value, fields, condition, "").then(data => {
-    proxy?.$notify.success("提示", "导出成功");
+    proxy?.$notify.success({
+      title: "提示",
+      message: "导出成功",
+    });
   })
 }
 
@@ -360,30 +419,27 @@ const cellFieldHandler = async (key: any, fieldName: string, value: any) => {
 
 <template>
   <div class="flex flex-col flex-wrap p-4 items-start h-full">
-    <div class="pb-4 flex items-start w-full">
-      <div class="flex-1">
-        <my-button class="mr-0.5" type="primary" rounded @click="createServiceClick">新增</my-button>
-        <my-button class="mr-0.5" type="success" rounded @click="saveServiceClick" v-if="isRecordModify">保存
-        </my-button>
-        <my-button class="mr-0.5" type="primary" rounded @click="importExcelClick">导入</my-button>
-        <my-button class="mr-0.5" v-if="rowSelectCount" type="success" rounded @click="exportOpen">
-          导出
-        </my-button>
-        <my-button class="mr-0.5" v-if="rowSelectCount" type="danger" rounded @click="deleteServiceClick">删除
-        </my-button>
-        <component :is="header_component"/>
+    <div class="h-[50px] flex items-start w-full ">
+      <div class="flex-1 h-[34px] flex items-center">
+        <el-button-group>
+          <el-button type="primary" size="small" @click="createServiceClick">新增</el-button>
+          <el-button type="success" size="small" @click="saveServiceClick" v-if="isRecordModify">保存</el-button>
+          <el-button type="primary" size="small" @click="importExcelClick">导入</el-button>
+          <el-button type="danger" size="small" @click="deleteServiceClick" v-if="rowSelectCount">删除</el-button>
+          <el-button type="success" size="small" @click="exportOpen" v-if="rowSelectCount">导出</el-button>
+          <component :is="header_component"/>
+        </el-button-group>
       </div>
       <div class="flex-1 px-4">
         <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
                   :serviceName="serviceName"></MySearch>
       </div>
-      <div class="flex-1 flex justify-end">
+      <div class="flex-1 flex justify-end h-[34px] flex items-center">
         <MyPagination v-model:total="total" v-model:begin="begin" v-model:end="end"
                       @pageChange="handlePageChange"></MyPagination>
       </div>
     </div>
-    <div class="w-full flex-1 overflow-y-auto flex flex-col">
-      <div class="flex-1 overflow-y-auto">
+    <div class="w-full flex-1 flex flex-col h-full overflow-y-auto">
         <MyTable :editable="!!editable" height="100%" :record="record" :fields="services_fields"
                  :service-name="serviceName"
                  :key-field="serviceKeyField"
@@ -393,13 +449,20 @@ const cellFieldHandler = async (key: any, fieldName: string, value: any) => {
                  @rowSelectChange="rowSelectChangeHandler"
                  @colFieldSearch="colFieldSearchHandler"
                  @cellChange="cellFieldHandler"/>
-      </div>
     </div>
   </div>
   <MyDialog :show="deleteShow" @close="hideClick" @sure="sureClick" title="提示">
     确认删除吗?
   </MyDialog>
-  <MyExportDialog :show="exportShow" :service="serviceName" @close="exportClose" @sure="exportSure"></MyExportDialog>
+  <MyExportDialog v-model="exportShow" :service="serviceName" @close="exportClose" @sure="exportSure"></MyExportDialog>
+
+  <MyFormModel v-if="rowTargetShow" v-model="rowTargetShow"
+                 :title="rowTargetTitle"
+                 :service="serviceName"
+                 :row-id="rowTargetId"
+                 :old-record-row="selectRow"
+                 @close="subRowCloseClick"
+                 @sure="subRowSureClick"></MyFormModel>
 </template>
 
 <style scoped>

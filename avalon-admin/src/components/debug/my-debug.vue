@@ -4,8 +4,7 @@
  * @date 2024/11/25 15:48
  */
 
-import MyPopover from "../popover/my-popover.vue";
-import MyIcon from "../icon/my-icon.vue";
+import { QuestionFilled } from '@element-plus/icons-vue'
 import Field from "../../model/Field.ts";
 import {ref} from "vue";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
@@ -28,12 +27,14 @@ getServiceField(props.service, props.field).then((field => {
 </script>
 
 <template>
-  <MyPopover placement="bottom">
-    <template v-slot:default>
-      <MyIcon class="cursor-pointer" type="fas" icon="question" size="sm"></MyIcon>
+  <el-popover placement="bottom" trigger="hover" :width="300">
+    <template #reference>
+      <el-icon class="cursor-pointer" size="14">
+        <QuestionFilled />
+      </el-icon>
     </template>
-    <template v-slot:content>
-      <div class="p-3">
+    <template #default>
+      <div class="">
         <ul class="list-disc pl-5">
           <li>
             <div class="flex gap-1 whitespace-nowrap items-center">
@@ -66,7 +67,7 @@ getServiceField(props.service, props.field).then((field => {
         </ul>
       </div>
     </template>
-  </MyPopover>
+  </el-popover>
 </template>
 
 <style scoped>

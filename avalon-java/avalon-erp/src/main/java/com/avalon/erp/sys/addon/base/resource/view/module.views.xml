@@ -14,7 +14,7 @@
                 <field name="icon"/>
                 <field name="createTime"/>
                 <template>
-                    <my-card :width="400">
+                    <my-card>
                         <div class="flex items-center">
                             <div class="pr-4 flex justify-center items-center mr-4">
                                 <MyImage width="50px" height="50px" :src="getModuleIcon(name,icon)"/>

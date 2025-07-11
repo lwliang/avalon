@@ -6,8 +6,7 @@
 import axios from 'axios'
 import {getErpPrefix, getFilePrefix} from "./env.ts";
 import {goLogin} from "../util/routerUtils.ts";
-import MyNotification from "../components/notification/index.ts";
-
+import { ElNotification } from 'element-plus'
 
 const baseURL = '/'
 // const baseURL = 'http://localhost:8090/'
@@ -51,8 +50,12 @@ axios.interceptors.response.use((response) => {
             goLogin()
         }
         if (error.response.data) {
-            MyNotification.error('错误', error.response.data.msg)
-            return Promise.reject(error.response.data)
+            ElNotification({
+                title: '错误',
+                message: error.response.data.msg,
+                type: 'error',
+            })
+            return Promise.reject({code: error.code, msg: error.message})
         }
         return Promise.reject({code: error.code, msg: error.message})
     }

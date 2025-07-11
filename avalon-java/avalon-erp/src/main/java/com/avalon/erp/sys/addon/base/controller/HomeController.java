@@ -8,6 +8,7 @@ package com.avalon.erp.sys.addon.base.controller;
 import com.avalon.core.context.Context;
 import com.avalon.core.context.SystemConstant;
 import com.avalon.core.model.Record;
+import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.StringUtils;
 import com.avalon.erp.sys.addon.base.service.UserService;
 import com.avalon.core.exception.AvalonException;
@@ -57,6 +58,11 @@ public class HomeController {
         String s = row.convert2Json();
         redisCommon.set(SystemConstant.TOKEN_PREFIX + token, s);
         return row;
+    }
+
+    @PostMapping("/select/city")
+    public Record getSelectCity() {
+        return (Record) context.invokeServiceMethod("base.area.2023", "getCity");
     }
 
     @PostMapping("register")

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {AddressType} from "./address.ts";
-import FormField from "../../model/FormField.ts";
 import {getModelPageApi} from "../../api/modelApi.ts";
 import {watch} from "vue";
 import {borderStyleType} from "../icon/types.ts";
@@ -25,29 +24,29 @@ const props = defineProps({
 
 const serviceName = "base.area.2023"
 // 省 必须
-const province = defineModel({
-  type: FormField,
-  required: true,
+const province = defineModel<{id: number, name: string} | null>({
+  type: Object,
+  default: null
 })
 // 市 非必须
-const city = defineModel('city', {
-  type: FormField,
-  required: false,
+const city = defineModel<{id: number, name: string} | null>('city', {
+  type: Object,
+  default: null
 })
 // 区 非必须
-const district = defineModel('district', {
-  type: FormField,
-  required: false,
+const district = defineModel<{id: number, name: string} | null>('district', {
+  type: Object,
+  default: null
 })
 
-watch(() => province.value.value, () => {
-  if (city.value && province.value.isChanged()) {
-    city.value.value = null
+watch(() => province.value, () => {
+  if (city.value && province.value) {
+    city.value = null
   }
 })
-watch(() => city.value?.value, () => {
-  if (district.value && city.value?.isChanged()) {
-    district.value.value = null
+watch(() => city.value, () => {
+  if (district.value && city.value) {
+    district.value = null
   }
 })
 
@@ -61,9 +60,9 @@ const loadProvinceOption = async (name: string) => {
 }
 
 const loadCityOption = async (name: string) => {
-  if (province.value.value) {
+  if (province.value) {
     const pageResult = await getModelPageApi(`id,name`,
-        `('pCode',=,'${province.value.value.id}')&('level',=,2)&('name',like,${name ? "'" + name + "'" : "''"})`,
+        `('pCode',=,'${province.value.id}')&('level',=,2)&('name',like,${name ? "'" + name + "'" : "''"})`,
         `${serviceName}`,
         1, 20)
 
@@ -74,9 +73,9 @@ const loadCityOption = async (name: string) => {
 }
 
 const loadDistrictOption = async (name: string) => {
-  if (city.value && city.value.value) {
+  if (city.value) {
     const pageResult = await getModelPageApi(`id,name`,
-        `('pCode',=,'${city.value.value.id}')&('level',=,3)&('name',like,${name ? "'" + name + "'" : "''"})`,
+        `('pCode',=,'${city.value.id}')&('level',=,3)&('name',like,${name ? "'" + name + "'" : "''"})`,
         `${serviceName}`,
         1, 20)
 

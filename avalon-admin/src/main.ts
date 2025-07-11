@@ -6,13 +6,14 @@
 import {createApp, version} from 'vue'
 import {createPinia} from 'pinia'
 import router from './router'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import './reset.css'
 import './style.css'
 import App from './App.vue'
 import log from 'loglevel'
 import {registerIcons} from "./components/icon";
-import MyNotification from "./components/notification/index.ts";
 import MyButton from "./components/button/my-button.vue";
+import MyButtonGroup from "./components/button-group/my-button-group.vue";
 import MyImage from "./components/image/my-image.vue";
 import {getModuleIcon} from "./api/moduleApi.ts";
 import MyLabel from "./components/label/my-label.vue";
@@ -24,10 +25,8 @@ import MyCol from "./components/form-layout/col/my-col.vue";
 import MySelectionSelect from "./components/select/selection-select/my-selection-select.vue";
 import MyMany2OneSelect from "./components/select/many2one-select/my-many2one-select.vue";
 import MyTabs from "./components/tabs/my-tabs.vue";
-import MyTabPanel from "./components/tabs/my-tab-panel.vue";
 import MySubTree from './pages/window/action/form/my-sub-tree.vue';
-import MyOverlay from "./components/overlay/my-overlay.vue";
-import MyFormModel from "./components/model/form-model/my-form-model.vue";
+import MyFormDialog from "./components/model/form-dialog/my-form-dialog.vue";
 import MyImageUpload from "./components/upload/my-image-upload.vue";
 import MyPassword from "./components/password/my-password.vue";
 import MyDate from "./components/date/my-date.vue";
@@ -49,7 +48,6 @@ import {ReconnectingWebSocket} from "./ws/WebScoket.ts";
 import {getToken} from "./cache/tokenStorage.ts";
 import ChatWindow from "./components/im/chat-window.vue";
 import DocumentList from "./components/document/document-list.vue";
-import MyTree from "./components/tree/my-tree.vue";
 import RegistryPlugin from "./global/registry/registryPlugin.ts";
 import {registerActions} from './global/registry/actions'
 import MarkdownVue from "./components/markdown/markdown.vue";
@@ -66,6 +64,10 @@ import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import MyPopover from './components/popover/my-popover.vue'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import myJson from './components/json/my-json.vue'
+import MyHtml from './components/html/my-html.vue'
 
 
 // 注册插件
@@ -83,6 +85,7 @@ registerIcons(app)
 app.use(createPinia())
 app.use(router)
 app.component('MyButton', MyButton)
+app.component('MyButtonGroup', MyButtonGroup)
 app.component('MyImage', MyImage)
 app.component('MyAvatar', MyAvatar)
 app.component('MyLabel', MyLabel)
@@ -94,10 +97,8 @@ app.component('MyCol', MyCol)
 app.component('MySelectionSelect', MySelectionSelect)
 app.component('MyMany2OneSelect', MyMany2OneSelect)
 app.component('MyTabs', MyTabs)
-app.component('MyTabPanel', MyTabPanel)
 app.component('MySubTree', MySubTree)
-app.component('MyOverlay', MyOverlay)
-app.component('MyFormModel', MyFormModel)
+app.component('MyFormDialog', MyFormDialog)
 app.component('MyImageUpload', MyImageUpload)
 app.component('MyVideoUpload', MyVideoUpload)
 app.component('MyPassword', MyPassword)
@@ -118,7 +119,6 @@ app.component('ChatWindow', ChatWindow)
 app.component('DocumentList', DocumentList)
 app.component('Markdown', MarkdownVue)
 app.component('Excalidraw', ExcalidrawEditorVue)
-app.component('MyTree', MyTree)
 app.component('MyAddress', Address)
 app.component('MyText', MyText)
 app.component('MyRadio', MyRadio)
@@ -127,6 +127,8 @@ app.component('MySwitch', MySwitch)
 app.component('MyCard', MyCard)
 app.component('MyProgress', MyProgress)
 app.component('MyPopover', MyPopover)
+app.component('MyJson', myJson)
+app.component('MyHtml', MyHtml)
 
 // 使用注册表插件
 app.use(RegistryPlugin);
@@ -134,8 +136,6 @@ app.use(RegistryPlugin);
 const registry = app.config.globalProperties.$registry;
 registerActions(registry);
 
-// 全局变量
-app.config.globalProperties.$notify = MyNotification
 
 app.provide('getModuleIcon', getModuleIcon)
 
@@ -152,7 +152,10 @@ if (import.meta.env.MODE === 'development') {
     log.setLevel('error')
 }
 
-
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component)
+}
+app.use(ElementPlus)
 console.log('Vue Version:', version); // 输出 Vue 版本
 app.mount('#app')
 

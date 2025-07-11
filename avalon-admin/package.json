@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@codemirror/lang-xml": "^6.1.0",
+    "@element-plus/icons-vue": "^2.3.1",
     "@excalidraw/excalidraw": "^0.18.0",
     "@floating-ui/vue": "^1.1.5",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -20,6 +21,7 @@
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@vue/runtime-dom": "^3.5.10",
     "@vue/test-utils": "^2.4.6",
+    "@vueup/vue-quill": "^1.2.0",
     "@vueuse/core": "^11.0.3",
     "@vueuse/integrations": "^13.1.0",
     "@vueuse/motion": "^3.0.3",
@@ -40,6 +42,7 @@
     "vue": "^3.5.10",
     "vue-codemirror6": "^1.3.8",
     "vue-router": "^4.4.3",
+    "vue3-json-editor": "^1.1.5",
     "vue3-sfc-loader": "^0.9.5",
     "vuedraggable": "^4.1.0",
     "xml-formatter": "^3.6.3"

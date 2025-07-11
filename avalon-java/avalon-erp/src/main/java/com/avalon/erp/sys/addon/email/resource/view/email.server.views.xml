@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="email_server_tree_view" service="base.action.view">
+        <field name="name">email server</field>
+        <field name="label">邮件服务器</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">email.server</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="name"/>
+                <field name="host"/>
+                <field name="port"/>
+                <field name="sendHost"/>
+                <field name="sendPort"/>
+                <field name="protocol"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="email_server_action" service="base.action.window">
+        <field name="name">email server</field>
+        <field name="label">邮件服务器</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">email.server</field>
+    </record>
+</avalon>

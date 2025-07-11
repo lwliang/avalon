@@ -8,6 +8,7 @@ package com.avalon.file.service;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.model.Record;
 import com.avalon.file.config.FileConfig;
+import com.avalon.file.util.ImageCompressUtils;
 import com.avalon.file.util.PathUtil;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
@@ -117,6 +118,7 @@ public class FileService extends AbstractService {
 
             String url = getUrl(getContext().getBaseName(), first, second, uuidFileName);
             recordRow.put("url", url);//文件相对路径
+            // content = ImageCompressUtils.compressImage(content, "." + fileExt, 90); 会增大图片
             writeFile(file, content);
             insert(recordRow);
             recordRow.put("size", content.length);

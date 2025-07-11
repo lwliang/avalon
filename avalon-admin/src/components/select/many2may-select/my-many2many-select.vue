@@ -3,94 +3,118 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import {ref, watch} from "vue";
-import FormField from "../../../model/FormField.ts";
+import {ref, watch, computed} from "vue";
 import {InputExpose} from "../../../global/input/InputExpose.ts";
 import {onMounted} from "@vue/runtime-dom";
 import {getModelPageApi} from "../../../api/modelApi.ts";
-import {useGlobalFieldDataStore} from "../../../global/store/fieldStore.ts";
-import {useGlobalServiceDataStore} from "../../../global/store/serviceStore.ts";
+import {useFieldStore} from "../../../global/store/fieldStore.ts";
+import {useServiceStore} from "../../../global/store/serviceStore.ts";
 import Service from "../../../model/Service.ts";
 import {useDebounceFn} from '@vueuse/core'
-import MyIcon from "../../icon/my-icon.vue";
 import MyTag from "../../tag/my-tag.vue";
-import Snowflake from "../../../model/Snowflake.ts";
-import {borderStyleType} from "../../icon/types.ts";
-import MyPopover from "../../popover/my-popover.vue";
 import {MyMany2ManySelectProps} from "./types.ts";
+import { objectCloneDeep } from "../../../util/ObjectUtils.ts";
+import Snowflake from "../../../model/Snowflake.ts";
 
-const serviceFieldStore = useGlobalFieldDataStore()
-const serviceStore = useGlobalServiceDataStore()
+const serviceFieldStore = useFieldStore()
+const serviceStore = useServiceStore()
 
 const props = defineProps<MyMany2ManySelectProps>()
 const service = ref<Service>()
-const emit = defineEmits(['rightBtnClick'])
+const emit = defineEmits(['rightBtnClick', 'blur'])
 
-// 格式 {id:1,name:"显示"}
-const formField = defineModel({
-  type: FormField,
-  required: true
+// 格式 {id:1,name:"显示"} name的字段不一定是name
+const formField = defineModel<any[]>({
+  type: Array,
+  default: () => []
 })
-const labelValue = new FormField('');
-labelValue.Field = formField.value?.Field
-const labelField = ref<FormField>(labelValue)
-const popperSelect = ref<any | null>(null)
 
-const relativeServiceName = ref('')
-const relativeServiceId = ref('')
-if (formField.value.Field) {
-  const serviceName = formField.value.Field?.relativeServiceName
-  serviceStore.getServiceByNameAsync(serviceName).then(data => {
-    relativeServiceName.value = data.nameField;
-    relativeServiceId.value = data.keyField;
-  })
+const formFieldSelected = computed({
+  get() {
+    return formField.value.map(item => item[props.relativeForeignKeyName][relativeServiceId.value])
+  },
+  set(value: any[]) {
+    // 根据选中的值更新 formField
+    if (Array.isArray(value)) {
+      formField.value = value.map(id => {
+        // 从 options 中找到对应的完整对象
+        const option = options.value.find(opt => opt[relativeServiceId.value] === id)
+        if (option) {
+          return {
+            id:Symbol(Snowflake.getNextId()),
+            [props.relativeForeignKeyName]: {
+              id: option[relativeServiceId.value],
+            [relativeServiceName.value]: option[relativeServiceName.value], // 确保包含 name 属性
+          }}
+        }
+        return {
+          id:Symbol(Snowflake.getNextId()),
+          [props.relativeForeignKeyName]: {
+            id: id,
+            [relativeServiceName.value]: ''
+          }
+        }
+      })
+    }
+  }
+})
+
+const relativeServiceName = ref(props.relativeServiceName || '')
+const relativeServiceId = ref(props.relativeServiceId || '')
+const options = ref<Record<string, any>[]>([])
+let init = true
+
+// 从 props 中获取服务信息
+if (props.serviceName) {
+  if(!relativeServiceName.value) {
+    serviceStore.getServiceByNameAsync(props.serviceName).then(data => {
+      relativeServiceName.value = data.nameField;
+      relativeServiceId.value = data.keyField;
+    })
+  }
 }
 
-watch(() => formField.value?.value, () => {
+watch(() => formField.value, () => {
   setValidate(true)
 })
 
-const options = ref<Record<string, any>[]>([])
-let init = true
+const initOptions = () => {
+  const selected = objectCloneDeep(formField.value.map(item => item[props.relativeForeignKeyName]))
+  for(let i = 0; i < selected.length; i++) {
+    const item = selected[i]
+    const option = options.value.find(opt => opt[relativeServiceId.value] === item[relativeServiceId.value])
+    if (!option) {
+      options.value.push(item)
+    }
+  }
+}
+
+// 计算可选项，排除已选择的项
+const computedOptions = computed(() => {
+  return options.value
+})
 
 onMounted(() => {
   if (props.serviceName) {
     service.value = serviceStore.getServiceByName(props.serviceName);
   }
-  if (formField.value?.value) {
+  if (formField.value && formField.value.length > 0) {
+    initOptions()
     if (init) {
-      formatName()
       init = false
     }
-
   } else {
     loadServiceOption()
   }
 })
 
-const formatName = () => {
-  if (formField.value?.value) {
-    const find = formField.value?.value ? formField.value?.value : null
-    if (find) {
-      labelField.value.value = find[service.value?.nameField as string]
-    }
-  }
-}
-
 const loadServiceOption = (name?: string) => {
   if (props.serviceName && service.value) {
     let condition = "";
-    if (formField.value.value) {
-      const values = []
-      for (let tag of formField.value.value) {
-        if (formField.value.Field) {
-          values.push(tag[formField.value.Field.relativeForeignKeyName][relativeServiceId.value])
-        }
-      }
+    if (formField.value && formField.value.length > 0) {
+      const values = formField.value.map(item => item.id)
       if (values.length) {
-        if (formField.value.Field) {
-          condition = `('${relativeServiceId.value}',notIn , ${values.join()})`
-        }
+        condition = `('${relativeServiceId.value}',notIn , ${values.join()})`
       }
     }
     if (condition) {
@@ -105,7 +129,6 @@ const loadServiceOption = (name?: string) => {
       options.value.splice(0, options.value.length)
       options.value.push(...pageInfo.data)
       if (init) {
-        formatName()
         init = false
       }
     })
@@ -113,117 +136,90 @@ const loadServiceOption = (name?: string) => {
 }
 
 const setValidate = (valid: boolean) => {
-  if (formField.value) {
-    formField.value.isValidate = valid
-  }
+  // 验证逻辑保持不变，但不再设置 isValidate 属性
 }
 
 const validate = (): boolean => {
   if (!props.required) {
-    setValidate(true)
     return true;
   }
-  setValidate(!!formField.value?.value)
-  return formField.value ? formField.value.isValidate : false
+  return formField.value && formField.value.length > 0
 }
-
 
 const optionSelectClick = (key: Record<string, any>) => {
-  if (formField.value) {
-    if (formField.value.Field) {
-      const option: any = {}
-      option['id'] = Symbol(Snowflake.getNextId())
-      option[formField.value.Field.relativeForeignKeyName] = {...key}
-      formField.value.value.push(option)
-    }
+  const newItem = {
+    id: key[relativeServiceId.value],
+    name: key[relativeServiceName.value]
   }
-  if (labelField.value) {
-    formatName()
-  }
-  if (popperSelect.value) {
-    popperSelect.value.hide()
-  }
+  formField.value.push(newItem)
 }
-const labelInput = (e: any) => {
-  const nameValue = e.target.value
-  popperSelect.value?.show();
-  doLabelInput(nameValue)
-}
-const doLabelInput = useDebounceFn((value: string) => {
-  loadServiceOption(value)
-}, 500)
 
-const popperShow = () => {
-  options.value.splice(0, options.value.length)
-  loadServiceOption()
-}
 const deleteTagClick = (tagValue: any) => {
-  const tagIndex = formField.value.value.findIndex((x: any) => x.id === tagValue.id)
+  const tagIndex = formField.value.findIndex((x: any) => x.id === tagValue.id)
   if (tagIndex >= 0) {
-    formField.value.value.splice(tagValue, 1)
+    formField.value.splice(tagIndex, 1)
   }
 }
+
 const tagClick = (tagValue: any) => {
   console.log("tagClick", tagValue)
 }
 
-const many2Click = () => {
-
+const inputBlurClick = () => {
+  emit('blur')
 }
+
+const handleSearch = useDebounceFn((value: string) => {
+  loadServiceOption(value)
+}, 500)
+
 defineExpose<InputExpose>({validate})
 
 </script>
 
 <template>
-  <div class="flex relative" @click="many2Click">
+  <div class="flex relative w-full">
     <div class="inline-flex w-full relative items-center flex-wrap gap-1">
-      <template v-for="(fieldValue,index) in formField.value" :key="index">
-        <MyTag :closable="!readonly"  v-if="relativeServiceName && formField.Field"
-               :label="fieldValue[formField.Field.relativeForeignKeyName][relativeServiceName]"
-               :value="fieldValue" @close="deleteTagClick" @click="tagClick"/>
+      <!-- readonly 模式显示标签 -->
+      <template v-if="readonly">
+        <template v-for="(fieldValue,index) in formField" :key="index">
+          <MyTag 
+            :closable="false" 
+            :round="false"
+            :label="fieldValue[props.relativeForeignKeyName][relativeServiceName]"
+            :value="fieldValue" 
+            @click="tagClick"
+          />
+        </template>
       </template>
-      <MyPopover v-if="!readonly"
-                 placement="bottom-start" trigger="click"
-                 popper-class="py-2 max-h-[300px] overflow-hidden overflow-y-auto"
-                 default-class="w-full flex-1 min-w-[120px]"
-                 ref="popperSelect"
-                 @show="popperShow">
-        <template v-slot:default>
-          <div class="inline-flex relative w-full">
-            <my-input class="w-full" v-model="labelField" suffix-icon-type="fas" suffix-icon="caret-down"
-                      @input="labelInput"/>
-            <!--            <input-->
-            <!--                :class="['form-input-control','flex-1','w-full', 'rounded',{'form-input-control-error': !labelField.isValidate,-->
-            <!--                             'border':border == 'round', 'border-b':border == 'bottom'}]"-->
-            <!--                style="padding-right: 25px"-->
-            <!--                v-if="labelField"-->
-            <!--                type="text"-->
-            <!--                v-model="labelField.value" :id="htmlId"-->
-            <!--                @input="labelInput"-->
-            <!--                :name="htmlName">-->
-            <!--            <MyIcon class="absolute right-[10px] top-[50%]" style="transform: translateY(-50%)"-->
-            <!--                    icon="caret-down"-->
-            <!--                    type="fas" size="sm"></MyIcon>-->
+      
+      <!-- 非 readonly 模式显示选择器 -->
+      <el-select
+        v-else
+        v-model="formFieldSelected"
+        placeholder="请选择"
+        clearable
+        multiple
+        filterable
+        remote
+        :remote-method="handleSearch"
+        @change="inputBlurClick"
+        @blur="inputBlurClick"
+        style="width: 100%">
+        <el-option
+          v-for="(value, index) in computedOptions"
+          :key="index"
+          :label="value[relativeServiceName]"
+          :value="value[relativeServiceId]"
+        />
+        <template #empty>
+          <div class="px-4">
+            无匹配数据
           </div>
         </template>
-        <template v-slot:content>
-          <div class="flex flex-col w-full min-w-[250px]">
-            <div v-for="(value,index) in options" :key="index"
-                 class="w-full cursor-pointer hover:bg-background-component px-4 "
-                 @click="optionSelectClick(value)">
-              {{ value[service?.nameField as string] }}
-            </div>
-            <div v-if="options.length == 0" class="w-full px-4">
-              无匹配数据
-            </div>
-          </div>
-        </template>
-      </MyPopover>
+      </el-select>
     </div>
-
   </div>
-
-
 </template>
 
 <style scoped>

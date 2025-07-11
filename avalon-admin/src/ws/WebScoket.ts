@@ -2,7 +2,7 @@ import {getImUserIdCache, getMessageId} from "./wsAPI.ts";
 import {getTick} from "../util/dateUtils.ts";
 import {getToken} from "../cache/tokenStorage.ts";
 import ChatMessage from "../model/im/ChatMessage.ts";
-import MyNotification from "../components/notification";
+import { ElNotification } from "element-plus";
 
 export interface ReconnectingWebSocketOptions {
     maxReconnectAttempts?: number; // 最大重连次数
@@ -99,7 +99,11 @@ export class ReconnectingWebSocket {
                 if (msg.msgType == 'Image') {
                     msgContent = '[图片]';
                 }
-                MyNotification.info('您有一条消息', msgContent);
+                ElNotification({
+                    title: '您有一条消息',
+                    message: msgContent,
+                    type: 'info'
+                });
             }
         };
 

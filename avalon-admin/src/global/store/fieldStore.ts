@@ -6,14 +6,11 @@
 import {ref} from 'vue'
 import {createGlobalState} from "@vueuse/core";
 import Field from "../../model/Field.ts";
-import {useGlobalServiceDataStore} from "./serviceStore.ts";
-import Service from "../../model/Service.ts";
-import {getServiceFieldApi} from "../../api/modelApi.ts";
+import {useServiceStore} from "./serviceStore.ts";
 import {getFieldsByServiceName} from "../../api/commonApi.ts";
 
-const useServiceDataStore = useGlobalServiceDataStore();
 
-export const useGlobalFieldDataStore = createGlobalState(() => {
+export const useFieldStore = createGlobalState(() => {
     const field = ref<Field[]>([])
     const fields = ref<any>({})
 
@@ -35,7 +32,7 @@ export const useGlobalFieldDataStore = createGlobalState(() => {
     }
 
     function getFieldByServiceName(service: string) {
-        const serviceId = useServiceDataStore.getServiceIdByName(service) as number
+        const serviceId = useServiceStore().getServiceIdByName(service) as number
         return field.value.filter((item) => item.serviceId === serviceId);
     }
 

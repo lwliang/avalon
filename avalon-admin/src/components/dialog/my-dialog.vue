@@ -3,115 +3,143 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import './my-dialog.css'
-import MyIcon from "../icon/my-icon.vue";
-import MyButton from "../button/my-button.vue";
-import myOverlay from '../overlay/my-overlay.vue';
-import {useDraggable} from '@vueuse/core'
-import {computed, nextTick, ref, watch} from "vue";
+import {computed} from "vue";
+import {ElDialog, ElButton} from 'element-plus'
+
 
 const props = withDefaults(defineProps<{
-  zIndex?: number,
-  title: string,
-  show: boolean,
+  modelValue?: boolean
+  title?: string
+  width?: string | number
+  fullscreen?: boolean
+  top?: string
+  modal?: boolean
+  appendToBody?: boolean
+  lockScroll?: boolean
+  closeOnClickModal?: boolean
+  closeOnPressEscape?: boolean
+  showClose?: boolean
+  beforeClose?: (done: () => void) => void
+  draggable?: boolean
+  center?: boolean
+  destroyOnClose?: boolean
+  bodyClass?: string
+  bodyStyle?: object
+  direction?: 'ltr' | 'rtl'
+  closeIcon?: string
+  openDelay?: number
+  closeDelay?: number
+  trapFocus?: boolean
+  focusOnShow?: boolean
+  focusOnHide?: boolean
+  role?: string
+  ariaLabel?: string
+  ariaDescribedby?: string
+  ariaLabelledby?: string
+  ariaModal?: boolean
+  zIndex?: number
   dialogClass?: string
   dialogStyle?: string | object
 }>(), {
+  modelValue: false,
+  title: '',
+  width: '50%',
+  fullscreen: false,
+  top: '15vh',
+  modal: true,
+  appendToBody: false,
+  lockScroll: true,
+  closeOnClickModal: true,
+  closeOnPressEscape: true,
+  showClose: true,
+  draggable: false,
+  center: false,
+  destroyOnClose: false,
+  direction: 'ltr',
+  closeIcon: 'Close',
+  openDelay: 0,
+  closeDelay: 0,
+  trapFocus: true,
+  focusOnShow: true,
+  focusOnHide: true,
+  role: 'dialog',
+  ariaModal: true,
   zIndex: 2000
 })
 
-const dialogRef = ref<HTMLElement | null>(null)
-const position = ref({x: 0, y: 0})
-// 只允许通过头部拖动
-const dragHandle = ref<HTMLElement | null>(null)
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'open'): void
+  (e: 'opened'): void
+  (e: 'close'): void
+  (e: 'closed'): void
+  (e: 'sure'): void
+}>()
 
-useDraggable(dialogRef, {
-  initialValue: position.value,
-  handle: dragHandle,
-  onMove({x, y}) {
-    position.value.x = x
-    position.value.y = y
-  },
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val: boolean) => {
+    emit('update:modelValue', val)
+  }
 })
 
-const emit = defineEmits(['close', 'sure'])
-
-function centerDialog() {
-  nextTick(() => {
-    const dialog = dialogRef.value;
-    if (dialog) {
-      const {width, height} = dialog.getBoundingClientRect();
-      const x = (window.innerWidth - width) / 2;
-      const y = (window.innerHeight - height) / 2;
-      position.value = {x, y};
-    }
-  });
-}
-
-// 只在show变true时居中一次
-watch(
-    () => props.show,
-    (val, oldVal) => {
-      if (val && !oldVal) {
-        centerDialog();
-      }
-    }, {immediate: true}
-);
 const closeClick = () => {
   emit('close')
+  dialogVisible.value = false
 }
 
 const sureClick = () => {
   emit('sure')
 }
-
-const mergedStyle = computed(() => {
-  // 兼容 string/object/array
-  let style = {}
-  if (Array.isArray(props.dialogStyle)) {
-    style = [{zIndex: props.zIndex}, ...props.dialogStyle].filter(Boolean)
-  }
-  if (props.dialogStyle) {
-    style = [{zIndex: props.zIndex}, props.dialogStyle]
-  }
-
-  return [style, {
-    left: position.value.x + 'px',
-    top: position.value.y + 'px',
-  }]
-})
-
 </script>
 
 <template>
-  <myOverlay :show="show">
-    <div ref="dialogRef" :class="['dialog min-w-[500px] pl-4 pr-4 pb-4 bg-background flex flex-col flex-shrink-0',dialogClass]"
-         :style="mergedStyle">
-      <div class="dialog-dragger h-4" :style="{ cursor: 'move' }" ref="dragHandle">
-
-      </div>
-      <div class="dialog-header flex">
-        <div class="dialog-title flex-1 select-none">
-          {{ title }}
-        </div>
-        <div class="dialog-close pr-2">
-          <MyIcon class="cursor-pointer" icon="xmark" type="fas" @click="closeClick"></MyIcon>
-        </div>
-      </div>
-      <div class="dialog-content flex-1">
-        <slot name="default"></slot>
-      </div>
-      <div class="dialog-footer flex justify-end">
-        <template v-if="$slots.footer">
-          <slot name="footer"></slot>
-        </template>
-        <template v-else>
-          <MyButton type="info" rounded @click="closeClick">取消</MyButton>
-          <MyButton class="ml-3" type="primary" rounded @click="sureClick">确认</MyButton>
-        </template>
-      </div>
-    </div>
-  </myOverlay>
+  <el-dialog
+    v-model="dialogVisible"
+    :title="title"
+    :width="width"
+    :fullscreen="fullscreen"
+    :top="top"
+    :modal="modal"
+    :append-to-body="appendToBody"
+    :lock-scroll="lockScroll"
+    :close-on-click-modal="closeOnClickModal"
+    :close-on-press-escape="closeOnPressEscape"
+    :show-close="showClose"
+    :before-close="beforeClose"
+    :draggable="draggable"
+    :center="center"
+    :destroy-on-close="destroyOnClose"
+    :body-class="bodyClass || dialogClass"
+    :body-style="bodyStyle || dialogStyle"
+    :direction="direction"
+    :close-icon="closeIcon"
+    :open-delay="openDelay"
+    :close-delay="closeDelay"
+    :trap-focus="trapFocus"
+    :focus-on-show="focusOnShow"
+    :focus-on-hide="focusOnHide"
+    :role="role"
+    :aria-label="ariaLabel"
+    :aria-describedby="ariaDescribedby"
+    :aria-labelledby="ariaLabelledby"
+    :aria-modal="ariaModal"
+    :z-index="zIndex"
+    @open="() => emit('open')"
+    @opened="() => emit('opened')"
+    @close="closeClick"
+    @closed="() => emit('closed')">
+    <slot name="default"></slot>
+    <template #footer>
+      <template v-if="$slots.footer">
+        <slot name="footer"></slot>
+      </template>
+      <template v-else>
+        <el-button type="info" @click="closeClick">取消</el-button>
+        <el-button type="primary" @click="sureClick">确认</el-button>
+      </template>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>

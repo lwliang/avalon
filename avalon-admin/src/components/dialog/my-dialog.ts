@@ -11,17 +11,20 @@ export function createUploadDocumentDialog(title: String, show: boolean) {
     zIndex++;
     const div = document.createElement("div");
     div.classList.add('upload-document')
+    document.body.appendChild(div); // 添加到 body 中
     const vm = createVNode(uploadDocumentDialog, {
         title,
-        show,
+        modelValue: show, // 使用 modelValue 而不是 show
         zIndex,
         closeCallback: () => {
             // 卸载组件
             render(null, div);
+            document.body.removeChild(div); // 移除 DOM 元素
         },
         sureCallback: () => {
             // 卸载组件
             render(null, div);
+            document.body.removeChild(div); // 移除 DOM 元素
         }
     })
     render(vm, div)

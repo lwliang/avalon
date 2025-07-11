@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="qq_email_server" service="email.server">
+        <field name="name">QQ邮箱</field>
+        <field name="host">imap.qq.com</field>
+        <field name="port">993</field>
+        <field name="sendHost">smtp.qq.com</field>
+        <field name="sendPort">465</field>
+        <field name="protocol">ssl</field>
+    </record>
+    <record id="wangyi_163_email_server" service="email.server">
+        <field name="name">163邮箱</field>
+        <field name="host">imap.163.com</field>
+        <field name="port">993</field>
+        <field name="sendHost">smtp.163.com</field>
+        <field name="sendPort">465</field>
+        <field name="protocol">ssl</field>
+    </record>
+    <record id="wangyi_126_email_server" service="email.server">
+        <field name="name">126邮箱</field>
+        <field name="host">imap.126.com</field>
+        <field name="port">993</field>
+        <field name="sendHost">smtp.126.com</field>
+        <field name="sendPort">465</field>
+        <field name="protocol">ssl</field>
+    </record>
+    <record id="sina_email_server" service="email.server">
+        <field name="name">新浪邮箱</field>
+        <field name="host">imap.sina.com</field>
+        <field name="port">993</field>
+        <field name="sendHost">smtp.sina.com</field>
+        <field name="sendPort">465</field>
+        <field name="protocol">ssl</field>
+    </record>
+    <record id="sohu_email_server" service="email.server">
+        <field name="name">搜狐邮箱</field>
+        <field name="host">imap.sohu.com</field>
+        <field name="port">993</field>
+        <field name="sendHost">smtp.sohu.com</field>
+        <field name="sendPort">465</field>
+        <field name="protocol">ssl</field>
+    </record>
+    <record id="mxhichina_email_server" service="email.server">
+        <field name="name">阿里云邮箱</field>
+        <field name="host">imap.mxhichina.com</field>
+        <field name="port">993</field>
+        <field name="sendHost">smtp.mxhichina.com</field>
+        <field name="sendPort">465</field>
+        <field name="protocol">ssl</field>
+    </record>
+    <record id="exmail_email_server" service="email.server">
+        <field name="name">腾讯企业邮箱</field>
+        <field name="host">imap.exmail.qq.com</field>
+        <field name="port">993</field>
+        <field name="sendHost">smtp.exmail.qq.com</field>
+        <field name="sendPort">465</field>
+        <field name="protocol">ssl</field>
+    </record>
+    <record id="gmail_email_server" service="email.server">
+        <field name="name">Gmail</field>
+        <field name="host">imap.gmail.com</field>
+        <field name="port">993</field>
+        <field name="sendHost">smtp.gmail.com</field>
+        <field name="sendPort">465</field>
+        <field name="protocol">ssl</field>
+    </record>
+</avalon>

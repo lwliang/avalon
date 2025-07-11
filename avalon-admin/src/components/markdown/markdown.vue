@@ -76,7 +76,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div ref="markdown" class="markdown h-full" :id="htmlId">
+    <div ref="markdown" class="markdown h-full" :id="htmlId" style="min-height: 300px;">
 
     </div>
 </template>

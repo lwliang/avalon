@@ -5,9 +5,9 @@
  */
 import {useRoute} from "vue-router";
 import ModuleMenu from "../components/module/menu/module-menu.vue";
-import MyMenu from "../components/menu/my-menu.vue";
-import {useGlobalMenuDataStore} from "../global/store/menuStore.ts";
-import {useGlobalModuleDataStore} from "../global/store/moduleStore.ts";
+import ServiceMenu from "../components/menu/service-menu.vue";
+import {useMenuStore} from "../global/store/menuStore.ts";
+import {useModuleStore} from "../global/store/moduleStore.ts";
 import {goModelWindow} from "../util/routerUtils.ts";
 import Module from "../model/Module.ts";
 import UserInfo from "../components/user-info/user-info.vue";
@@ -20,9 +20,9 @@ import MyThemeSwitch from "../components/theme-switch/my-theme-switch.vue";
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 
-const menuStore = useGlobalMenuDataStore();
+const menuStore = useMenuStore();
 const routeStore = useRouteStore()
-const moduleStore = useGlobalModuleDataStore();
+const moduleStore = useModuleStore();
 const route = useRoute();
 const serviceName = ref<string>(route.params.service as string)
 
@@ -67,7 +67,10 @@ const menuClick = (menu: MenuModel) => {
       param: {}
     }
     invokeMethod(menu.serviceId.name, param).then(data => {
-      proxy?.$notify.success("提示", "操作成功");
+      proxy?.$notify.success({
+        title: "提示",
+        message: "操作成功",
+      });
     })
   }
 }
@@ -76,18 +79,17 @@ const menuClick = (menu: MenuModel) => {
 <template>
   <div class="flex h-full">
     <div
-        class="w-[70px] flex flex-col items-center border-r overflow-y-auto flex-shrink-0 border-r border-border border-solid border-t-0 border-l-0 border-b-0">
+        class="w-[70px] flex flex-col items-center overflow-x-hidden overflow-y-auto flex-shrink-0 border-r border-border border-solid border-t-0 border-l-0 border-b-0">
       <ModuleMenu @moduleClick="moduleClick"></ModuleMenu>
     </div>
     <div class="flex-1 flex flex-col overflow-hidden">
       <div class="h-[46px] flex items-center w-full overflow-y-auto">
         <div class="pl-4 flex-1 overflow-x-auto">
           <div class="">
-            <MyMenu @menuClick="menuClick"></MyMenu>
+            <ServiceMenu @menuClick="menuClick"></ServiceMenu>
           </div>
         </div>
         <div class="pr-4 flex-shrink-0 flex gap-2 items-center">
-          <my-theme-switch></my-theme-switch>
           <UserInfo></UserInfo>
         </div>
       </div>

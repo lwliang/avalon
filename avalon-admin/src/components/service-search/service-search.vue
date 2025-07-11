@@ -6,8 +6,8 @@ import {getActionTreeView} from "../../api/commonApi.ts";
 import ActionView from "../../model/view/ActionView.ts";
 import {getTemplate, XMLParserResult} from "../../xml/XMLParserResult.ts";
 import {parserEx} from "../../xml/XMLParser.ts";
-import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
-import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
+import {useFieldStore} from "../../global/store/fieldStore.ts";
+import {useServiceStore} from "../../global/store/serviceStore.ts";
 import {getModelPageApi} from "../../api/modelApi.ts";
 import {getPageSize} from "../../api/env.ts";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
@@ -24,8 +24,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['rowSelectChange'])
 
-const serviceFieldStore = useGlobalFieldDataStore()
-const serviceStore = useGlobalServiceDataStore()
+const serviceFieldStore = useFieldStore()
+const serviceStore = useServiceStore()
 
 const record = ref<any[]>([])
 const tableHeight = ref('600px')
@@ -137,22 +137,24 @@ const rowSelectChangeEvent = (selectedSum: number, ids: any[]) => {
 
 <template>
   <div class="h-full flex flex-col">
-    <div class="flex items-center flex-shrink-0">
-      <div class="flex-1"></div>
-      <div class="flex-4">
+    <el-row>
+      <el-col :span="4"></el-col>
+      <el-col :span="16">
         <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
                   :serviceName="service"/>
-      </div>
-      <div class="flex-1 flex justify-end pr-2 items-center">
-        <MyPagination v-model:total="total" v-model:begin="begin" v-model:end="end"
-                      @pageChange="handlePageChange"></MyPagination>
-      </div>
-    </div>
-    <div class="py-4 flex-1 overflow-y-auto">
+      </el-col>
+      <el-col :span="4">
+        <div class="flex justify-end pr-2 items-center">
+          <MyPagination v-model:total="total" v-model:begin="begin" v-model:end="end"
+                        @pageChange="handlePageChange"></MyPagination>
+        </div>
+      </el-col>
+    </el-row>
+    <el-scrollbar class="py-4 flex-1 ">
       <MyTable height="100%" :record="record" :fields="services_fields" :service-name="service"
                :showDeleteBtn="false" :showSelectBtn="true" @row-select-change="rowSelectChangeEvent">
       </MyTable>
-    </div>
+    </el-scrollbar>
   </div>
 </template>
 

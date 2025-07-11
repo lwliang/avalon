@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import Field from "../../model/Field.ts";
-import FormField from "../../model/FormField.ts";
-import MyInput from "../input/my-input.vue";
-import {FilterOperator} from "../../model/FilterCondition.ts";
-
+import { FilterOperator } from "../../model/FilterCondition.ts";
 
 /**
  * @author lwlianghehe@gmail.com
@@ -15,13 +12,18 @@ const props = defineProps<{
   operate: FilterOperator | undefined,
 }>()
 
-const formField = defineModel({type: FormField, required: true})
-
-
+const formField = defineModel<string>({
+  default: ''
+})
 </script>
 
 <template>
-  <my-input placeholder="查询值" v-model="formField"/>
+  <el-input
+    v-model="formField"
+    placeholder="请输入查询值"
+    clearable
+    style="width: 100%"
+  />
 </template>
 
 <style scoped>

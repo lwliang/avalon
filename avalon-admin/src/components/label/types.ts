@@ -10,6 +10,10 @@ export type LabelSize = 'large' | 'default' | 'small'
 export interface LabelProps {
     type?: LabelType
     size?: LabelSize
-    icon?: string
-    iconType?: IconType
+    icon?: string // Element Plus 图标名称
+    closable?: boolean // 是否可关闭
+    disableTransitions?: boolean // 是否禁用过渡动画
+    hit?: boolean // 是否有边框描边
+    color?: string // 背景色
+    effect?: 'dark' | 'light' | 'plain' // 主题
 }

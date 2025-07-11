@@ -7,13 +7,13 @@ import {ref, watch} from "vue";
 import {getActionSearchView} from "../../api/commonApi.ts";
 import {parserEx} from "../../xml/XMLParser.ts";
 import {XMLParserResult} from "../../xml/XMLParserResult.ts";
-import {arrow, flip, offset, shift, useFloating} from '@floating-ui/vue';
 import Field from "../../model/Field.ts";
-import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
-import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
+import {useFieldStore} from "../../global/store/fieldStore.ts";
+import {useServiceStore} from "../../global/store/serviceStore.ts";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
 import {getJoinFirstField, hasJoin} from "../../util/fieldUtils.ts";
 import MySearchConditionModel from "./my-search-condition-model.vue";
+import MyIcon from "../icon/my-icon.vue";
 
 /**
  * @author lwlianghehe@gmail.com
@@ -25,21 +25,13 @@ const props = defineProps<{
   arrowShow?: Boolean,
 }>()
 
-const serviceStore = useGlobalServiceDataStore()
-
-const fieldDataStore = useGlobalFieldDataStore();
-const serviceDataStore = useGlobalServiceDataStore();
+const serviceStore = useServiceStore()
+const fieldDataStore = useFieldStore();
 const emit = defineEmits(['conditionChange'])
 
-const reference = ref<any>(null);
-const floating = ref(null);
-const floatingArrow = ref(null);
-const {floatingStyles, middlewareData, placement} = useFloating(reference, floating, {
-  placement: 'bottom',
-  middleware: [offset(8), flip(), shift(), arrow({element: floatingArrow})],
-});
-
 const searchValue = ref<String>('')
+const searchPopperRef = ref()
+const selectedIndex = ref<number>(-1)
 
 const arch = ref<string>('')
 let parserResult = ref<XMLParserResult | null>();
@@ -59,31 +51,59 @@ if (props.serviceName) {
   loadSearchView(props.serviceName)
 }
 
-const searchPopperRef = ref()
-const showPopper = () => {
-  if (searchPopperRef.value) {
-    searchPopperRef.value.show()
-  }
-}
-const hidePopper = () => {
-  if (searchPopperRef.value) {
-    searchPopperRef.value.hide()
-  }
-}
-
 watch(() => searchValue.value, (newSearchValue) => {
   if (newSearchValue) {
-    showPopper();
+    selectedIndex.value = -1; // 重置选中索引
   } else {
-    hidePopper();
+    selectedIndex.value = -1;
     emit('conditionChange', '');
   }
 })
 
+// 键盘导航处理
+const handleKeydown = (event: KeyboardEvent) => {
+  if (!searchValue.value || fields.value.length === 0) return;
+  
+  switch (event.key) {
+    case 'ArrowDown':
+      event.preventDefault();
+      selectedIndex.value = Math.min(selectedIndex.value + 1, fields.value.length - 1);
+      break;
+    case 'ArrowUp':
+      event.preventDefault();
+      selectedIndex.value = Math.max(selectedIndex.value - 1, -1);
+      break;
+    case 'Enter':
+      event.preventDefault();
+      if (selectedIndex.value >= 0 && selectedIndex.value < fields.value.length) {
+        const selectedField = fields.value[selectedIndex.value];
+        searchChange(selectedField.name, selectedField.fieldMeta, searchValue.value);
+        // 选择后清空输入内容，自动隐藏popover
+        searchValue.value = '';
+        selectedIndex.value = -1;
+      }
+      break;
+    case 'Escape':
+      selectedIndex.value = -1;
+      searchValue.value = '';
+      break;
+  }
+};
+
+// 鼠标悬停处理
+const handleMouseEnter = (index: number) => {
+  selectedIndex.value = index;
+};
+
+// 鼠标离开处理
+const handleMouseLeave = () => {
+  selectedIndex.value = -1;
+};
+
 const fields = ref<{ name: string, label: string, fieldMeta: Field }[]>([])
 const loadField = async (fieldArr: any[]) => {
   const fieldTemp = await fieldDataStore.getFieldByServiceNameAsync(props.serviceName)
-  const service = await serviceDataStore.getServiceByNameAsync(props.serviceName)
+  const service = await serviceStore.getServiceByNameAsync(props.serviceName)
   fields.value.splice(0, fields.value.length);
   const nameField = fieldArr.find((x) => x.name == service.nameField)
   if (!nameField) {
@@ -127,7 +147,6 @@ const searchChange = async (originName: string, field: Field, value: String) => 
   if (searchCondition) {
     emit('conditionChange', searchCondition);
   }
-  hidePopper();
 }
 
 const searchConditionShow = ref(false)
@@ -155,46 +174,89 @@ const clearSearchConditionClick = () => {
 
 <template>
   <div class="relative h-[34px] w-full">
-    <my-popover ref="searchPopperRef" placement="bottom" trigger="click" :arrow-show="false"
-                popper-class="w-[570px] h-fit">
-      <div ref="reference" class="w-[570px]">
-        <div class="flex border border-solid border-border items-center gap-2 px-3 h-[34px]  rounded overflow-hidden">
-          <MyIcon type="fas" icon="search" size="sm"></MyIcon>
-          <div class="flex bg-background-component rounded-lg px-1" v-if="searchConditionStr">
-            <div class="px-1">{{ searchConditionStr }}</div>
-            <div class="cursor-pointer" @click="clearSearchConditionClick">x</div>
-          </div>
-          <input placeholder="搜索..." class="text inline-block flex-1 w-full" type="text"
-                 v-model="searchValue">
-          <MyIcon @click.stop="showSearchConditionModel" class="cursor-pointer" type="fas" icon="caret-down"
-                  size="sm"></MyIcon>
-        </div>
-      </div>
-      <template #content>
-        <div :class="['bg-background shadow-sm hover:shadow-lg hover:shadow-primary/20 transition-shadow border border-border border-solid py-2',
-         {'z-9999':true,popover:true,'w-full':fullWidth,'popover-p':!fullWidth,'popover-full-p':fullWidth}]">
-          <div class="">
+    <el-popover 
+      ref="searchPopperRef" 
+      placement="bottom" 
+      trigger="manual"
+      :show-arrow="false"
+      popper-class="search-popover"
+      :visible="!!searchValue && fields.length > 0"
+    >
+      <template #reference>
+        <el-input
+          v-model="searchValue"
+          placeholder="搜索..."
+          size="default"
+          class="w-[570px]"
+          clearable
+          @keydown="handleKeydown"
+        >
+          <template #prefix>
+            <MyIcon type="fas" icon="search" size="sm" />
+          </template>
+          
+          <template #prepend v-if="searchConditionStr">
+            <div class="flex items-center bg-gray-100 px-2 rounded">
+              <span class="text-sm text-gray-600">{{ searchConditionStr }}</span>
+              <MyIcon class="ml-1 cursor-pointer" type="fas" icon="xmark" size="sm" @click="clearSearchConditionClick"/>
+            </div>
+          </template>
+          
+          <template #suffix>
+            <MyIcon 
+              @click.stop="showSearchConditionModel" 
+              class="cursor-pointer" 
+              type="fas" 
+              icon="caret-down"
+              size="sm"
+            />
+          </template>
+        </el-input>
+      </template>
+      
+      <template #default>
+        <div class="bg-background shadow-sm hover:shadow-lg hover:shadow-primary/20 transition-shadow border border-border border-solid py-2">
+          <div>
             <div v-for="(field, index) in fields" :key="index"
-                 class="flex items-center px-6 gap-2 py-0.5 cursor-pointer hover:bg-gray-100"
-                 @click="searchChange(field.name,field.fieldMeta,searchValue)">
+                 :class="[
+                   'flex items-center px-6 gap-2 py-0.5 cursor-pointer transition-colors',
+                   selectedIndex === index ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'
+                 ]"
+                 @click="() => {
+                   searchChange(field.name, field.fieldMeta, searchValue);
+                   searchValue = '';
+                   selectedIndex = -1;
+                 }"
+                 @mouseenter="handleMouseEnter(index)"
+                 @mouseleave="handleMouseLeave">
               <div>搜索</div>
               <div class="font-bold">{{ field.label }}</div>
               <div>包含</div>
               <div class="text-primary">{{ searchValue }}</div>
             </div>
           </div>
-
         </div>
       </template>
-    </my-popover>
+    </el-popover>
 
 
-    <my-search-condition-model :service-name="serviceName" :show="searchConditionShow"
+    <my-search-condition-model :service-name="serviceName" v-model="searchConditionShow"
                                @sureClick="searchConditionSure" @close-click="searchConditionClose"/>
   </div>
 
 </template>
 
 <style scoped>
+/* 自定义搜索popover样式 */
+:global(.search-popover) {
+  width: 570px !important;
+  height: fit-content;
+  padding: 0 !important;
+}
+
+:global(.search-popover .el-popover__content) {
+  padding: 0 !important;
+  width: 100% !important;
+}
 
 </style>

@@ -11,8 +11,8 @@ import ActionView from "../../../../model/view/ActionView.ts";
 import {getTemplate, XMLParserResult} from "../../../../xml/XMLParserResult.ts";
 import {parserEx} from "../../../../xml/XMLParser.ts";
 import {refreshPage} from "../../../../util/commonUtils.ts";
-import {useGlobalFieldDataStore} from "../../../../global/store/fieldStore.ts";
-import {useGlobalServiceDataStore} from "../../../../global/store/serviceStore.ts";
+import {useFieldStore} from "../../../../global/store/fieldStore.ts";
+import {useServiceStore} from "../../../../global/store/serviceStore.ts";
 import {getActionKanbanView} from "../../../../api/commonApi.ts";
 import MySearch from "../../../../components/search/my-search.vue";
 import {getPageSize} from "../../../../api/env.ts";
@@ -21,8 +21,8 @@ import ServiceInvokeParam from "../../../../model/ServiceInvokeParam.ts";
 
 
 const route = useRoute();
-const serviceFieldStore = useGlobalFieldDataStore()
-const serviceStore = useGlobalServiceDataStore()
+const serviceFieldStore = useFieldStore()
+const serviceStore = useServiceStore()
 
 const moduleName = ref<string>(route.params.module as string)
 const serviceName = ref<string>(route.params.service as string)
@@ -98,7 +98,10 @@ const btnClick = (arg: ButtonClickEvent, fields: any) => {
   }
   if (serviceName.value) {
     invokeMethod(serviceName.value, param as ServiceInvokeParam).then(data => {
-      proxy?.$notify.success("提示", "操作成功");
+      proxy?.$notify.success({
+        title: "提示",
+        message: "操作成功",
+      });
       setTimeout(() => {
         refreshPage()
       }, 1000)
@@ -121,9 +124,9 @@ const handlePageChange = (dir: string) => {
 </script>
 
 <template>
-  <div class="h-full p-4">
+  <div class="h-full p-4 overflow-hidden flex flex-col box-border">
     <div class="w-full">
-      <div class="pb-4 flex items-start w-full px-4">
+      <div class="h-[50px] flex items-start w-full px-4">
         <div class="flex-1"></div>
         <div class="flex-1">
           <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
@@ -135,12 +138,16 @@ const handlePageChange = (dir: string) => {
         </div>
       </div>
     </div>
-    <div class="flex-1 flex flex-wrap gap-4 overflow-y-auto" style="align-items: flex-start">
-      <div v-for="item in record" :key="item.id" style="height: auto;">
-        <kanbanTemplate v-if="xmlTemplate" :template="xmlTemplate" :fields="item"
-                        @btnClick="btnClick"></kanbanTemplate>
-      </div>
-    </div>
+    <el-scrollbar class="w-full h-full box-border" >
+      <el-row>
+        <el-col :span="6" v-for="item in record" :key="item.id" :xs="24" :sm="12" :md="8" :lg="6">
+          <div class="w-[96%] mb-4">
+            <kanbanTemplate v-if="xmlTemplate" :template="xmlTemplate" :fields="item"
+            @btnClick="btnClick"></kanbanTemplate>
+          </div>
+        </el-col>
+      </el-row>
+    </el-scrollbar>
   </div>
 </template>
 

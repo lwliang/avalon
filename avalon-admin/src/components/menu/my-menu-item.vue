@@ -5,13 +5,11 @@
  */
 import './my-menu.css';
 import MenuModel from "../../model/MenuModel.ts";
-import MyPopover from "../popover/my-popover.vue";
-import {TriggerType} from "../popover/types.ts";
 import MyMenuSubItems from "./my-menu-sub-items.vue";
 
 const props = defineProps<{
   menu: MenuModel,
-  trigger?: TriggerType
+  trigger?: 'click' | 'hover' | 'focus'
 }>()
 const emit = defineEmits<{
   (e: 'menuClick', menu: MenuModel): void
@@ -24,28 +22,43 @@ const menuClickHandler = (menu: MenuModel) => {
 
 <template>
   <template v-if="!menu.children || !menu.children.length">
-    <div class="cursor-pointer  truncate menu-item "
+    <div class="cursor-pointer text-nowrap menu-item"
          @click="menuClickHandler(menu)">
       {{ menu.name }}
     </div>
   </template>
   <template v-else>
-    <MyPopover ref="popper" placement="bottom" :trigger="trigger" :arrow-show="false" popper-class="py-1">
-      <template #default>
-        <div class="cursor-pointer my-menu truncate menu-item">
+    <el-popover
+      placement="bottom"
+      :trigger="trigger || 'hover'"
+      :show-arrow="false"
+      popper-class="menu-popover"
+      width="auto"
+    >
+      <template #reference>
+        <div class="cursor-pointer my-menu text-nowrap menu-item">
           {{ menu.name }}
         </div>
       </template>
-
-      <template #content>
-        <div class="dropdown-item flex flex-col">
-          <MyMenuSubItems :menus="menu.children" @menuClick="menuClickHandler"></MyMenuSubItems>
+      
+      <template #default>
+        <div class="dropdown-item">
+          <MyMenuSubItems :menus="menu.children" @menuClick="menuClickHandler" />
         </div>
       </template>
-    </MyPopover>
+    </el-popover>
   </template>
 </template>
 
 <style scoped>
+/* 自定义popover样式 */
+:global(.menu-popover) {
+  padding: 4px 0 !important;
+  min-width: 120px;
+}
 
+.dropdown-item {
+  display: flex;
+  flex-direction: column;
+}
 </style>

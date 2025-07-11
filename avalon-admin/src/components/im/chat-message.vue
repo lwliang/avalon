@@ -4,7 +4,6 @@ import ChatMessage from "../../model/im/ChatMessage.ts";
 import TextMessage from "./text-message.vue";
 import {getImUserIdCache, getPageMessage} from "../../ws/wsAPI.ts";
 import MyTextarea from "../textarea/my-textarea.vue";
-import FormField from "../../model/FormField.ts";
 import MyIcon from "../icon/my-icon.vue";
 import {uploadImage} from "../../api/fileUploadApi.ts";
 import ImageMessage from "./image-message.vue";
@@ -88,16 +87,16 @@ const checkScroll = () => {
     return false;
 }
 
-const inputMessage = ref(new FormField(''))
+const inputMessage = ref('')
 
 const inputMessageHandler = (content: string) => {
     if (!content) {
-        inputMessage.value.reset('')
+        inputMessage.value = ''
         return
     }
     if (window.ws) {
         window.ws.sendSingleText(imUserId.value, props.toImUserId, content).then((msg: any) => {
-            inputMessage.value.reset('')
+            inputMessage.value = ''
             messages.value.push(msg)
         })
     }

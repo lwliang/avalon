@@ -1,4 +1,4 @@
-package com.avalon.core.antlr4.condition;// Generated from ./Expression.g4 by ANTLR 4.13.2
+package com.avalon.core.antlr4.condition;// Generated from Expression.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -183,18 +183,6 @@ public interface ExpressionListener extends ParseTreeListener {
 	 */
 	void exitNullValue(ExpressionParser.NullValueContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code IdentifierValue}
-	 * labeled alternative in {@link ExpressionParser#value}.
-	 * @param ctx the parse tree
-	 */
-	void enterIdentifierValue(ExpressionParser.IdentifierValueContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code IdentifierValue}
-	 * labeled alternative in {@link ExpressionParser#value}.
-	 * @param ctx the parse tree
-	 */
-	void exitIdentifierValue(ExpressionParser.IdentifierValueContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code IntegerValue}
 	 * labeled alternative in {@link ExpressionParser#value}.
 	 * @param ctx the parse tree
@@ -242,6 +230,18 @@ public interface ExpressionListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitBooleanValue(ExpressionParser.BooleanValueContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code IdentifierValue}
+	 * labeled alternative in {@link ExpressionParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterIdentifierValue(ExpressionParser.IdentifierValueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code IdentifierValue}
+	 * labeled alternative in {@link ExpressionParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitIdentifierValue(ExpressionParser.IdentifierValueContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code DotSeparatedIdentifier}
 	 * labeled alternative in {@link ExpressionParser#identifier}.

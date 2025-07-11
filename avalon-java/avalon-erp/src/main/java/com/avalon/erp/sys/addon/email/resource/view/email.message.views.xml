@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="email_message_form_view" service="base.action.view">
+        <field name="name">email message</field>
+        <field name="label">邮件</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">email.message</field>
+        <field name="target">new</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="name"/>
+                            <field name="emailTo"/>
+                            <field name="emailCC"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="邮件内容">
+                            <field name="body"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="email_message_tree_view" service="base.action.view">
+        <field name="name">email message</field>
+        <field name="label">邮件</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">email.message</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="emailTo"/>
+                <field name="emailTime"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="email_message_action" service="base.action.window">
+        <field name="name">email message</field>
+        <field name="label">邮件</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">email.message</field>
+    </record>
+</avalon>

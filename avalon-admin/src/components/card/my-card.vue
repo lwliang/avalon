@@ -8,23 +8,27 @@ const props = withDefaults(defineProps<CardProps>(), {
   border: true,
 });
 
-const themeShadow = "shadow-md shadow-primary/10";
-const hoverShadow =
-  "shadow-sm hover:shadow-lg hover:shadow-primary/20 transition-shadow";
+// 将自定义属性映射到 el-card 属性
+const cardProps = computed(() => ({
+  shadow: props.shadow,
+  bodyStyle: {
+    padding: '16px'
+  }
+}));
 
-const shadowClass = computed(() =>
-  props.shadow === "never"
-    ? "shadow-none"
-    : props.shadow === "hover"
-    ? hoverShadow
-    : themeShadow
-);
-
-const bgClass = "bg-background";
-const borderClass = computed(() =>
-  props.border ? "border border-border border-solid" : ""
-);
-const roundedClass = computed(() => (props.round ? "rounded" : ""));
+const cardClass = computed(() => {
+  const classes = [];
+  
+  if (props.round) {
+    classes.push('rounded');
+  }
+  
+  if (props.border) {
+    classes.push('border border-border border-solid');
+  }
+  
+  return classes.join(' ');
+});
 
 const cardWidth = computed(() => {
   if (!props.width) return undefined;
@@ -34,10 +38,11 @@ const cardWidth = computed(() => {
 </script>
 
 <template>
-  <div
-    :class="['p-4', bgClass, borderClass, roundedClass, shadowClass]"
+  <el-card
+    v-bind="cardProps"
+    :class="cardClass"
     :style="cardWidth"
   >
     <slot />
-  </div>
+  </el-card>
 </template>

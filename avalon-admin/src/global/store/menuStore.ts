@@ -9,7 +9,7 @@ import MenuModel from "../../model/MenuModel.ts";
 import {getModuleMenu} from "../../api/commonApi.ts";
 
 
-export const useGlobalMenuDataStore = createGlobalState(() => {
+export const useMenuStore = createGlobalState(() => {
     const menus = ref<MenuModel[]>([])
     const currentModuleMenus = ref<MenuModel[]>([])
     const moduleMenus = ref<any>({})

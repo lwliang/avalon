@@ -8,7 +8,7 @@ import PageParam from "../model/PageParam.ts";
 import {getPageSize} from "./env.ts";
 import ServiceConditionPage from "../model/ServiceConditionPage.ts";
 import ServiceInvokeParam from "../model/ServiceInvokeParam.ts";
-import {useGlobalServiceDataStore} from "../global/store/serviceStore.ts";
+import {useServiceStore} from "../global/store/serviceStore.ts";
 
 export function getModelSelectionApi(serviceName: string, fields: string): Promise<any> {
     return postErpHttp(`/service/get/${serviceName}/selection/map`, {serviceName, fields})
@@ -54,7 +54,7 @@ export function getModelPageApi(fields: string,
                                 pageNum: number,
                                 pageSize?: number): Promise<any> {
     const af = async () => {
-        const serviceStore = useGlobalServiceDataStore();
+        const serviceStore = useServiceStore();
         const service = await serviceStore.getServiceByNameAsync(serviceName)
         const pageParam: PageParam = {pageNum, pageSize: pageSize ? pageSize : getPageSize()}
         const param: ServiceConditionPage = {
@@ -84,7 +84,7 @@ export function getModelAllApi(fields: string,
                                serviceName: string) {
     const af = async () => {
         const param: any = {fields, condition, serviceName};
-        const serviceStore = useGlobalServiceDataStore();
+        const serviceStore = useServiceStore();
         const service = await serviceStore.getServiceByNameAsync(serviceName)
         param.order = `${service.keyField} desc`;
         return postErpHttp(`/service/get/${serviceName}/all`, param);
