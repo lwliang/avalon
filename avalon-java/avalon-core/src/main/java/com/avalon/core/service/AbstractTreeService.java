@@ -91,22 +91,22 @@ public abstract class AbstractTreeService extends AbstractService implements ITr
         return record;
     }
 
-    private final Field parentId = Fields.createMany2one("上级", getServiceName());
+    public final Field parentId = Fields.createMany2one("上级", getServiceName());
 
     @Override
     public Field getParentIdField() {
         return parentId;
     }
 
-    private final Field parentPath = Fields.createString("路径"); // 格式 ,1,2,; 顶级 ,
-    private final Field childIds = Fields.createOne2many("子级", this.getServiceName(), "parentId");
+    public final Field parentPath = Fields.createString("路径"); // 格式 ,1,2,; 顶级 ,
+    public final Field childIds = Fields.createOne2many("子级", this.getServiceName(), "parentId");
 
     @Override
     public Field getParentPathField() {
         return parentPath;
     }
 
-    private final Field level = Fields.createInteger("层级", 1);
+    public final Field level = Fields.createInteger("层级", 1);
 
     @Override
     public Field getLevelField() {

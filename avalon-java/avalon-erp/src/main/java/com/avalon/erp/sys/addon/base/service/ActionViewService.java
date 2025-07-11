@@ -47,6 +47,17 @@ public class ActionViewService extends AbstractService {
 
     public final Field arch = Fields.createText("视图定义");
     public final Field inheritId = Fields.createMany2one("继承视图", "base.action.view");
+    public final Field target = Fields.createSelection("弹出样式", new SelectionHashMap(){{
+        put("new", "新窗口");
+        put("current", "当前窗口");
+    }});
+    public final Field direction = Fields.createSelection("方向", new SelectionHashMap(){{
+        put("center", "居中"); // 默认 没有值也是居中
+        put("left", "左");
+        put("right", "右");
+        put("top", "上");
+        put("bottom", "下");
+    }});
 
     @Override
     public Integer update(RecordRow recordRow) throws AvalonException {

@@ -1,35 +1,84 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useTheme } from '../../util/useTheme.ts'
-import Switch from '../switch/my-switch.vue'
-import FormField from "../../model/FormField.ts";
 
-const { toggleTheme,theme } = useTheme()
+const { toggleTheme, theme } = useTheme()
 
-// 太阳和月亮图标，支持 font-awesome 或自定义 svg
-const activeIcon = computed(() => ['fas', 'moon'] as [string, string])    // dark
-const inactiveIcon = computed(() => ['fas', 'sun'] as [string, string])   // light
+// 主题状态
+const isDark = ref(theme.value === 'dark')
 
-const value = ref<FormField>(new FormField(theme.value))
+// 监听主题变化
+watch(() => theme.value, (newTheme) => {
+  isDark.value = newTheme === 'dark'
+})
 
-const handleChange = () => {
+// 处理主题切换
+const handleChange = (value: boolean) => {
   toggleTheme()
 }
+
+// 计算 switch 属性
+const switchProps = computed(() => ({
+  modelValue: isDark.value,
+  activeValue: true,
+  inactiveValue: false,
+  size: 'default',
+  width: 44,
+  name: 'theme-switch',
+  'aria-label': '主题切换'
+}))
 </script>
 
 <template>
-  <Switch
-      @change="handleChange"
-      v-model="value"
-      active-value="dark"
-      inactive-value="light"
-      :active-icon="activeIcon"
-      :active-icon-type="'fas'"
-      :inactive-icon="inactiveIcon"
-      :inactive-icon-type="'fas'"
-      :size="'default'"
-      :width="44"
-      :name="'theme-switch'"
-      :aria-label="'主题切换'"
-  />
+  <el-switch
+    v-bind="switchProps"
+    @change="handleChange"
+    class="theme-switch"
+  >
+    <template #icon>
+      <el-icon v-if="isDark" class="dark-icon">
+        <Moon />
+      </el-icon>
+      <el-icon v-else class="light-icon">
+        <Sunny />
+      </el-icon>
+    </template>
+  </el-switch>
 </template>
+
+<style scoped>
+.theme-switch {
+  --el-switch-on-color: var(--el-color-primary);
+  --el-switch-off-color: var(--el-color-info-light-3);
+}
+
+.theme-switch :deep(.el-switch__core) {
+  border-radius: 12px;
+}
+
+.theme-switch :deep(.el-switch__action) {
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.theme-switch :deep(.el-switch__inner) {
+  font-size: 12px;
+  color: #fff;
+}
+
+.theme-switch :deep(.dark-icon) {
+  color: #fff;
+  font-size: 12px;
+}
+
+.theme-switch :deep(.light-icon) {
+  color: #fff;
+  font-size: 12px;
+}
+
+/* 暗色主题下的样式调整 */
+:global(.dark) .theme-switch {
+  --el-switch-on-color: var(--el-color-primary);
+  --el-switch-off-color: var(--el-color-info-light-5);
+}
+</style>

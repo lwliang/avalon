@@ -36,7 +36,6 @@
             <tree>
                 <field name="name"/>
                 <field name="code"/>
-                <field name="parentId"/>
                 <field name="orgId"/>
             </tree>
         </field>

@@ -8,14 +8,13 @@ import {cloneDeep, isEqual} from "lodash";
 import {FieldTypeEnum} from "./enum-type/FieldTypeEnum.ts";
 import {isObject} from "../util/typeUtils.ts";
 import {OperateTypeEnum} from "./enum-type/OperateTypeEnum.ts";
-import {useGlobalFieldDataStore} from "../global/store/fieldStore.ts";
-import {useGlobalServiceDataStore} from "../global/store/serviceStore.ts";
+import {useFieldStore} from "../global/store/fieldStore.ts";
+import {useServiceStore} from "../global/store/serviceStore.ts";
 import {uploadFile, uploadImage, uploadVideo} from "../api/fileUploadApi.ts";
 import Service from "./Service.ts";
 import {getDateTime, getDateTimeWithAll} from "../util/dateUtils.ts";
 
-const useFieldDataStore = useGlobalFieldDataStore()
-const useServiceDataStore = useGlobalServiceDataStore();
+// 移除模块顶层的store调用，在需要时动态获取
 
 export default class FormField {
     value: any;
@@ -41,6 +40,10 @@ export default class FormField {
         if (!this.Field) {
             return this.originalValue;
         }
+        if (this.Field.type === FieldTypeEnum.Many2oneField && this.originalValue && typeof this.originalValue === 'number') { // id是数字,转为对象
+            const serviceStore = useServiceStore();
+            return serviceStore.getAllServices.find((x: Service) => x.id === this.originalValue);
+        }
         return this.originalValue;
     }
 
@@ -48,24 +51,32 @@ export default class FormField {
         if (!this.Field) {
             return this.value;
         }
+        if (this.Field.type === FieldTypeEnum.Many2oneField && this.value && typeof this.value === 'number') { // id是数字,转为对象
+            const serviceStore = useServiceStore();
+            return serviceStore.getAllServices.find((x: Service) => x.id === this.value);
+        }
         return await this._doGetRawValue(this.value, this.Field, this.originalValue)
     }
 
     async _doGetRawValue(value: any, field: Field, originValue: any) {
         if (field.type == FieldTypeEnum.One2manyField) {
             if (!value) return value;
-            const fields = await useFieldDataStore.getFieldByServiceNameAsync(field.relativeServiceName);
-            const relativeService = await useServiceDataStore.getServiceByNameAsync(field.relativeServiceName)
+            const fieldStore = useFieldStore();
+            const serviceStore = useServiceStore();
+            const fields = await fieldStore.getFieldByServiceNameAsync(field.relativeServiceName);
+            const relativeService = await serviceStore.getServiceByNameAsync(field.relativeServiceName)
             return this._getOne2ManyValue(value, originValue, field.relativeServiceName, fields, relativeService)
         } else if (field.type == FieldTypeEnum.Many2oneField) {
             if (isObject(value)) {
-                const service = useServiceDataStore.getServiceByName(field.relativeServiceName);
-                return value[service.keyField]
+                const serviceStore = useServiceStore();
+                const service = serviceStore.getServiceByName(field.relativeServiceName);
+                return service ? value[service.keyField] : value
             }
             return value
         } else if (field.type == FieldTypeEnum.Many2manyField) {
             if (!value) return value;
-            const service = await useServiceDataStore.getServiceByNameAsync(field.relativeServiceName);
+            const serviceStore = useServiceStore();
+            const service = await serviceStore.getServiceByNameAsync(field.relativeServiceName);
             return this._getMany2ManyValue(value, originValue, service, field.relativeForeignKeyName)
         } else if (field.type == FieldTypeEnum.One2oneField) {
 

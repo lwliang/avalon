@@ -1,20 +1,15 @@
 /// <reference types="vite/client" />
 
 import {ComponentCustomProperties} from "@vue/runtime-core";
-import {CreateNotificationOptions} from "./components/notification";
+
+import { ComponentCustomProperties } from 'vue'
+import { ElNotification } from 'element-plus'
 
 declare module '@vue/runtime-core' {
-    interface ComponentCustomProperties {
-        $notify: {
-            success: (title: string, message: string, duration?: number, options: Partial<CreateNotificationOptions> = {}) => void,
-            warning: (title: string, message: string, duration?: number, options: Partial<CreateNotificationOptions> = {}) => void,
-            error: (title: string, message: string, duration?: number, options: Partial<CreateNotificationOptions> = {}) => void,
-            info: (title: string, message: string, duration?: number, options: Partial<CreateNotificationOptions> = {}) => void
-        }; // 这里填类型
-    }
-}
-
-export {};
+  interface ComponentCustomProperties {
+    $notify: typeof ElNotification
+  }
+}export {};
 
 declare global {
     interface Window {

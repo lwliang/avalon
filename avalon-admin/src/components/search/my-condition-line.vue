@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import {ref} from "vue";
-import FormField from "../../model/FormField.ts";
+import { ref } from "vue";
 import MyConditionValue from "./my-condition-value.vue";
 import MyConditionOperate from "./my-condition-operate.vue";
 import MyConditionField from "./my-condition-field.vue";
 import Field from "../../model/Field.ts";
-import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
+import { useFieldStore } from "../../global/store/fieldStore.ts";
+import { FilterOperator } from "../../model/FilterCondition.ts";
 
 const props = defineProps<{
   serviceName: string
@@ -14,34 +14,32 @@ const props = defineProps<{
  * @author lwlianghehe@gmail.com
  * @date 2025/05/13 12:01
  */
-const field = ref(new FormField(null))
-const operate = ref(new FormField(null))
-const value = ref(new FormField(null))
-const selectField = ref<Field>();
+const field = ref<string>('')
+const operate = ref<FilterOperator | undefined>(undefined)
+const value = ref<string>('')
+const selectField = ref<Field | undefined>(undefined)
 
-const selectFieldEvent = async (field: any) => {
-  useGlobalFieldDataStore().getFieldByServiceNameAsync(props.serviceName as string).then((data) => {
-    const fieldService = data.find((item) => {
-      return item.name == field.name
-    })
-    if (fieldService) {
-      selectField.value = fieldService
-    }
-  })
+const selectFieldEvent = async (fieldData: any) => {
+  const fieldStore = useFieldStore()
+  const fields = await fieldStore.getFieldByServiceNameAsync(props.serviceName)
+  const fieldService = fields.find((item) => item.name === fieldData.name)
+  if (fieldService) {
+    selectField.value = fieldService
+  }
 }
 
-const getConditionString = () => {
-  if (!field.value.value) {
+const getConditionString = (): string | null => {
+  if (!field.value) {
     return null
   }
-  if (!operate.value.value) {
+  if (!operate.value) {
     return null
   }
-  if (!value.value.value) {
+  if (!value.value) {
     return null
   }
 
-  return `('${field.value.value.name}',${operate.value.value.value},'${value.value.value}')`
+  return `('${field.value}',${operate.value},'${value.value}')`
 }
 
 defineExpose({
@@ -51,10 +49,19 @@ defineExpose({
 
 <template>
   <div class="flex gap-2">
-    <myConditionField v-model="field" :service-name="serviceName" @select-field="selectFieldEvent"></myConditionField>
-    <my-condition-operate v-model="operate"></my-condition-operate>
-    <my-condition-value class="flex-1" :service-name="serviceName" :field="selectField" v-model="value"
-                        :operate="operate.value"></my-condition-value>
+    <myConditionField 
+      v-model="field" 
+      :service-name="serviceName" 
+      @select-field="selectFieldEvent"
+    />
+    <my-condition-operate v-model="operate" customStyle="width: 200px"/>
+    <my-condition-value 
+      class="flex-1" 
+      :service-name="serviceName" 
+      :field="selectField" 
+      v-model="value"
+      :operate="operate"
+    />
   </div>
 </template>
 

@@ -7,7 +7,7 @@ import {ref} from 'vue'
 import {defineStore} from 'pinia'
 import Module from "../../model/Module.ts";
 
-export const useGlobalModuleDataStore = defineStore("module",
+export const useModuleStore = defineStore("module",
     () => {
         const module = ref<Module[]>([])
         const installModule = ref<Module[]>([])

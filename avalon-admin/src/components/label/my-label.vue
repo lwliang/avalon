@@ -3,46 +3,62 @@
  * @author lwlianghehe@gmail.com
  * @date 2024/11/22
  */
-import {computed, defineProps, defineEmits} from 'vue'
-import type {LabelProps} from './types'
+import { computed } from 'vue'
+import type { LabelProps } from './types'
 
-const props = defineProps<LabelProps>()
+const props = withDefaults(defineProps<LabelProps>(), {
+  type: 'default',
+  size: 'default',
+  closable: false,
+  disableTransitions: false,
+  hit: false,
+  effect: 'light'
+})
 
-const typeClassMap = {
-  default: 'text-text-regular',
-  primary: 'text-primary',
-  success: 'text-success',
-  warning: 'text-warning',
-  danger: 'text-danger',
-  info: 'text-info',
+// 映射类型到 Element Plus 的 tag 类型
+const mapTagType = (type: string) => {
+  const typeMap: Record<string, string> = {
+    default: '',
+    primary: 'primary',
+    success: 'success',
+    warning: 'warning',
+    danger: 'danger',
+    info: 'info'
+  }
+  return typeMap[type] || ''
 }
 
-const sizeClassMap = {
-  large: 'px-3 py-0.5 text-lg',
-  default: 'px-2.5 py-0.5 text-base',
-  small: 'px-2 py-0.5 text-sm'
+// 映射尺寸到 Element Plus 的尺寸
+const mapTagSize = (size: string) => {
+  const sizeMap: Record<string, string> = {
+    large: 'large',
+    default: 'default',
+    small: 'small'
+  }
+  return sizeMap[size] || 'default'
 }
 
-const labelClass = computed(() => [
-  'inline-flex',
-  'items-center',
-  'gap-1',
-  typeClassMap[props.type ?? 'default'],
-  sizeClassMap[props.size ?? 'default'],
-])
+// 计算 tag 属性
+const tagProps = computed(() => ({
+  type: mapTagType(props.type),
+  size: mapTagSize(props.size),
+  effect: props.effect,
+  closable: props.closable,
+  disableTransitions: props.disableTransitions,
+  hit: props.hit,
+  color: props.color
+}))
 </script>
 
 <template>
-  <label :class="labelClass">
-    <slot name="icon">
-      <my-icon
-          v-if="props.icon"
-          :type="props.iconType"
-          class="mr-1"
-          aria-hidden="true"
-          :icon="props.icon"
-      />
-    </slot>
-    <slot/>
-  </label>
+  <el-tag v-bind="tagProps">
+    <template v-if="$slots.icon || props.icon" #icon>
+      <slot name="icon">
+        <el-icon v-if="props.icon" class="mr-1">
+          <component :is="props.icon" />
+        </el-icon>
+      </slot>
+    </template>
+    <slot />
+  </el-tag>
 </template>

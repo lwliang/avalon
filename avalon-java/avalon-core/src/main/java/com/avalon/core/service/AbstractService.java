@@ -81,7 +81,7 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
     @Autowired
     private DynamicJdbcTemplate jdbcTemplate;
 
-    private String getUserServiceName() {
+    protected String getUserServiceName() {
         try {
             if (this instanceof IUserService) {
                 return getServiceName();
@@ -2255,6 +2255,39 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
         AvalonPreparedStatement avalonPrepareStatement = createAvalonPrepareStatement(sql.getSql(),
                 sql.getValueStatement());
         return jdbcTemplate.select(avalonPrepareStatement);
+    }
+
+    @Override
+    public RecordRow readExcel(List<List<Object>> record) {
+        // 将数据转换为 RecordRow
+        RecordRow result = new RecordRow();
+        List<String> headers = new ArrayList<>();
+        List<String> fields = new ArrayList<>();
+        Record dataRows = new Record();
+        // 获取表头
+        record.get(0).forEach((value) -> {
+            headers.add(value.toString());
+            FieldList fieldList = getFields();
+            Optional<Field> first = fieldList.stream().filter(field -> field.getLabel().equals(value.toString())).findFirst();
+            fields.add(first.isPresent() ? first.get().getName() : "");
+        });
+        // 获取数据
+        for (int i = 1; i < record.size(); i++) {
+            List<Object> dataRow = record.get(i);
+            RecordRow row = RecordRow.build();
+            for (int i1 = 0; i1 < dataRow.size(); i1++) {
+                row.put(headers.get(i1),dataRow.get(i1));
+            }
+
+            dataRows.add(row);
+        }
+
+        // 将数据转换为 RecordRow
+        result.put("headers", headers);
+        result.put("fields", fields);
+        result.put("data", dataRows);
+        // 将数据转换为 RecordRow
+        return result;
     }
 
     @Override

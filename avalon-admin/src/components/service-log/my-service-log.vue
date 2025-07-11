@@ -6,15 +6,15 @@
 import {ref} from "vue";
 import {getModelPageApi} from "../../api/modelApi.ts";
 import MyImage from "../image/my-image.vue";
-import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
+import {useServiceStore} from "../../global/store/serviceStore.ts";
 import {useRoute} from "vue-router";
 import Service from "../../model/Service.ts";
 import MyIcon from "../icon/my-icon.vue";
-import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
+import {useFieldStore} from "../../global/store/fieldStore.ts";
 import Field from "../../model/Field.ts";
 import {getDateTime} from "../../util/dateUtils.ts";
 
-const serviceFieldStore = useGlobalFieldDataStore()
+const serviceFieldStore = useFieldStore()
 
 /**
  * @author lwlianghehe@gmail.com
@@ -27,7 +27,7 @@ const props = defineProps({
 const route = useRoute();
 const serviceName = ref<string>(route.params.service as string)
 const service = ref<Service>()
-const serviceStore = useGlobalServiceDataStore()
+const serviceStore = useServiceStore()
 const pageNum = ref<number>(1)
 const pageSize = ref<number>(10)
 

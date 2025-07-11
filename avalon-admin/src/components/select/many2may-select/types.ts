@@ -9,4 +9,7 @@ import {InputProps} from "../../input/types.ts";
 export interface MyMany2ManySelectProps extends InputProps {
     serviceName: string,
     field: string,
+    relativeForeignKeyName: string,
+    relativeServiceName?: string,
+    relativeServiceId?: string
 }

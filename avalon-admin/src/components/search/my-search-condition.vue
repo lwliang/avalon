@@ -3,9 +3,7 @@ import {ref} from "vue";
 import FormField from "../../model/FormField.ts";
 import MyConditionLine from "./my-condition-line.vue";
 import MyIcon from "../icon/my-icon.vue";
-import {getFileUploadUrl} from "../../api/env.ts";
 import MyDropdown from "../dropdown/my-dropdown.vue";
-import MyAvatar from "../avatar/my-avatar.vue";
 import MyDropdownItem from "../dropdown/my-dropdown-item.vue";
 import {useTemplateRef} from "@vue/runtime-dom";
 
@@ -68,15 +66,17 @@ defineExpose({getConditionString})
         匹配
       </div>
       <div>
-        <my-dropdown trigger="click" :teleported="false">
+        <my-dropdown trigger="hover" :teleported="false" class="cursor-pointer">
           <template #default>
-            <div class="hover:bg-gray-200 px-2 py-0.5 rounded"><span>{{
-                conditionForm == 'or' ? '任意' : '所有'
-              }}</span></div>
+            <div class="hover:bg-gray-100 px-2 py-0.5 mx-0.5 rounded cursor-pointer">
+              <span>{{ conditionForm == 'or' ? '任意' : '所有' }}</span>
+            </div>
           </template>
           <template #dropdown>
-            <my-dropdown-item label="所有" @itemClick="andClick"></my-dropdown-item>
-            <my-dropdown-item label="任意" @itemClick="orClick"></my-dropdown-item>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="andClick">所有</el-dropdown-item>
+              <el-dropdown-item @click="orClick">任意</el-dropdown-item>
+            </el-dropdown-menu>
           </template>
         </my-dropdown>
       </div>

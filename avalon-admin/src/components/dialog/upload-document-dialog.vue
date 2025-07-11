@@ -12,7 +12,7 @@ import {uploadFile} from "../../api/fileUploadApi.ts";
 import FileUploadRes from "../../model/FileUploadRes.ts";
 import {getUserId} from "../../cache/userStorage.ts";
 import {addModelApi, createModelApi} from "../../api/modelApi.ts";
-import myNotification from "../notification/index.ts"
+import {ElNotification} from "element-plus";
 import mittBus from "../../global/bus/mittBus.ts";
 import {useStorage} from '@vueuse/core'
 import MyDialog from "./my-dialog.vue";
@@ -27,7 +27,7 @@ const props = defineProps({
     type: String,
     default: "标题"
   },
-  show: {
+  modelValue: {
     type: Boolean,
     default: false
   },
@@ -39,7 +39,7 @@ const props = defineProps({
   }
 })
 
-const showInner = ref(props.show)
+const showInner = ref(props.modelValue)
 const emit = defineEmits(['close', 'sure'])
 const file_upload_ctrl = ref<HTMLInputElement | null>(null)
 
@@ -53,7 +53,11 @@ const closeClick = () => {
 const sureClick = async () => {
   convertFileToUploadFile()
   await uploadFileRecursion(uploadFiles.value, parentIdState.value)
-  myNotification.success("提示", "上传成功")
+  ElNotification({
+    title: '提示',
+    message: '上传成功',
+    type: 'success'
+  });
   mittBus.emit('uploadFile')
   emit('sure')
   if (props.sureCallback) {
@@ -176,7 +180,7 @@ const deleteFileClick = (index: number) => {
 </script>
 
 <template>
-  <my-dialog :title="title" :show="showInner" @sure="sureClick" @close="closeClick">
+  <my-dialog :close-on-click-modal="false" :draggable="true" :title="title" :model-value="modelValue" @sure="sureClick" @close="closeClick">
     <div class="h-full">
       <div>
         <MyButton class="ml-3" type="primary" rounded @click="uploadFileClick">上传文件</MyButton>

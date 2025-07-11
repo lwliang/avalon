@@ -5,14 +5,14 @@
 
 import {getErpPrefix} from './env.ts'
 import {postErpHttp} from "./http.ts";
-import {useGlobalServiceDataStore} from "../global/store/serviceStore.ts";
+import {useServiceStore} from "../global/store/serviceStore.ts";
 
 
 export async function getBaseActionView(fields: string,
                                         condition: string) {
     const serviceName = "base.action.view"
     const param: any = {fields, condition, serviceName};
-    const serviceStore = useGlobalServiceDataStore();
+    const serviceStore = useServiceStore();
     const service = await serviceStore.getServiceByNameAsync(serviceName)
     param.order = `${service.keyField} desc`;
     return postErpHttp(`/view/get/${serviceName}/all`, param);

@@ -1,26 +1,51 @@
 <script setup lang="ts">
-/**
- * @author lwlianghehe@gmail.com
- * @date 2024/11/22
- */
-const props = defineProps<{ label: string }>()
-const emit = defineEmits(['itemClick'])
+import { computed } from 'vue'
 
-const itemClick = (label: string) => {
-  emit('itemClick', label)
+interface DropdownItemProps {
+  command?: string | number | object
+  disabled?: boolean
+  divided?: boolean
+  icon?: string
+  size?: 'large' | 'default' | 'small'
 }
+
+const props = withDefaults(defineProps<DropdownItemProps>(), {
+  disabled: false,
+  divided: false,
+  size: 'default'
+})
+
+const emit = defineEmits<{
+  (e: 'click', command: string | number | object): void
+}>()
+
+// 处理点击事件
+const handleClick = (event: Event) => {
+  if (props.disabled) return
+  emit('click', props.command || '')
+}
+
+// 计算 el-dropdown-item 的属性
+const dropdownItemProps = computed(() => ({
+  command: props.command,
+  disabled: props.disabled,
+  divided: props.divided,
+  size: props.size
+}))
 </script>
 
 <template>
-  <div class="cursor-pointer box-border whitespace-nowrap  hover:bg-background-component px-4 py-1"
-       @click="itemClick(label)">
-    <template v-if="$slots.default">
-      <slot></slot>
+  <el-dropdown-item
+    v-bind="dropdownItemProps"
+    @click="handleClick"
+  >
+    <template v-if="$slots.icon || props.icon" #icon>
+      <slot name="icon">
+        <el-icon v-if="props.icon">
+          <component :is="props.icon" />
+        </el-icon>
+      </slot>
     </template>
-    <template v-else>{{ label }}</template>
-  </div>
+    <slot />
+  </el-dropdown-item>
 </template>
-
-<style scoped>
-
-</style>

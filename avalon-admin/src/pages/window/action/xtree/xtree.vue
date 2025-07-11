@@ -19,17 +19,17 @@ import ActionView from "../../../../model/view/ActionView.ts";
 import {
     addModelApi,
     createModelApi,
-    deleteMultiModelApi, editModelApi,
+    deleteModelApi, editModelApi,
     getModelAllApi,
     getModelDetailApi,
-    getModelPageApi
+    deleteMultiModelApi,
 } from "../../../../api/modelApi.ts";
 import {getTemplate, XMLParserResult} from "../../../../xml/XMLParserResult.ts";
 import {parserEx} from "../../../../xml/XMLParser.ts";
 import MyButton from "../../../../components/button/my-button.vue";
-import {useGlobalServiceDataStore} from "../../../../global/store/serviceStore.ts";
+import MyButtonGroup from "../../../../components/button-group/my-button-group.vue";
+import {useServiceStore} from "../../../../global/store/serviceStore.ts";
 import {exportExcel, getActionFormView, getActionTreeView, getActionXTreeView} from "../../../../api/commonApi.ts";
-import FormField from "../../../../model/FormField.ts";
 import MySearch from "../../../../components/search/my-search.vue";
 import MyDialog from "../../../../components/dialog/my-dialog.vue";
 import MyExportDialog from "../../../../components/dialog/my-export-dialog.vue";
@@ -38,13 +38,15 @@ import ShowField from "../../../../model/ShowField.ts";
 import {TreeData} from "../../../../components/tree/tree-props.ts";
 import Field from "../../../../model/Field.ts";
 import {FieldTypeEnum} from "../../../../model/enum-type/FieldTypeEnum.ts";
-import {useGlobalFieldDataStore} from "../../../../global/store/fieldStore.ts";
-import {getJoinFirstField, getJoinLastField, getServiceField, hasJoin} from "../../../../util/fieldUtils.ts";
+import {useFieldStore} from "../../../../global/store/fieldStore.ts";
+import {getChangeFieldRecordRow, getJoinFirstField, getJoinLastField, getServiceField, hasJoin} from "../../../../util/fieldUtils.ts";
 import Form from "../../../../model/form/Form.ts";
 import {useTemplateRef} from "@vue/runtime-dom";
+import { objectCloneDeep } from "../../../../util/ObjectUtils.ts";
+import { Plus } from "@element-plus/icons-vue";
 
 
-const serviceStore = useGlobalServiceDataStore()
+const serviceStore = useServiceStore()
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 const route = useRoute();
@@ -79,13 +81,47 @@ const parserXml = async (str: string) => {
     parentField.value = parserResult.xtree.parentField
     nameField.value = parserResult.xtree.nameField
     childrenField.value = parserResult.xtree.childrenField
+    recordProps.value.label = nameField.value
+    recordProps.value.children = childrenField.value
+    leftTreeShow.value = true
 }
 
 const emit = defineEmits(['rowClick'])
 const myTreeRef = useTemplateRef<any>('tree')
 
 const record = ref<any>([])
-const recordField = ref(new FormField([]))
+const leftTreeShow = ref(false)
+const recordProps = ref({
+    label: '',
+    children: '',
+    isLeaf: (data:any, node:any):boolean =>  {
+        return false
+    }
+})
+const loadRecordData = async (node:any, resolve:any) => {
+    if(node.level === 0){ // 根节点
+        if(!parentField.value){
+           // 等待parentField.value有值后再执行
+           const waitForParentField = () => {
+               if(parentField.value){
+                   loadRootData().then(data => {
+                       resolve(data)
+                   })
+               } else {
+                   setTimeout(waitForParentField, 100)
+               }
+           }
+           waitForParentField()
+           return
+        }
+        const data = await loadRootData()
+        resolve(data)
+    }else{ // 子节点
+        const data = await loadChildrenData(node.data)
+        resolve(data)
+    }
+}
+const recordField = ref<any[]>([])
 const pageNum = ref<number>(1)
 const selectionDynamic = ref<any>({})
 const condition = ref<string>('')
@@ -105,8 +141,8 @@ const loadTreeData = async () => {
     record.value.splice(0, record.value.length);
     record.value.push(...data)
 
-    recordField.value.value.splice(0, recordField.value.value.length);
-    recordField.value.value.push(...data)
+    recordField.value.splice(0, recordField.value.length);
+    recordField.value.push(...data)
 }
 
 const expandChildHandler = (data: TreeData) => {
@@ -123,13 +159,13 @@ const createServiceClick = async () => {
         }
         for (let key in recordRowWithField.value) {
             if (recordRowWithField.value[key]) {
-                recordRowWithField.value[key].reset(undefined)
+                recordRowWithField.value[key] = undefined
             }
         }
         const defaultValue = await createModelApi({}, serviceName.value)
         for (let key in defaultValue) {
-            if (recordRowWithField.value[key]) {
-                recordRowWithField.value[key].reset(defaultValue[key])
+            if (recordRowWithField.value[key] !== undefined) {
+                recordRowWithField.value[key] = defaultValue[key]
             }
         }
     }
@@ -140,6 +176,31 @@ const deleteServiceClick = () => {
     deleteShow.value = true
 }
 
+const addNodeClick = async (node:any, data: any) => {
+    parentId.value = data.id
+    row_id.value = null
+    const defaultValue = await createModelApi({}, serviceName.value)
+    for (let key in defaultValue) {
+        if (recordRowWithField.value[key] !== undefined) {
+            recordRowWithField.value[key] = defaultValue[key]
+        }
+    }
+}
+
+const editNodeClick = (node:any,data: any) => {
+    row_id.value = data.id
+    loadDetailData(row_id.value).then(data => {
+        for (let key in data) {
+            recordRowWithField.value[key] = data[key]
+        }
+    })
+}
+
+const deleteNodeClick = (node:any,data: any) => {
+    deleteData.value = data
+    deleteShow.value = true
+    deleteNode.value = node
+}
 
 const conditionChange = (search: string) => {
     condition.value = search;
@@ -148,24 +209,37 @@ const conditionChange = (search: string) => {
 
 
 const deleteShow = ref(false)
+const deleteData = ref<any>()
+const deleteNode = ref<any>()
 
 const hideClick = () => {
     deleteShow.value = false
-    nodeSelects.value.splice(0, nodeSelects.value.length)
+    deleteData.value = undefined
 }
 const sureClick = async () => {
-    let serviceByNameAsync = await serviceStore.getServiceByNameAsync(serviceName.value);
-    const ids = nodeSelects.value.map(x => x[serviceByNameAsync.keyField])
-    deleteMultiModelApi(ids, serviceName.value as string).then(data => {
-        nodeSelects.value.splice(0, nodeSelects.value.length)
-        if (myTreeRef.value) { // 清除所有的选择
-            myTreeRef.value.clearCheckedNodes()
-        }
-
-        proxy?.$notify.success('提示', '删除完成');
+    if(deleteData.value) { // 删除节点
+        deleteModelApi(deleteData.value.id, serviceName.value as string).then(data => {
+        proxy?.$notify.success({
+            title: "提示",
+            message: "删除完成",
+        });
         deleteShow.value = false
-        loadTreeData()
-    })
+        deleteData.value = undefined
+        const index = deleteNode.value.parent.childNodes.findIndex((x:any) => x.data.id === deleteNode.value.data.id)
+        if(index !== -1){
+            deleteNode.value.parent.childNodes.splice(index, 1)
+        }
+        })
+    }else{ // 删除选中节点
+        const ids = nodeSelects.value;
+        deleteMultiModelApi(ids, serviceName.value as string).then(data => {
+            proxy?.$notify.success({
+                title: "提示",
+                message: "删除完成",
+            });
+            nodeSelects.value = []
+        })
+    }
 }
 
 const exportShow = ref(false)
@@ -178,12 +252,15 @@ const exportOpen = () => {
 const exportSure = async (fields: string) => {
     const primaryKeyField = await serviceStore.getServiceByNameAsync(serviceName.value)
     let condition = "";
-    const ids = nodeSelects.value.map(x => x[primaryKeyField.keyField])
+    const ids = nodeSelects.value;
     if (nodeSelects.value.length) {
         condition = `('${primaryKeyField.keyField}',in,${ids.join(",")})`
     }
     exportExcel(serviceName.value, fields, condition, "").then(data => {
-        proxy?.$notify.success("提示", "导出成功");
+        proxy?.$notify.success({
+            title: "提示",
+            message: "导出成功",
+        });
     })
 }
 
@@ -192,41 +269,15 @@ const importExcelClick = () => {
 }
 
 // 节点改变
-const nodeClickSelected = ref<TreeData>({} as TreeData)
-const nodeClickValue = async (data: TreeData) => {
-    const primaryKeyField = await serviceStore.getServiceByNameAsync(serviceName.value)
-    row_id.value = data[primaryKeyField.keyField]
-    nodeClickSelected.value = data
-    const detailRecord = await loadDetailData(row_id.value)
-    for (let key in detailRecord) {
-        if (recordRowWithField.value[key]) {
-            recordRowWithField.value[key].reset(detailRecord[key])
-        }
+const nodeSelects = ref<any>([])
+const checkChange = (data: any, checked: boolean) => {
+    if(checked){
+        nodeSelects.value.push(data.id)
+    }else{
+        nodeSelects.value = nodeSelects.value.filter((x:any) => x !== data.id)
     }
 }
-const onNodeMove = async (move: { from: TreeData, to: TreeData }) => {
-    let value: any = {}
-    const primaryKeyField = await serviceStore.getServiceByNameAsync(serviceName.value)
-    value[primaryKeyField.keyField] = move.from[primaryKeyField.keyField]
 
-    if (move.to) { // 成为子级
-        value[parentField.value] = move.to[primaryKeyField.keyField]
-    } else { //成为父级
-        value[parentField.value] = null
-    }
-
-    await editModelApi(value, serviceName.value)
-    console.log("onNodeMove", move)
-}
-
-const nodeSelects = ref<TreeData[]>([])
-const nodeSelectChange = async (data: TreeData[]) => {
-    if (myTreeRef.value) {
-        const nodes = myTreeRef.value.getCheckedNodes()
-        nodeSelects.value.splice(0, nodeSelects.value.length)
-        nodeSelects.value.push(...nodes)
-    }
-}
 
 
 // form 视图编辑
@@ -234,7 +285,7 @@ const xmlFormTemplate = ref<any>(null)
 const template_component = shallowRef<any>(null)
 let template_fields = ref<string[]>([]); // 全部字段 用于查询数据库
 let self_service_fields = ref<string[]>([]); // 自身第一级字段
-const serviceFieldStore = useGlobalFieldDataStore()
+const serviceFieldStore = useFieldStore()
 const row_id = ref()
 const parentId = ref()
 let form = ref<Form>({} as Form)
@@ -314,8 +365,8 @@ const loadDetailData = async (id: number) => {
     return getModelDetailApi(id, template_fields.value.join(","),
         serviceName.value);
 }
-const detailRecordRow = ref<any>({})
-const recordRowWithField = ref<Record<string, FormField | any>>({})
+const detailRecordRow = ref<any>({}) // 原始信息
+const recordRowWithField = ref<Record<string, any>>({}) // 用户修改信息
 
 
 const loadDataWithLayout = async () => {
@@ -331,7 +382,7 @@ const loadDataWithLayout = async () => {
             for (let key in detailRecordRow.value) {
                 const field = serviceFields.find(f => f.name === key) as Field
                 if (field.type == FieldTypeEnum.One2manyField) {
-                    recordRowWithField.value[key] = new FormField(detailRecordRow.value[key], field)
+                    recordRowWithField.value[key] = detailRecordRow.value[key]
                 } else if (field.type == FieldTypeEnum.Many2oneField) {
                     if (serviceInstance.delegateField) {
                         const delegateField = JSON.parse(serviceInstance.delegateField)
@@ -343,29 +394,59 @@ const loadDataWithLayout = async () => {
                                 const delegateServiceFields = await serviceFieldStore.getFieldByServiceNameAsync(s)
                                 for (const sKey in detailRecordRow.value[key]) {
                                     const dField = delegateServiceFields.find(f => f.name == sKey)
-                                    recordRowWithField.value[key][sKey] = new FormField(detailRecordRow.value[key][sKey], dField)
+                                    recordRowWithField.value[key][sKey] = detailRecordRow.value[key][sKey]
                                 }
                                 break;
                             }
                         }
                         if (!delegate) {
-                            recordRowWithField.value[key] = new FormField(detailRecordRow.value[key], field)
+                            recordRowWithField.value[key] = detailRecordRow.value[key]
                         }
                     } else {
-                        recordRowWithField.value[key] = new FormField(detailRecordRow.value[key], field)
+                        recordRowWithField.value[key] = detailRecordRow.value[key]
                     }
                 } else {
-                    recordRowWithField.value[key] = new FormField(detailRecordRow.value[key], field)
+                    recordRowWithField.value[key] = detailRecordRow.value[key]
                 }
-
+                await createNewRecordRowDefault(recordRowWithField.value,serviceFields)
+                detailRecordRow.value = objectCloneDeep(recordRowWithField.value)
             }
             template_component.value = createFormTemplateVNode();
         }
     } else {
-        await createNewRecordRow(serviceFields);
-        const defaultValue = await createModelApi({}, serviceName.value)
-        await createModelRecordRow(defaultValue, serviceFields)
+        const defaultValue = await createNewRecordRow()
+        await createNewRecordRowDefault(defaultValue,serviceFields)
+        await createModelRecordRow(defaultValue)
+        detailRecordRow.value = objectCloneDeep(recordRowWithField.value)
         template_component.value = createFormTemplateVNode();
+    }
+}
+
+const createNewRecordRowDefault = async (defaultValue: any,serviceFields: Field[]) => {
+    for (let key of self_service_fields.value) {
+        if (hasJoin(key)) {
+            const first = getJoinFirstField(key); // 只支持二级字段
+            const firstField = await getServiceField(serviceName.value, first);
+            const last = getJoinLastField(key);
+            const lastField = await getServiceField(serviceName.value, key);
+            if (!defaultValue[first]) {
+                defaultValue[first] = {}
+            }
+            if (lastField && (lastField.type == FieldTypeEnum.One2manyField ||
+                lastField.type == FieldTypeEnum.Many2manyField)) {
+                defaultValue[first][last] = []
+            } else if (lastField) {
+                defaultValue[first][last] = undefined
+            }
+        } else {
+            let field = serviceFields.find(f => f.name === key)
+            if (field && (field.type == FieldTypeEnum.One2manyField ||
+                field.type == FieldTypeEnum.Many2manyField)) {
+                defaultValue[key] = []
+            } else if (field) {
+                defaultValue[key] = undefined
+            }
+        }
     }
 }
 
@@ -374,182 +455,116 @@ const createFormTemplateVNode = () => {
         setup() {
             const vNode = compile(xmlFormTemplate.value)
             return () => {
-                return createVNode(vNode, {...recordRowWithField.value})
+                return createVNode(vNode, {...recordRowWithField.value,recordRow:recordRowWithField.value, rules:{}})
             }
         }
     })
     return component;
 }
 
-const createNewRecordRow = async (serviceFields: Field[]) => {
-    for (let key of self_service_fields.value) {
-        if (hasJoin(key)) {
-            const first = getJoinFirstField(key); // 只支持二级字段
-            const firstField = await getServiceField(serviceName.value, first);
-            const last = getJoinLastField(key);
-            const lastField = await getServiceField(serviceName.value, key);
-            if (!recordRowWithField.value[first]) {
-                recordRowWithField.value[first] = {}
-            }
-            if (lastField && (lastField.type == FieldTypeEnum.One2manyField ||
-                lastField.type == FieldTypeEnum.Many2manyField)) {
-                recordRowWithField.value[first][last] = new FormField([], lastField)
-            } else if (lastField) {
-                recordRowWithField.value[first][last] = new FormField(undefined, lastField)
-            }
-        } else {
-            let field = serviceFields.find(f => f.name === key)
-            if (field && (field.type == FieldTypeEnum.One2manyField ||
-                field.type == FieldTypeEnum.Many2manyField)) {
-                recordRowWithField.value[key] = new FormField([], field)
-            } else if (field) {
-                recordRowWithField.value[key] = new FormField(undefined, field)
-            }
-        }
-    }
+const createNewRecordRow = async () => {
+    const defaultRecordRow = await createModelApi({}, serviceName.value)
+    return defaultRecordRow
 }
 
-const createModelRecordRow = async (defaultValue: any, serviceFields: Field[]) => {
-    for (let key in defaultValue) {
-        let field = serviceFields.find(f => f.name === key)
-        if (field) {
-            recordRowWithField.value[key] = new FormField(defaultValue[key], field)
-        }
-    }
+const createModelRecordRow = async (defaultValue: any) => {
+    recordRowWithField.value = defaultValue
 }
 const recordRowIsChange = computed(() => { // 字段是否有变量
-    for (let key in recordRowWithField.value) {
-        if (recordRowWithField.value[key] instanceof FormField) {
-            if (recordRowWithField.value[key].isChanged()) {
-                return true
-            }
-        } else { // 对象
-            for (const value in recordRowWithField.value[key]) {
-                if (recordRowWithField.value[key][value].isChanged()) {
-                    return true
-                }
-            }
-        }
-    }
-    return false
+    return JSON.stringify(recordRowWithField.value) !== JSON.stringify(detailRecordRow.value)
 })
 
 const saveClick = async () => {
     if (row_id.value) { // 保存
         update().then(() => {
-            loadDetailData(row_id.value as number).then(data => {
-                for (let key in recordRowWithField.value) {
-                    recordRowWithField.value[key].reset(recordRowWithField.value[key].value)
-                }
-                Object.assign(nodeClickSelected.value, data)
-            })
+            detailRecordRow.value = objectCloneDeep(recordRowWithField.value)
         })
     } else {
-        const recordKey = await insert()
-        recordKey[childrenField.value] = []
-        if (parentId.value) {
-            if (nodeClickSelected.value) {
-                nodeClickSelected.value[childrenField.value].push(recordKey)
-            }
-        } else {
-            recordField.value.value.push(recordKey)
-        }
-
-        let serviceByNameAsync = await serviceStore.getServiceByNameAsync(serviceName.value);
-        detailRecordRow.value[serviceByNameAsync.keyField] = recordKey.id
-        for (let key in recordRowWithField.value) {
-            recordRowWithField.value[key].reset(recordRowWithField.value[key].value)
-        }
+        await insert()
+        detailRecordRow.value = objectCloneDeep(recordRowWithField.value)
     }
 }
 
 
 const insert = async () => {
-    const recordRow = {} as any;
+    const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
+    const recordRow = await getChangeFieldRecordRow(recordRowWithField.value, detailRecordRow.value, serviceFields)
     if (parentId.value) {
         if (parentField.value) { // 存在父级字段
             recordRow[parentField.value] = parentId.value
         }
     }
-    for (let fieldKey in recordRowWithField.value) {
-        if (recordRowWithField.value[fieldKey] instanceof FormField) {
-            if (recordRowWithField.value[fieldKey].isChanged()) {
-                recordRow[fieldKey] = await recordRowWithField.value[fieldKey].getRawValue()
-            }
-        } else {
-            if (!recordRow[fieldKey]) {
-                recordRow[fieldKey] = {}
-            }
-            for (let x in recordRowWithField.value[fieldKey]) {
-                recordRow[fieldKey][x] = await recordRowWithField.value[fieldKey][x].getRawValue()
-            }
-        }
-    }
+
 
     const data = await addModelApi(recordRow, serviceName.value)
     let serviceByNameAsync = await serviceStore.getServiceByNameAsync(serviceName.value);
     recordRow[serviceByNameAsync.keyField] = data.id
-    proxy?.$notify.success("新增", "新增成功");
+    proxy?.$notify.success({
+        title: "新增",
+        message: "新增成功",
+    });
     return recordRow
 }
 
 const update = async () => {
-    const recordRow = {} as any;
-    for (let fieldKey in recordRowWithField.value) {
-        if (recordRowWithField.value[fieldKey] instanceof FormField) {
-            if (recordRowWithField.value[fieldKey].isChanged()) {
-                recordRow[fieldKey] = await recordRowWithField.value[fieldKey].getRawValue()
-            }
-        } else {
-            if (!recordRow[fieldKey]) {
-                recordRow[fieldKey] = {}
-            }
-            for (let x in recordRowWithField.value[fieldKey]) {
-                recordRow[fieldKey][x] = await recordRowWithField.value[fieldKey][x].getRawValue()
-            }
-        }
-    }
+    const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
+    const recordRow = await getChangeFieldRecordRow(recordRowWithField.value, detailRecordRow.value, serviceFields)
+    
     if (Object.keys(recordRow).length === 0) {
-        proxy?.$notify.success("修改", "修改成功");
+        proxy?.$notify.success({
+            title: "修改",
+            message: "修改成功",
+        });
         return;
     }
-    recordRow["id"] = row_id.value
+    recordRow.id = row_id.value
 
     await editModelApi(recordRow, serviceName.value).then(data => {
-        proxy?.$notify.success("修改", "修改成功");
+        proxy?.$notify.success({
+            title: "修改",
+            message: "修改成功",
+        });
     })
     return recordRow
 }
 
-const loadChildrenData = async (data: TreeData) => {
+const loadRootData = async () => {
+    let serviceByNameAsync = await serviceStore.getServiceByNameAsync(serviceName.value);
+
+    const record = await getModelAllApi(serviceByNameAsync.keyField + "," + parentField.value + "," + nameField.value,
+        `('${parentField.value}',=,null)`,
+        serviceName.value)
+    return record
+}
+
+const loadChildrenData = async (data: any) => {
     if (data) {
         let serviceByNameAsync = await serviceStore.getServiceByNameAsync(serviceName.value);
         const record = await getModelAllApi(serviceByNameAsync.keyField + "," + parentField.value + "," + nameField.value,
             `('${parentField.value}',=,${data.id})`,
             serviceName.value)
-        record.map((x: any) => {
-            if (childrenField.value)
-                x[childrenField.value] = []
-        })
         return record
     }
-    return null
+    return []
 }
 </script>
 
 <template>
     <div class="flex flex-col flex-wrap p-4 items-start h-full">
-        <div class="pb-4 flex items-start w-full">
-            <div class="flex-1">
-                <my-button class="mr-0.5" type="primary" rounded @click="createServiceClick">
-                    {{ !recordRowIsChange ? '新增' : '保存' }}
-                </my-button>
-                <my-button class="mr-0.5" type="primary" rounded @click="importExcelClick">导入</my-button>
-                <my-button class="mr-0.5" v-if="nodeSelects.length" type="success" rounded @click="exportOpen">
-                    导出
-                </my-button>
-                <my-button class="mr-0.5" v-if="nodeSelects.length" type="danger" rounded @click="deleteServiceClick">删除
-                </my-button>
+        <div class="h-[50px] flex items-start w-full">
+            <div class="flex-1 flex items-center">
+                <my-button-group size="small">
+                    <my-button  type="primary" rounded @click="createServiceClick">
+                        {{ !recordRowIsChange ? '新增' : '保存' }}
+                    </my-button>
+                    <my-button type="primary" rounded @click="importExcelClick">导入</my-button>
+                    <my-button  v-if="nodeSelects.length" type="success" rounded @click="exportOpen">
+                        导出
+                    </my-button>
+                    <my-button  v-if="nodeSelects.length" type="danger" rounded @click="deleteServiceClick">删除
+                    </my-button>
+                </my-button-group>
+                
             </div>
             <div class="flex-1 px-4">
                 <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"
@@ -562,28 +577,34 @@ const loadChildrenData = async (data: TreeData) => {
         <div class="flex-1 overflow-y-auto flex flex-col w-full">
             <div class="flex-1 overflow-y-auto flex gap-2">
                 <div class="h-full min-w-[500px]">
-                    <my-tree ref="tree" v-model="recordField" :parentField="parentField"
-                             :children-field="childrenField"
-                             :nameField="nameField"
-                             :showSelect="true"
-                             @nodeMove="onNodeMove"
-                             :border="true"
-                             :lazy="true"
-                             :load="loadChildrenData"
-                             @expandChild="expandChildHandler"
-                             @node-select="nodeSelectChange"
-                             @nodeClick="nodeClickValue"/>
+                    <div class="h-full border border-border border-solid relative rounded overflow-hidden py-2">
+                        <el-tree @check-change="checkChange" show-checkbox v-if="leftTreeShow" lazy :props="recordProps" :load="loadRecordData" >
+                            <template #default="{ node, data }">
+                                <div class="flex items-center w-full">
+                                    <div class="flex-1">{{ data[nameField] }}</div>
+                                    <div class="flex-1"></div>
+                                    <div class="flex items-center justify-center gap-1 px-2">
+                                        <el-icon @click.stop="addNodeClick(node,data)" ><Plus /></el-icon>
+                                        <el-icon @click.stop="editNodeClick(node,data)" ><Edit /></el-icon>
+                                        <el-icon @click.stop="deleteNodeClick(node,data)" ><Delete/></el-icon>
+                                    </div>
+                                </div>
+                            </template>
+                        </el-tree>
+                    </div>
                 </div>
-                <div class="flex-1 border">
-                    <component :is="template_component"/>
+                <div class="flex-1 border border-border border-solid rounded overflow-hidden">
+                    <el-scrollbar class="h-full">
+                        <component :is="template_component"/>
+                    </el-scrollbar>
                 </div>
             </div>
         </div>
     </div>
-    <MyDialog :show="deleteShow" @close="hideClick" @sure="sureClick" title="提示">
+    <MyDialog :draggable="true" width="300px" v-model="deleteShow" @close="hideClick" @sure="sureClick" title="提示">
         确认删除吗?
     </MyDialog>
-    <MyExportDialog :show="exportShow" :service="serviceName" @close="exportClose" @sure="exportSure"></MyExportDialog>
+    <MyExportDialog v-model="exportShow" :service="serviceName" @close="exportClose" @sure="exportSure"></MyExportDialog>
 </template>
 
 <style scoped>

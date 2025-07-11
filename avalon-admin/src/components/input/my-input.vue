@@ -4,13 +4,13 @@
  * @date 2024/11/22
  */
 
-import {ref, computed, watch, useAttrs} from 'vue'
-import MyIcon from '../icon/my-icon.vue'
-import type {InputProps} from './types'
-import FormField from "../../model/FormField.ts";
+import { ref, computed, watch, useAttrs } from 'vue'
+import type { InputProps } from './types'
 
 const props = defineProps<InputProps>()
-const formField = defineModel<FormField>({required: true})
+const inputValue = defineModel<any>({
+  default: ''
+})
 const attrs = useAttrs()
 
 const emit = defineEmits<{
@@ -22,146 +22,146 @@ const emit = defineEmits<{
   (e: 'keyup', event: KeyboardEvent): void
 }>()
 
-const inputRef = ref<HTMLInputElement>()
+// 验证状态
+const isValidate = ref(true)
 
-const baseClass = computed(() => [
-  // 布局&基础
-  'w-full',
-  'appearance-none',
-  'transition-all',
-  'duration-150',
-  'placeholder:text-text-placeholder',
-  'focus:border-primary',
-  'outline-none',
-  // 交互/禁用/只读
-  props.disabled
-      ? 'bg-fill-disabled text-text-disabled cursor-not-allowed border-border-disabled'
-      : 'text-text-regular',
-  props.readonly ? 'bg-fill-blank text-text-disabled cursor-default' : 'text-text-regular'
-])
-const sizeClass = computed(() => {
-  switch (props.size) {
-    case 'large':
-      return ['h-12', 'text-lg', 'px-5']
-    case 'small':
-      return ['h-7', 'text-sm', 'px-2']
-    default:
-      return ['h-9', 'text-base', 'px-4']
+// Element Plus size 映射
+const elSize = computed(() => {
+  const sizeMap = {
+    large: 'large',
+    default: 'default',
+    small: 'small'
   }
+  return sizeMap[props.size || 'default']
+})
+
+// 前缀图标处理
+const prefixIcon = computed(() => {
+  if (!props.prefixIcon) return undefined
+  // 这里需要根据项目的图标系统来处理
+  // 如果使用 Element Plus 图标，需要导入对应的图标组件
+  return undefined // 暂时返回 undefined，需要根据具体图标系统调整
+})
+
+// 后缀图标处理
+const suffixIcon = computed(() => {
+  if (!props.suffixIcon) return undefined
+  // 这里需要根据项目的图标系统来处理
+  return undefined // 暂时返回 undefined，需要根据具体图标系统调整
 })
 
 /** 清空按钮点击 */
 function onClear() {
-  if (formField.value) {
-    formField.value.value = undefined
-    formField.value.isValidate = true
-  }
+  inputValue.value = ''
+  isValidate.value = true
   emit('clear')
 }
 
-const onInputChange = () => {
-  emit('change', formField.value.value)
+/** 输入变化事件 */
+function onInput(value: any) {
+  inputValue.value = value
+  emit('change', value)
 }
 
-
 /** 失焦事件 */
-function onBlur(e: any) {
+function onBlur(e: FocusEvent) {
   validate()
   emit('blur', e)
 }
 
+/** 聚焦事件 */
+function onFocus(e: FocusEvent) {
+  emit('focus', e)
+}
+
+/** 键盘事件 */
+function onKeyup(e: KeyboardEvent) {
+  emit('keyup', e)
+}
+
 /** 校验逻辑 */
 function validate(): boolean {
-  if (!formField.value) return true
-  if (props.required && !formField.value.value) {
-    formField.value.isValidate = false
+  if (props.required && !inputValue.value?.trim()) {
+    isValidate.value = false
     return false
   }
-  if (props.pattern) {
+  if (props.pattern && inputValue.value) {
     const regex = new RegExp(props.pattern)
-    if (!regex.test(formField.value.value)) {
-      formField.value.isValidate = false
+    if (!regex.test(inputValue.value)) {
+      isValidate.value = false
       return false
     }
   }
-  formField.value.isValidate = true
+  isValidate.value = true
   return true
 }
 
 /** 自动恢复校验 */
-watch(() => formField.value?.value, () => {
-  if (formField.value?.isValidate === false) {
-    formField.value.isValidate = true
+watch(inputValue, () => {
+  if (!isValidate.value) {
+    isValidate.value = true
   }
 })
 
-
-const suffixIconClick = () => {
+/** 后缀图标点击 */
+function onSuffixIconClick() {
   emit('suffixIconClick')
 }
 
-defineExpose({validate})
+// 验证状态样式
+const validateStatus = computed(() => {
+  if (props.required && !isValidate.value) {
+    return 'error'
+  }
+  return ''
+})
+
+defineExpose({ validate, isValidate })
 </script>
 
 <template>
-  <div :class="[`relative flex items-center group overflow-hidden border border-solid
-  border-border-base bg-background hover:border-primary input-container`,{'rounded-lg':true}]">
-    <!-- 前缀图标 -->
-    <span v-if="props.prefixIcon" class="absolute left-3 flex items-center text-text-placeholder">
-      <MyIcon :icon="props.prefixIcon" :type="props.prefixIconType" size="sm"/>
-    </span>
-
-    <!-- 输入框 -->
-    <input
-        ref="inputRef"
-        :type="props.type || 'text'"
-        v-model="formField.value"
-        :placeholder="props.placeholder"
-        :class="[
-          baseClass,
-          sizeClass,
-          props.prefixIcon ? 'pl-10' : '',
-          props.suffixIcon || props.clearable ? 'pr-10' : '',
-        ]"
-        :disabled="props.disabled"
-        :readonly="props.readonly"
-        @change="onInputChange"
-        @blur="onBlur"
-        autocomplete="off"
-        v-bind="attrs"
-        @keyup="emit('keyup',$event)"
-    />
-
-    <!-- 清除按钮 -->
-    <button
-        v-if="props.clearable && formField.value?.value && !props.disabled && !props.readonly"
-        class="absolute right-3 flex items-center text-text-placeholder hover:text-primary transition-colors"
-        tabindex="-1"
-        @click="onClear"
-        type="button"
-    >
-      <MyIcon icon="times-circle" type="fas" size="sm"/>
-    </button>
-
-    <!-- 后缀图标 -->
-    <span @click="suffixIconClick" v-if="props.suffixIcon"
-          class="absolute right-3 flex items-center text-text-placeholder">
-      <MyIcon :class="{'cursor-pointer':props.type == 'password'}" :icon="props.suffixIcon" :type="props.suffixIconType"
-              size="sm"/>
-    </span>
-    <!-- append slot：紧挨输入框右侧，无缝衔接 -->
-    <template v-if="$slots.append">
-       <span
-           :class="['inline-flex items-center justify-center h-9 px-4 bg-fill-base border-box transition']">
-        <slot name="append"/>
-    </span>
+  <el-input
+      v-model="inputValue"
+      :type="type || 'text'"
+      :size="elSize"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :readonly="readonly"
+      :clearable="clearable"
+      :prefix-icon="prefixIcon"
+      :suffix-icon="suffixIcon"
+      :validate-event="false"
+      @input="onInput"
+      @clear="onClear"
+      @blur="onBlur"
+      @focus="onFocus"
+      @keyup="onKeyup"
+      v-bind="attrs"
+  >
+    <!-- 前缀插槽 -->
+    <template v-if="$slots.prefix" #prefix>
+      <slot name="prefix" />
     </template>
-
-  </div>
+    
+    <!-- 后缀插槽 -->
+    <template v-if="$slots.suffix" #suffix>
+      <span @click="onSuffixIconClick" :class="{ 'cursor-pointer': type === 'password' }">
+        <slot name="suffix" />
+      </span>
+    </template>
+    
+    <!-- append 插槽 -->
+    <template v-if="$slots.append" #append>
+      <slot name="append" />
+    </template>
+    
+    <!-- prepend 插槽 -->
+    <template v-if="$slots.prepend" #prepend>
+      <slot name="prepend" />
+    </template>
+  </el-input>
 </template>
 
-<style>
-.input-container:focus-within {
-  @apply border-primary;
-}
+<style scoped>
+/* 可以根据需要添加样式 */
 </style>

@@ -8,8 +8,11 @@ import mittBus from "./global/bus/mittBus.ts";
 import {isLogin} from "./util/commonUtils.ts";
 import {goExcalidraw, goLogin} from "./util/routerUtils.ts";
 import {onMounted, onUnmounted} from "@vue/runtime-dom";
+import {Location} from "@element-plus/icons-vue";
+import {useRoute} from "vue-router";
 
 
+const route = useRoute()
 if (isLogin()) {
   mittBus.emit("loadModule")
   mittBus.emit("loadService")
@@ -38,6 +41,11 @@ onUnmounted(() => {
 
 <template>
   <router-view></router-view>
+<!--  <router-view v-slot="{Component}">-->
+<!--    <keep-alive>-->
+<!--      <component :is="Component" :key="route.fullPath"/>-->
+<!--    </keep-alive>-->
+<!--  </router-view>-->
   <div class="contents pb-1"></div>
 </template>
 

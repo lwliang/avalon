@@ -8,9 +8,7 @@
         <field name="arch" type="xml">
             <form create="false" edit="false">
                 <header>
-                    <MyButton :rounded="true" type="primary" class="ml-2" action="uploadFile"
-                              action-type="object">上传文件
-                    </MyButton>
+                    <my-button type="primary" size="small" action="uploadFile" action-type="object">上传文件</my-button>
                 </header>
                 <sheet>
                     <field name="documents" widget="document"/>

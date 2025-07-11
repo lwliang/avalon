@@ -4,8 +4,9 @@
  * @date 2024/11/22
  */
 import {computed, ref} from "vue";
-import FormField from "../../model/FormField.ts";
 import {getVideoUploadUrl} from "../../api/env.ts";
+import {uploadVideo} from "../../api/fileUploadApi.ts";
+import {ElMessage} from 'element-plus';
 
 const props = defineProps({
     htmlId: String,
@@ -15,64 +16,81 @@ const props = defineProps({
 })
 
 const file = ref<HTMLElement | null>(null)
+const isUploading = ref(false)
+
 const selectFileClick = () => {
-    if (file.value) {
+    if (file.value && !isUploading.value && !props.readonly) {
         file.value.click();
     }
 }
 
-const fileBlob = ref<File>()
-const videoUrl = ref<string>()
+const modelValue = defineModel<string>({
+    type: String,
+    default: ''
+})
 
-const fileChange = (event: any) => {
+// 直接上传视频到服务器
+const uploadVideoFile = async (file: File) => {
+    try {
+        isUploading.value = true
+        const data = await uploadVideo(file)
+        if (data && data.url) {
+            modelValue.value = data.url
+            ElMessage.success('视频上传成功')
+        } else {
+            ElMessage.error('视频上传失败')
+        }
+    } catch (error) {
+        console.error('上传失败:', error)
+        ElMessage.error('视频上传失败')
+    } finally {
+        isUploading.value = false
+    }
+}
+
+const fileChange = async (event: any) => {
     if (event.target.files.length === 0) {
         return
     }
-    fileBlob.value = event.target.files[0]
-    videoUrl.value = URL.createObjectURL(event.target.files[0]);
-    formField.value.value = event.target.files[0];
+    
+    const selectedFile = event.target.files[0]
+    if (selectedFile) {
+        // 验证文件类型
+        const isVideo = selectedFile.type.startsWith('video/')
+        const isLt50M = selectedFile.size / 1024 / 1024 < 50
+
+        if (!isVideo) {
+            ElMessage.error('只能上传视频文件!')
+            return
+        }
+        if (!isLt50M) {
+            ElMessage.error('上传视频大小不能超过 50MB!')
+            return
+        }
+
+        await uploadVideoFile(selectedFile)
+    }
+    // 清空 input 值，允许重复选择同一文件
+    event.target.value = ''
 }
 
 const getVideoUrl = computed(() => {
-    if (formField.value.value) {
-        if (formField.value.value instanceof File) {
-            if (videoUrl.value) {
-                return videoUrl.value
-            } else {
-                videoUrl.value = URL.createObjectURL(formField.value.value);
-                return videoUrl.value;
-            }
-        } else {
-            return getVideoUploadUrl(formField.value.value)
-        }
+    if (modelValue.value) {
+        return getVideoUploadUrl(modelValue.value)
     }
-    return formField.value.value
+    return ''
 })
-
-const formField = defineModel({
-    type: FormField,
-    required: true
-})
-
-
-const setValidate = (valid: boolean) => {
-    if (formField.value) {
-        formField.value.isValidate = valid
-    }
-}
 
 const validate = () => {
     if (!props.required) {
-        setValidate(true)
         return true;
     }
-    setValidate(!!formField.value?.value)
-    return formField.value?.isValidate
+    return !!modelValue.value
 }
 
 const video_ref_id = ref(null)
 const openVideo = () => {
-    if (video_ref_id.value && formField.value) {
+    if (video_ref_id.value && modelValue.value) {
         const video = video_ref_id.value as any;
         video.requestFullscreen();
         video.play()
@@ -80,7 +98,7 @@ const openVideo = () => {
 }
 
 const StopVideo = () => {
-    if (video_ref_id.value && formField.value) {
+    if (video_ref_id.value && modelValue.value) {
         const video = video_ref_id.value as any;
         video.pause()
     }
@@ -93,13 +111,55 @@ defineExpose({validate})
 <template>
     <div
         class="w-[94px] h-[94px] bgc flex justify-center items-center rounded cursor-pointer overflow-hidden border relative video-container border-border border-solid"
+        :class="{ 'opacity-60 cursor-not-allowed': isUploading || readonly }"
         @click="selectFileClick">
-        <img v-if="!formField.value" src="/upload.png" alt="" width="30" height="30">
-        <video ref="video_ref_id" v-if="formField.value" :src="getVideoUrl" width="94" height="94"/>
-        <input accept="video/*" type="file" hidden="hidden" ref="file" @change="fileChange">
-        <div class="hidden m-upload absolute right-0 top-0 px-1" v-if="formField.value">
-            <MyIcon @click.stop="openVideo" type="fas" icon="circle-play" class="mr-1"/>
-            <MyIcon @click.stop="StopVideo" type="fas" icon="circle-pause"/>
+        
+        <!-- 上传中状态 -->
+        <div v-if="isUploading" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+            <el-icon class="text-white text-xl animate-spin">
+                <Loading />
+            </el-icon>
+        </div>
+        
+        <!-- 默认上传图标 -->
+        <img v-if="!modelValue && !isUploading" src="/upload.png" alt="" width="30" height="30">
+        
+        <!-- 已上传的视频 -->
+        <video 
+            ref="video_ref_id" 
+            v-if="modelValue && !isUploading" 
+            :src="getVideoUrl" 
+            width="94" 
+            height="94"
+            preload="metadata"
+        />
+        
+        <!-- 文件输入框 -->
+        <input 
+            accept="video/*" 
+            type="file" 
+            hidden="hidden" 
+            ref="file" 
+            @change="fileChange"
+            :disabled="isUploading || readonly"
+        >
+        
+        <!-- 视频控制按钮 -->
+        <div class="hidden m-upload absolute right-0 top-0 px-1" v-if="modelValue && !isUploading">
+            <el-button 
+                type="primary" 
+                size="small" 
+                circle 
+                @click.stop="openVideo"
+                :icon="'VideoPlay'"
+            />
+            <el-button 
+                type="warning" 
+                size="small" 
+                circle 
+                @click.stop="StopVideo"
+                :icon="'VideoPause'"
+            />
         </div>
     </div>
 </template>
@@ -107,5 +167,18 @@ defineExpose({validate})
 <style scoped>
 .video-container:hover .m-upload {
     @apply block;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 </style>

@@ -18,15 +18,15 @@ export default defineConfig({
     server: {
         proxy: {
             '/erp': {
-                target: 'http://localhost:8090',
+                target: 'http://localhost:8090/',
                 changeOrigin: true
             },
             '/file': {
-                target: 'http://localhost:8091',
+                target: 'http://localhost:8091/',
                 changeOrigin: true
             },
             '/im': {
-                target: 'http://localhost:8093',
+                target: 'http://localhost:8092/',
                 changeOrigin: true
             },
             '/ws': {

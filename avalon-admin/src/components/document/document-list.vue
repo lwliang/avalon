@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import FormField from "../../model/FormField.ts";
 import DocumentFile from "./document-file.vue";
 import mittBus from "../../global/bus/mittBus.ts";
 import {addModelApi, createModelApi, deleteModelApi, editModelApi, getModelAllApi} from "../../api/modelApi.ts";
@@ -10,6 +9,7 @@ import MyDialog from "../dialog/my-dialog.vue";
 import MyInput from "../input/my-input.vue";
 import {postDownloadFileFromFileServer} from "../../api/http.ts";
 import draggable from "vuedraggable";
+import {ElNotification} from "element-plus";
 
 const {proxy} = getCurrentInstance() as ComponentInternalInstance;
 
@@ -21,14 +21,18 @@ const parentIdState = useStorage('fileParentId', 0) // returns Ref<number>
 if (parentIdState.value) {
     parentIdState.value = 0
 }
+
+// 文件列表数据
+const fileList = ref<any[]>([])
+
 const getAllFileByParentId = () => {
     let condition = ""
     if (parentId.value) {
         condition = `('parentId',=,${parentId.value})`
     }
     getModelAllApi("id,name,isFolder,url,size,mine,ownerId", condition, "document.file").then(data => {
-        formField.value.value.splice(0, formField.value.value.length)
-        formField.value.value.push(...data)
+        fileList.value.splice(0, fileList.value.length)
+        fileList.value.push(...data)
     })
 }
 
@@ -36,18 +40,33 @@ const getAllFileByParentId = () => {
  * @author lwlianghehe@gmail.com
  * @date 2025/04/05 16:36
  */
-const formField = defineModel({
-    type: FormField,
-    required: true
-})
-// {id,name,isFolder,url,size,mine,ownerId}
+// 定义props和emits
+const props = defineProps<{
+    modelValue: any[]
+}>()
+
+const emit = defineEmits<{
+    'update:modelValue': [value: any[]]
+}>()
+
+// 监听外部传入的数据变化
+watch(() => props.modelValue, (newValue) => {
+    if (newValue) {
+        fileList.value = [...newValue]
+    }
+}, { immediate: true })
+
+// 监听内部数据变化，向外部发送更新
+watch(fileList, (newValue) => {
+    emit('update:modelValue', newValue)
+}, { deep: true })
 
 mittBus.on('uploadFile', async () => {
     console.log('upload-file')
     if (!parentId.value) {
         const defaultValue = await createModelApi({}, "document.show.transient")
-        formField.value.value.splice(0, formField.value.value.length)
-        formField.value.value.push(...(defaultValue.documents))
+        fileList.value.splice(0, fileList.value.length)
+        fileList.value.push(...(defaultValue.documents))
     } else {
         getAllFileByParentId()
     }
@@ -86,13 +105,17 @@ const hideClick = () => {
     createFolderNameShow.value = false
 }
 const sureClick = async () => {
-    if (!folderName.value.value || !folderName.value.value.toString().trim()) {
-        proxy?.$notify.error('提示', '输入文件夹名称')
+    if (!folderName.value || !folderName.value.toString().trim()) {
+        ElNotification({
+            title: "提示",
+            message: "输入文件夹名称",
+            type: "error",
+        })
         return
     }
     const value: any = {
         isFolder: true,
-        name: folderName.value.value,
+        name: folderName.value,
         ownerId: getUserId()
     }
     if (parentId.value) {
@@ -100,10 +123,10 @@ const sureClick = async () => {
     }
     await addModelApi(value, "document.file")
     createFolderNameShow.value = false
-    folderName.value.value = ''
+    folderName.value = ''
     mittBus.emit('uploadFile')
 }
-const folderName = ref(new FormField(""))
+const folderName = ref("")
 
 const createFileShow = ref(false) // 下载文件
 
@@ -137,7 +160,11 @@ const downloadFileClick = async () => {
         // 清理 URL 对象
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        proxy?.$notify.success('提示', "下载完成")
+        ElNotification({
+            title: "提示",
+            message: "下载完成",
+            type: "success",
+        })
     })
 }
 
@@ -157,11 +184,11 @@ const fileSelectedIndex = ref(0)
 const fileSelectedTag = ref<any>(null)
 const showFileMenu = (id: number) => {
     createFolderShow.value = false
-    const index = formField.value.value.findIndex((x: any) => x.id == id);
+    const index = fileList.value.findIndex((x: any) => x.id == id);
     fileSelectedIndex.value = index
     menuPosition.value.x = x.value - 90;
     menuPosition.value.y = y.value - 90;
-    fileSelectedTag.value = formField.value.value[index]
+    fileSelectedTag.value = fileList.value[index]
     if (fileSelectedTag.value.isFolder) {
         openFolderShow.value = true
         createFileShow.value = false
@@ -179,7 +206,7 @@ const openFolderClick = () => {
 }
 
 const openFileClick = (id: number) => {
-    const doc = formField.value.value.find((x: any) => x.id == id);
+    const doc = fileList.value.find((x: any) => x.id == id);
     if (doc && doc.isFolder) {
         parentId.value = doc.id
         getAllFileByParentId()
@@ -213,8 +240,8 @@ const onDragEnd = (evt: any) => {
     let newSrc = {id: src.id, parentId: dragIntoItem.value}
 
     editModelApi(newSrc, "document.file").then(() => {
-        const index = formField.value.value.findIndex((x: any) => x.id == src.id)
-        formField.value.value.splice(index, 1)
+        const index = fileList.value.findIndex((x: any) => x.id == src.id)
+        fileList.value.splice(index, 1)
     })
 }
 const onDragStart = (evt: any) => {
@@ -245,7 +272,7 @@ const ondragleave = (element: any) => {
 <template>
     <div class="min-h-full"
          @contextmenu.prevent.stop="showListMenu">
-        <draggable :list="formField.value" class="flex items-start  flex-wrap gap-2 min-h-full" item-key="id"
+        <draggable :list="fileList" class="flex items-start  flex-wrap gap-2 min-h-full" item-key="id"
                    group="files" :sort="false"
                    @start="onDragStart"
                    @end="onDragEnd">
@@ -262,7 +289,7 @@ const ondragleave = (element: any) => {
                 </div>
             </template>
         </draggable>
-        <div v-if="!formField.value.length">
+        <div v-if="!fileList.length">
             暂无文件
         </div>
         <div v-if="createFolderShow" class="context-menu"
@@ -281,7 +308,7 @@ const ondragleave = (element: any) => {
             <div class="px-2 py-1 cursor-pointer" @click="deleteFolderClick">删除</div>
         </div>
     </div>
-    <MyDialog :show="createFolderNameShow" @close="hideClick" @sure="sureClick" title="输入文件夹名称">
+    <MyDialog v-model="createFolderNameShow" @close="hideClick" @sure="sureClick" title="输入文件夹名称">
         <MyInput ref="db_input" v-model="folderName" :required="true"></MyInput>
     </MyDialog>
 </template>

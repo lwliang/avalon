@@ -4,9 +4,9 @@
  */
 
 import {getModelAllApi} from "../../api/modelApi.ts";
-import {useGlobalMenuDataStore} from "../store/menuStore.ts";
-import {useGlobalModuleDataStore} from "../store/moduleStore.ts";
-import {useGlobalServiceDataStore} from "../store/serviceStore.ts";
+import {useMenuStore} from "../store/menuStore.ts";
+import {useModuleStore} from "../store/moduleStore.ts";
+import {useServiceStore} from "../store/serviceStore.ts";
 
 import {useUserInfoStore} from "../store/userInfoStore.ts"
 import mitt from "mitt";
@@ -48,7 +48,7 @@ const handleLoginEvent = () => {
 }
 
 const handleLogoutEvent = () => {
-    useGlobalMenuDataStore().clearMenu();
+    useMenuStore().clearMenu();
 }
 mittBus.on('login', handleLoginEvent);
 mittBus.on('logout', handleLogoutEvent);
@@ -81,7 +81,7 @@ async function goFirstMenu(menus: MenuModel[]) {
 }
 
 mittBus.on('changeModule', async (args) => {
-    const menus = await useGlobalMenuDataStore().setModuleMenu(args.module as string);
+    const menus = await useMenuStore().setModuleMenu(args.module as string);
     if (args.click) {
         goFirstMenu(menus)
     }
@@ -90,7 +90,7 @@ mittBus.on('changeModule', async (args) => {
 
 const handleLoadModuleEvent = async () => {
     const data: Module[] = await getPermissionModule();
-    useGlobalModuleDataStore().setModuleStore(data);
+    useModuleStore().setModuleStore(data);
 
     const installModules = await getInstallModule()
     for (const module of installModules) {
@@ -119,7 +119,7 @@ const handleLoadServiceEvent = () => {
     getModelAllApi("id,label,name,tableName,moduleId,nameField,keyField",
         "",
         "base.service").then(data => {
-        useGlobalServiceDataStore().setServiceStore(data);
+        useServiceStore().setServices(data);
     })
 }
 

@@ -7,6 +7,7 @@ package com.avalon.core.util;
 
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.exception.JsonDecodeException;
+import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -68,6 +69,10 @@ public class JacksonUtil {
         } catch (Exception e) {
             throw new JsonDecodeException(e.getMessage());
         }
+    }
+
+    public static Record convert2Record(String json) {
+        return convert2Object(json, Record.class);
     }
 
     public static <T> T convert2Object(String json, TypeReference<T> typeReference) throws AvalonException {

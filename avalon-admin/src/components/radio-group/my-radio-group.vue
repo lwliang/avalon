@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import {computed, provide} from 'vue'
+import {computed} from 'vue'
 import type {RadioGroupProps} from './types'
-import FormField from "../../model/FormField.ts";
 
 // props与v-model
 const props = withDefaults(defineProps<RadioGroupProps>(), {
@@ -14,51 +13,52 @@ const emit = defineEmits<{
   (e: 'blur'): void
 }>()
 
-const formField = defineModel<FormField>({required: true}) // v-model: 实际绑定数据（radio选中值）
+const formField = defineModel<string | number | boolean>()
 
-// 提供group上下文（供Radio子项注入）
-const group = {
-  size: computed(() => props.size),
-  disabled: computed(() => props.disabled),
-  checkedValue: computed({
-    get: () => formField.value.value,
-    set: (val) => {
-      formField.value.value = val
-    }
-  }),
-  change: (val: string | number | boolean) => {
-    formField.value.value = val
+// Element Plus size 映射
+const elSize = computed(() => {
+  const sizeMap = {
+    large: 'large',
+    default: 'default',
+    small: 'small'
   }
-}
-provide('radioGroupContext', group)
+  return sizeMap[props.size || 'default']
+})
 
-const setValidate = (valid: boolean) => {
-  if (formField.value) {
-    formField.value.isValidate = valid
-  }
+// 处理变化事件
+const handleChange = (value: string | number | boolean) => {
+  formField.value = value
+  emit('change', value)
 }
 
-const validate = () => {
-  if (props.required) { // 必填
-    if (formField.value && !formField.value.value) {
-      formField.value.isValidate = false
-      return false;
-    }
-  }
-
-  setValidate(!!formField.value?.value)
-  return formField.value?.isValidate
-}
-
-const inputBlurClick = () => {
+// 处理失焦事件
+const handleBlur = () => {
   emit('blur')
+}
+
+// 校验逻辑
+const validate = (): boolean => {
+  if (props.required) {
+    return !!(formField.value !== undefined && formField.value !== null && formField.value !== '')
+  }
+  return true
 }
 
 defineExpose({validate})
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-4">
-    <slot @blur="inputBlurClick"/>
-  </div>
+  <el-radio-group
+    v-model="formField"
+    :disabled="disabled"
+    :size="elSize"
+    @change="handleChange"
+    @blur="handleBlur"
+  >
+    <slot />
+  </el-radio-group>
 </template>
+
+<style scoped>
+/* 可以根据需要添加自定义样式 */
+</style>

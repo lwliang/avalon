@@ -59,7 +59,8 @@ export function getActionXTreeView(serviceName: string) {
 }
 
 export function getActionFormView(serviceName: string) {
-    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+    return getBaseActionView("id,name,viewMode,label,priority,target,direction,"+
+        "arch,inheritId,moduleId.id,moduleId.name",
         `('serviceId.name',=,'${serviceName}')&('viewMode',=,'form')`);
 }
 

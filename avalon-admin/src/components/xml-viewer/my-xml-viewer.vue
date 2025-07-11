@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import FormField from "../../model/FormField.ts";
-
 import {ref, watch} from "vue";
 import CodeMirror from 'vue-codemirror6';
 import {xml} from '@codemirror/lang-xml'
@@ -18,16 +16,16 @@ const props = defineProps({
     readonly: Boolean,
 })
 
-const formField = defineModel({
-    type: FormField,
-    required: true
+const modelValue = defineModel<string>({
+    type: String,
+    default: ''
 })
 
 const extensions = ref([xml()])  // 加载xml支持
 
 onMounted(() => {
-    if (formField.value.value) {
-        formField.value.value = formatXML(formField.value.value)
+    if (modelValue.value) {
+        modelValue.value = formatXML(modelValue.value)
     }
 })
 
@@ -35,7 +33,7 @@ onMounted(() => {
 
 <template>
     <div class="max-h-[500px] overflow-y-auto border">
-        <code-mirror v-model="formField.value" :extensions="extensions" :basic="true"/>
+        <code-mirror v-model="modelValue" :extensions="extensions" :basic="true"/>
     </div>
 </template>
 

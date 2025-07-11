@@ -56,14 +56,6 @@ onBeforeUnmount(() => {
             <div>
                 <my-input suffix-icon-style="fas" suffixIcon="search" v-model="search"/>
             </div>
-            <!--            <div class="flex items-center justify-center gap-4 py-2">-->
-            <!--                <div class="cursor-pointer">-->
-            <!--                    <my-icon type="fas" icon="user-group"/>-->
-            <!--                </div>-->
-            <!--                <div class="cursor-pointer">-->
-            <!--                    <my-icon type="fas" icon="comment"/>-->
-            <!--                </div>-->
-            <!--            </div>-->
             <div class="flex-1 overflow-y-auto overflow-x-hidden">
                 <div v-for="member in members.value" :key="member.id"
                      class="flex items-center gap-2 flex-shrink-0 cursor-pointer py-1 bg-white px-2"

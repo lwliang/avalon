@@ -5,6 +5,7 @@
 // actions.ts
 import {Registry} from './registry';
 import {createUploadDocumentDialog} from "../../components/dialog/my-dialog.ts";
+import { ElNotification } from 'element-plus';
 
 // 示例动作 1
 const logAction = {
@@ -26,10 +27,20 @@ const uploadDocument = {
     },
 }
 
+const notifyAction = {
+    execute: (param: any) => {
+        ElNotification.success({
+            title: param.title || '提示',
+            message: param.message || "操作成功",
+        });
+    },
+}
+
 
 // 动态注册动作到 "actions" 分类
 export function registerActions(registry: Registry) {
     registry.register('actions', 'log', logAction);
     registry.register('actions', 'alter', alertAction);
     registry.register('actions', 'uploadDocument', uploadDocument);
+    registry.register('actions', 'notifyAction', notifyAction);
 }

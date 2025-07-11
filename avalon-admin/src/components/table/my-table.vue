@@ -5,35 +5,32 @@
  */
 import Field from "../../model/Field.ts";
 import {FieldTypeEnum} from "../../model/enum-type/FieldTypeEnum.ts";
-import {computed, ref, watch} from "vue";
+import {computed, ref, watch, nextTick} from "vue";
 import {getSelectionValueByServiceAndField} from "../../cache/SelectionValueMemory.ts";
-import {useGlobalServiceDataStore} from "../../global/store/serviceStore.ts";
+import {useServiceStore} from "../../global/store/serviceStore.ts";
 import {ComputedRef} from "@vue/reactivity";
-import MyIcon from "../icon/my-icon.vue";
-import MyButton from "../button/my-button.vue";
 import {getFileUploadUrl, getVideoUploadUrl} from "../../api/env.ts";
-import MyImage from "../image/my-image.vue";
 import MyMany2manySelect from "../select/many2may-select/my-many2many-select.vue";
 import FormField from "../../model/FormField.ts";
-import MyCheckBox from "../checkbox/my-check-box.vue";
 import {getDate, getDateTime, getTime} from "../../util/dateUtils.ts";
 import MyDebug from "../debug/my-debug.vue";
 import {useUserInfoStore} from "../../global/store/userInfoStore.ts";
-import {useDebounceFn, useEventListener} from "@vueuse/core";
+import {useEventListener} from "@vueuse/core";
 import MyVideo from "../video/my-video.vue";
 import ShowField from "../../model/ShowField.ts";
 import {getJoinFirstField, getJoinLastField, hasJoin} from "../../util/fieldUtils.ts";
 import MyTableColSearch from "./my-table-col-search.vue";
-import MyPopover from "../popover/my-popover.vue";
 import EditingCell from "./my-table.ts"
 import MySelectionSelect from "../select/selection-select/my-selection-select.vue";
-import {useTemplateRef} from "@vue/runtime-dom";
 import MyMany2OneSelect from "../select/many2one-select/my-many2one-select.vue";
 import {maskPassword} from "../../util/StringUtils.ts";
 import MyPassword from "../password/my-password.vue";
 import MyDatetime from "../datetime/my-datetime.vue";
 import MyTime from "../time/my-time.vue";
-
+import MyInput from "../input/my-input.vue";
+import MyDate from "../date/my-date.vue";
+import MyImageUpload from "../upload/my-image-upload.vue";
+import {Filter, Delete, Plus} from '@element-plus/icons-vue';
 
 const emits = defineEmits(['rowClick', 'rowDeleteClick', 'rowSelectChange', 'rowAddClick', 'colFieldSearch', 'cellChange']);
 
@@ -49,30 +46,12 @@ const props = defineProps<{
   keyField?: string,
   enableFilter?: boolean
 }>()
+
 const selectionDynamic = ref<any>({})
 const userInfoStore = useUserInfoStore()
-const serviceStore = useGlobalServiceDataStore()
-const rowColSpan = ref(props.fields.length)
-const myTableRef = useTemplateRef('myTable')
-
-
-useEventListener(document, 'click', (e: MouseEvent) => {
-  const el = myTableRef.value
-  if (!el) return
-
-  // 获取元素的矩形区域
-  const rect = el.getBoundingClientRect()
-  // 判断点击点是否在矩形内
-  const inside =
-      e.clientX >= rect.left &&
-      e.clientX <= rect.right &&
-      e.clientY >= rect.top &&
-      e.clientY <= rect.bottom
-
-  if (!inside) {
-    editingCellSave()
-  }
-})
+const serviceStore = useServiceStore()
+const tableRef = ref()
+const multipleSelection = ref<any[]>([])
 
 const loadData = async () => {
   if (!props.serviceName) {
@@ -80,12 +59,11 @@ const loadData = async () => {
   }
 
   for (let field of props.fields) {
-    if (field.Field.type == FieldTypeEnum.SelectionField || field.Field.type == FieldTypeEnum.FieldSelectionField) { // 得到字段对应的selection的值
+    if (field.Field.type == FieldTypeEnum.SelectionField || field.Field.type == FieldTypeEnum.FieldSelectionField) {
       selectionDynamic.value[field.Field.name] = await getSelectionValueByServiceAndField(props.serviceName, field.Field.name)
     }
   }
 }
-
 
 const getSelectionField = (field: ShowField, row: any): ComputedRef => {
   return computed(() => {
@@ -104,17 +82,22 @@ const getSelectionField = (field: ShowField, row: any): ComputedRef => {
   })
 }
 
-watch(() => props.fields.length, (newValue) => { // 增加selection字段获取
+watch(() => props.fields.length, (newValue) => {
   if (newValue) {
     loadData()
   }
-  rowColSpan.value = props.fields.length;
 }, {immediate: true})
 
-const rowClick = (row: any) => {
-  if (props.editable) {
-
-  } else {
+const rowClick = (row: any, column: any, event: Event) => {
+  // 如果是添加行，直接触发添加事件
+  if (row._isAddRow) {
+    return;
+  }
+  
+  if (!props.editable) {
+    if (column.index == -1) { // 是选择列
+      return
+    }
     emits('rowClick', row)
   }
 }
@@ -127,7 +110,7 @@ const getValue = (field: ShowField, row: any) => {
   if (hasJoin(field.originField)) {
     const first = getJoinFirstField(field.originField)
     const last = getJoinLastField(field.originField)
-    return row[first][last];
+    return row[first] ? row[first][last] : '';
   }
   return row[field.originField]
 }
@@ -137,10 +120,10 @@ const getPasswordValue = (field: ShowField, row: any) => {
   if (hasJoin(field.originField)) {
     const first = getJoinFirstField(field.originField)
     const last = getJoinLastField(field.originField)
-    password = row[first][last];
+    password = row[first] ? row[first][last] : '';
+  } else {
+    password = row[field.originField]
   }
-  password = row[field.originField]
-
   return password ? maskPassword(password) : ''
 }
 
@@ -148,9 +131,11 @@ const setValue = (field: ShowField, row: any, value: any) => {
   if (hasJoin(field.originField)) {
     const first = getJoinFirstField(field.originField)
     const last = getJoinLastField(field.originField)
+    if (!row[first]) row[first] = {};
     row[first][last] = value;
+  } else {
+    row[field.originField] = value;
   }
-  row[field.originField] = value;
 }
 
 const getImageUrl = (file: any) => {
@@ -162,6 +147,7 @@ const getImageUrl = (file: any) => {
   }
   return undefined
 }
+
 const getVideoUrl = (file: any) => {
   if (file instanceof File) {
     return URL.createObjectURL(file)
@@ -169,7 +155,6 @@ const getVideoUrl = (file: any) => {
   if (file) {
     return getVideoUploadUrl(file)
   }
-
   return undefined
 }
 
@@ -177,60 +162,25 @@ const getMany2manyFormField = (obj: any, value: any, field: Field) => {
   obj[field.name + '_many'] = new FormField(value, field)
   return ''
 }
+
 const getSelectFormField = (obj: any, value: any, field: Field) => {
   obj[field.name + '_select'] = new FormField(value, field)
   return ''
 }
+
 const getFormField = (obj: any, value: any, field: Field) => {
   obj[field.name + '_field'] = new FormField(value, field)
   return ''
 }
 
-const allSelect = ref(new FormField(false))
-const allSelect_indeterminate = ref(false)
-const web_select = 'web_select';
-let selectChange = (value: any) => {
-  let selectedSum = 0
-  for (let row of props.record) {
-    if (row[web_select].value) {
-      selectedSum++;
-    }
-  }
-  allSelect_indeterminate.value = false;
-  if (selectedSum == props.record.length && selectedSum != 0) {
-    allSelect.value.value = true;
-  } else {
-    if (selectedSum == 0) {
-      allSelect.value.value = false;
-    } else {
-      allSelect_indeterminate.value = true;
-    }
-  }
-  const ids = props.record.filter(x => x[web_select].value).map(y => y.id);
-  emits('rowSelectChange', selectedSum, ids)
+// 选择相关
+const handleSelectionChange = (selection: any[]) => {
+  // 过滤掉添加行
+  const realSelection = selection.filter(row => !row._isAddRow);
+  multipleSelection.value = realSelection
+  const ids = realSelection.map(row => row.id);
+  emits('rowSelectChange', realSelection.length, ids)
 }
-
-selectChange = useDebounceFn(selectChange, 100)
-watch(() => props.record.length, (length) => {
-  if (props.showSelectBtn) {
-    for (let row of props.record) {
-      row[web_select] = new FormField(false)
-    }
-    selectChange([]);
-  }
-}, {immediate: true, deep: true})
-
-watch(() => allSelect.value.value, (all) => {
-  if (all) { // 全选
-    for (let row of props.record) {
-      row[web_select].value = true;
-    }
-  } else { // 全关
-    for (let row of props.record) {
-      row[web_select].value = false;
-    }
-  }
-})
 
 const addRowClick = () => {
   emits('rowAddClick')
@@ -240,36 +190,73 @@ const fieldSearchClick = (fieldName: string, operate: string, value: any) => {
   emits('colFieldSearch', fieldName, operate, value);
 }
 
-
 // 编辑模式
 const editingCell = ref<EditingCell>(new EditingCell(-1, -1));
-const editingValue = ref<FormField>(new FormField(null));
+const editingValue = ref<any>(null);
+
+// 过滤掉主键字段
+const visibleFields = computed(() => {
+  return props.fields.filter(field => !field.Field.isPrimaryKey);
+});
+
+// 计算表格数据，如果showBtnRow为true，则在最后添加一行用于显示添加按钮
+const tableData = computed(() => {
+  if (props.showBtnRow) {
+    return [...props.record, { _isAddRow: true }];
+  }
+  return props.record;
+});
+
 const editingCellChange = (rowIndex: number, colIndex: number, value: any, field: Field) => {
-  if (editingCell.value.rowIndex >= 0 && editingCell.value.colIndex >= 0) { // 进行保存
-    const rowValue = props.record[editingCell.value.rowIndex]
-    const fieldShow = props.fields[editingCell.value.colIndex];
-    setValue(fieldShow, rowValue, editingValue.value.value);
+  // 如果是添加行，不进行编辑
+  if (tableData.value[rowIndex]?._isAddRow) {
+    return;
+  }
+  
+  // 如果不是编辑模式，不阻止事件冒泡
+  if (!props.editable) {
+    return;
+  }
+  
+  // 先保存当前编辑的值
+  if (editingCell.value.rowIndex >= 0 && editingCell.value.colIndex >= 0) {
+    const currentRowValue = props.record[editingCell.value.rowIndex]
+    const currentFieldShow = visibleFields.value[editingCell.value.colIndex];
+    const currentValue = editingValue.value;
+    
+    // 立即保存当前值
+    setValue(currentFieldShow, currentRowValue, currentValue);
     if (props.keyField) {
-      cellChangeEvent(rowValue[props.keyField], fieldShow.originField, editingValue.value.value);
+      cellChangeEvent(currentRowValue[props.keyField], currentFieldShow.originField, currentValue);
     }
   }
+  
+  // 设置新的编辑状态
   editingCell.value.rowIndex = rowIndex;
   editingCell.value.colIndex = colIndex;
-  editingValue.value.value = value;
-  editingValue.value.Field = field;
+  editingValue.value = value;
 }
-const editingCellSave = () => {
-  if (editingCell.value.rowIndex >= 0 && editingCell.value.colIndex >= 0) { // 进行保存
-    const rowValue = props.record[editingCell.value.rowIndex]
-    const fieldShow = props.fields[editingCell.value.colIndex];
-    setValue(fieldShow, rowValue, editingValue.value.value);
-    if (props.keyField) {
-      cellChangeEvent(rowValue[props.keyField], fieldShow.originField, editingValue.value.value);
-    }
 
+const editingCellSave = () => {
+  if (editingCell.value.rowIndex >= 0 && editingCell.value.colIndex >= 0) {
+    const rowValue = props.record[editingCell.value.rowIndex]
+    const fieldShow = visibleFields.value[editingCell.value.colIndex];
+    const currentValue = editingValue.value;
+    const currentRowIndex = editingCell.value.rowIndex;
+    const currentColIndex = editingCell.value.colIndex;
+    
+    // 先清除编辑状态
     editingCell.value.rowIndex = -1;
     editingCell.value.colIndex = -1;
-    editingValue.value.value = null;
+    editingValue.value = null;
+    
+    // 使用 nextTick 避免递归更新
+    nextTick(() => {
+      setValue(fieldShow, rowValue, currentValue);
+      if (props.keyField) {
+        cellChangeEvent(rowValue[props.keyField], fieldShow.originField, currentValue);
+      }
+    });
   }
 }
 
@@ -277,191 +264,310 @@ const cellChangeEvent = (key: any, fieldName: string, value: any) => {
   emits('cellChange', key, fieldName, value);
 }
 
+// span-method 函数，用于合并添加行的单元格
+const spanMethod = ({ row, column, rowIndex, columnIndex }: any) => {
+  if (row._isAddRow) {
+    // 如果是添加行，只在第一个数据列显示，其他列合并到第一列
+    const selectionColumnCount = props.showSelectBtn ? 1 : 0;
+    const dataColumnIndex = columnIndex - selectionColumnCount;
+    
+    if (dataColumnIndex === 0) {
+      // 计算数据列的总数（不包括选择列和操作列）
+      const totalDataColumns = visibleFields.value.length;
+      return {
+        rowspan: 1,
+        colspan: totalDataColumns
+      };
+    } else if (dataColumnIndex > 0 && dataColumnIndex < visibleFields.value.length) {
+      // 其他数据列隐藏
+      return {
+        rowspan: 0,
+        colspan: 0
+      };
+    }
+  }
+  return {
+    rowspan: 1,
+    colspan: 1
+  };
+}
+
+// 点击表格外部保存编辑
+useEventListener(document, 'click', (e: MouseEvent) => {
+  const el = tableRef.value?.$el
+  if (!el) return
+
+  const rect = el.getBoundingClientRect()
+  const inside =
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom
+
+  if (!inside) {
+    editingCellSave()
+  }
+})
 </script>
 
 <template>
-  <div ref="myTable" class="w-full overflow-auto h-full" :style="{'max-height': height || 'auto'}">
-    <table class="w-full table-fixed">
-      <thead @click.stop="void(0)" class="sticky top-0 bg-fill h-12"
-             style="left: auto;bottom: auto;right: auto;z-index: 10;">
-      <tr class="border-b">
-        <th v-if="showSelectBtn" class="w-[28px] pl-3 pr-3">
-          <div class="w-full h-full flex justify-center items-center pl-3 pr-3">
-            <MyCheckBox v-model="allSelect" :indeterminate="allSelect_indeterminate"/>
+    <el-table
+        ref="tableRef"
+        :data="tableData"
+        height="100%"
+        stripe
+        border
+        :show-header="true"
+        :span-method="spanMethod"
+        @row-click="rowClick"
+        @selection-change="handleSelectionChange"
+        class="w-full"
+    >
+      <!-- 选择列 -->
+      <el-table-column
+          v-if="showSelectBtn"
+          type="selection"
+          width="55"
+          align="center"
+          :index="-1"
+          :selectable="(row: any) => !row._isAddRow"
+      />
+
+      <!-- 数据列 -->
+      <el-table-column
+          v-for="(field, colIndex) in visibleFields"
+          :key="colIndex"
+          :prop="field.originField"
+          :label="field.Field.label"
+          :min-width="120"
+          :index="colIndex"
+          show-overflow-tooltip
+      >
+        <template #header="{ column }">
+          <div class="flex items-center">
+            <span class="flex-1 font-bold">{{ field.Field.label }}</span>
+            <template v-if="enableFilter && field.Field.canSearch">
+              <el-popover
+                  placement="top"
+                  trigger="click"
+                  width="300"
+              >
+                <template #reference>
+                  <div class="h-full flex justify-center items-center ml-2">
+                    <el-icon class="cursor-pointer">
+                      <component :is="Filter"/>
+                    </el-icon>
+                  </div>
+                </template>
+                <template #default>
+                  <my-table-col-search
+                      @sureSearch="fieldSearchClick"
+                      :service-name="serviceName"
+                      :field="field.Field"
+                  />
+                </template>
+              </el-popover>
+            </template>
+            <template v-if="userInfoStore.user.debug">
+              <div class="px-2">
+                <MyDebug :service="serviceName" :field="field.originField"/>
+              </div>
+            </template>
           </div>
-        </th>
-        <template v-for="field in fields" :key="field.Field.id">
-          <th v-if="!field.Field.isPrimaryKey" class="whitespace-nowrap pr-3 pl-3">
-            <div class="flex">
-              <span class="flex-1 font-bold">{{ field.Field.label }}</span>
-              <template v-if="enableFilter && field.Field.canSearch">
-                <MyPopover ref="popper" placement="top" trigger="click">
-                  <template #default>
-                    <div class="h-full flex justify-center items-center">
-                      <MyIcon class="cursor-pointer" type="fas" icon="filter"/>
-                    </div>
-                  </template>
-                  <template #content>
-                    <my-table-col-search @sureSearch="fieldSearchClick" :service-name="serviceName"
-                                         :field="field.Field"/>
-                  </template>
-                </MyPopover>
-              </template>
-
-              <template v-if="userInfoStore.user.debug">
-                <div class="px-2">
-                  <MyDebug :service="serviceName" :field="field.originField"/>
-                </div>
-              </template>
-            </div>
-
-          </th>
         </template>
 
-        <th class="w-[24px]" v-if="showDeleteBtn">
-          <MyIcon icon="sliders" type="fas"/>
-        </th>
-      </tr>
-      </thead>
-      <tbody class="[&>tr:nth-child(even)]:bg-fill-extra-light">
-      <tr v-for="(row, rowIndex) in record" :key="row.id"
-          class="border-t-0 border-l-0 border-r-0 border-b border-border border-solid cursor-pointer"
-          @click="rowClick(row)">
-        <td v-if="showSelectBtn" class="pl-3 pr-3 min-h-[40px]" @click.stop="void(0)">
-          <div class="w-full h-full flex justify-center items-center pl-3 pr-3">
-            <MyCheckBox v-model="row[web_select]" @change="selectChange"/>
-          </div>
-        </td>
-        <template v-for="(field, colIndex) in fields" :key="field.Field.id">
-          <td v-if="!field.Field.isPrimaryKey"
-              @click="editingCellChange(rowIndex,colIndex,getValue(field,row),field.Field)"
-              class="py-2 pl-3 pr-3">
+        <template #default="{ row, $index }">
+          <!-- 添加行显示添加按钮 -->
+          <template v-if="row._isAddRow">
+            <div class="flex items-center h-full">
+              <el-button type="primary" :icon="Plus" @click="addRowClick" size="small">
+                添加行
+              </el-button>
+            </div>
+          </template>
+          <!-- 正常数据行 -->
+          <template v-else>
+            <div @click="editingCellChange($index, colIndex, getValue(field, row), field.Field)" class="w-full h-full">
+            <!-- SelectionField -->
             <template v-if="field.Field.type == FieldTypeEnum.SelectionField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
-                <my-selection-select @click.stop="void 0" :serviceName="serviceName" :field="field.originField"
-                                     v-model="editingValue"/>
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
+                <my-selection-select
+                    @click.stop="void 0"
+                    :serviceName="serviceName"
+                    :field="field.originField"
+                    v-model="editingValue"
+                />
               </template>
               <template v-else>
                 {{ getSelectFormField(row, getValue(field, row), field.Field) }}
-                <my-selection-select :serviceName="serviceName" :field="field.originField"
-                                     v-model="row[field.Field.name+'_select']" :readonly="true"
-                                     :ref="field.Field.name+'_input'"/>
+                <my-selection-select
+                    :serviceName="serviceName"
+                    :field="field.originField"
+                    v-model="row[field.Field.name]"
+                    :readonly="true"
+                    :ref="field.Field.name+'_input'"
+                />
               </template>
             </template>
+
+            <!-- FieldSelectionField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.FieldSelectionField">
               {{ getSelectionField(field, row) }}
             </template>
+
+            <!-- Many2oneField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.Many2oneField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
-                <MyMany2OneSelect v-model="editingValue"
-                                  :serviceName="field.Field.relativeServiceName"
-                                  :field="field.Field.name"/>
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
+                <MyMany2OneSelect
+                    v-model="editingValue"
+                    :serviceName="field.Field.relativeServiceName"
+                    :field="field.Field.name"
+                />
               </template>
               <template v-else>
                 {{
-                  getValue(field, row) ? getValue(field, row)[serviceStore.getServiceByName(field.Field.relativeServiceName).nameField] : ''
+                  (() => {
+                    const value = getValue(field, row);
+                    const service = serviceStore.getServiceByName(field.Field.relativeServiceName);
+                    return (value && service) ? value[service.nameField] : '';
+                  })()
                 }}
               </template>
             </template>
+
+            <!-- ImageField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.ImageField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
-                <MyImageUpload v-model="editingValue" @blur="editingCellSave"></MyImageUpload>
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
+                <MyImageUpload v-model="editingValue" @blur="editingCellSave"/>
               </template>
               <template v-else>
-                <MyImage v-if="getValue(field,row)" :src="getImageUrl(getValue(field,row)) as string"></MyImage>
+                <el-image 
+                  v-if="getValue(field,row)" 
+                  :src="getImageUrl(getValue(field,row)) as string"
+                  :preview-src-list="[getImageUrl(getValue(field,row)) as string]"
+                  fit="cover"
+                  style="width: 60px; height: 60px;"
+                  :preview-teleported="true"
+                  @click.stop="void 0"
+                />
               </template>
             </template>
+
+            <!-- VideoField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.VideoField">
-              <MyVideo width="94" height="94" :src="getVideoUrl(getValue(field,row))"></MyVideo>
+              <MyVideo width="94" height="94" :src="getVideoUrl(getValue(field,row))"/>
             </template>
+
+            <!-- Many2manyField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.Many2manyField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
-                <MyMany2manySelect v-model="editingValue"
-                                   :ref="field.Field.name+'_input'"
-                                   :serviceName="field.Field.relativeServiceName"
-                                   :field="field.Field.name"
-                                   :htmlId="field.Field.name"
-                                   :htmlName="field.Field.name"/>
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
+                <MyMany2manySelect
+                    v-model="editingValue"
+                    :ref="field.Field.name+'_input'"
+                    :serviceName="field.Field.relativeServiceName"
+                    :field="field.Field.name"
+                    :relativeForeignKeyName="field.Field.relativeForeignKeyName"
+                />
               </template>
               <template v-else>
                 {{ getMany2manyFormField(row, getValue(field, row), field.Field) }}
-                <MyMany2manySelect v-model="row[field.Field.name+'_many']" :readonly="true"
-                                   :ref="field.Field.name+'_input'"
-                                   :serviceName="field.Field.relativeServiceName"
-                                   :field="field.Field.name"
-                                   :htmlId="field.Field.name"
-                                   :htmlName="field.Field.name"/>
+                <MyMany2manySelect
+                    v-model="row[field.Field.name]"
+                    :readonly="true"
+                    :ref="field.Field.name+'_input'"
+                    :serviceName="field.Field.relativeServiceName"
+                    :field="field.Field.name"
+                    :relativeForeignKeyName="field.Field.relativeForeignKeyName"
+                />
               </template>
             </template>
+
+            <!-- BooleanField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.BooleanField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
-                <my-check-box v-model="editingValue" @blur="editingCellSave"/>
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
+                <el-checkbox v-model="editingValue" @change="editingCellSave"/>
               </template>
               <template v-else>
-                <my-check-box v-model="row[field.Field.name]" @blur="editingCellSave" :disabled="true"/>
+                <el-checkbox v-model="row[field.Field.name]" :disabled="true"/>
               </template>
             </template>
+
+            <!-- DateTimeField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.DateTimeField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
                 <my-datetime v-model="editingValue" @blur="editingCellSave"/>
               </template>
               <template v-else>
                 {{ getValue(field, row) ? getDateTime(getValue(field, row)) : '' }}
               </template>
             </template>
+
+            <!-- DateField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.DateField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
                 <my-date v-model="editingValue" @blur="editingCellSave"/>
               </template>
               <template v-else>
                 {{ getValue(field, row) ? getDate(getValue(field, row)) : '' }}
               </template>
             </template>
+
+            <!-- TimeField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.TimeField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
                 <my-time v-model="editingValue" @blur="editingCellSave"/>
               </template>
               <template v-else>
                 {{ getValue(field, row) }}
               </template>
             </template>
+
+            <!-- PasswordField -->
             <template v-else-if="field.Field.type == FieldTypeEnum.PasswordField">
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
                 <my-password v-model="editingValue" @blur="editingCellSave"/>
               </template>
               <template v-else>
                 {{ getPasswordValue(field, row) }}
               </template>
-
             </template>
+
+            <!-- 其他字段类型 -->
             <template v-else>
-              <template v-if="editable && editingCell.rowIndex == rowIndex && editingCell.colIndex == colIndex">
+              <template v-if="editable && editingCell.rowIndex == $index && editingCell.colIndex == colIndex">
                 <my-input v-model="editingValue" @blur="editingCellSave"/>
               </template>
               <template v-else>
-                {{ getValue(field, row) }}
+                <div class="w-full h-full">
+                  {{ getValue(field, row) || '&nbsp;' }}
+                </div>
               </template>
             </template>
-          </td>
+          </div>
+          </template>
         </template>
+      </el-table-column>
 
-        <td class="w-[24px] py-1" @click.stop="()=>{}" v-if="showDeleteBtn">
-          <my-icon @click="rowDeleteClick(row)" icon="trash-can" type="fas" class="cursor-pointer"/>
-        </td>
-      </tr>
-      <tr v-if="showBtnRow" @click.stop="void(0)">
-        <td v-if="showSelectBtn" class="py-2">
-
-        </td>
-        <td :colspan="rowColSpan" class="pl-4 py-2">
-          <my-text class="cursor-pointer" type="primary" @click="addRowClick">添加行</my-text>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
+      <!-- 操作列 -->
+      <el-table-column
+          v-if="showDeleteBtn"
+          label="操作"
+          width="80"
+          align="center"
+          fixed="right"
+      >
+        <template #default="{ row }">
+          <!-- 添加行不显示删除按钮 -->
+          <template v-if="!row._isAddRow">
+            <el-button
+                type="danger"
+                :icon="Delete"
+                size="small"
+                circle
+                @click.stop="rowDeleteClick(row)"
+            />
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
 </template>
-
-<style scoped>
-
-</style>

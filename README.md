@@ -46,16 +46,16 @@ docker run -d --name redis-7.0.4 -p 6379:6379 redis:7.0.4
 ## 3、安装Nacos配置中心
 
 ```shell
-# 1. 拉取 Nacos 最新版本镜像
-docker pull nacos/nacos-server
+# 1. 拉取 Nacos 2.3.X 版本
+docker pull nacos/nacos-server:v2.3.0
 #  2. 启动 Nacos 容器
-docker run -d --name nacos -p 8848:8848 -e MODE=standalone nacos/nacos-server
+docker run -d --name nacos -p 8848:8848 -e MODE=standalone nacos/nacos-server:v2.3.0
 ```
 
 ## 4、安装postgres数据库
 
 ```shell
-# 1. 拉取 PostgreSQL 镜像
+# 1. 拉取 PostgreSQL 镜像 版本不限制
 docker pull postgres
 # 2. 启动 PostgreSQL 容器
 docker run -d --name postgres-container -p 5432:5432 \

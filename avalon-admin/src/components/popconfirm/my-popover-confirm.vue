@@ -4,7 +4,6 @@
  * @date 2024/11/22
  */
 import MyPopover from "../popover/my-popover.vue";
-import MyButton from "../button/my-button.vue";
 import {ref} from "vue";
 defineProps({
     content: {
@@ -28,13 +27,13 @@ const sureClick = () => {
 
 <template>
     <MyPopover ref="popper" placement="top" trigger="click" :content="content" popper-class="p-2">
-        <template #default>
+        <template #reference>
             <slot></slot>
         </template>
-        <template #content>
+        <template #default>
           <div class="flex justify-end pt-2">
-            <MyButton class="mr-2" is-link type="info" @click="cancelClick">取消</MyButton>
-            <MyButton is-link type="danger" @click="sureClick">确认</MyButton>
+            <el-button class="mr-2" link type="info" @click="cancelClick">取消</el-button>
+            <el-button link type="danger" @click="sureClick">确认</el-button>
           </div>
         </template>
     </MyPopover>

@@ -1,4 +1,4 @@
-package com.avalon.core.antlr4.condition;// Generated from ./Expression.g4 by ANTLR 4.13.2
+package com.avalon.core.antlr4.condition;// Generated from Expression.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -18,7 +18,7 @@ public class ExpressionParser extends Parser {
 	public static final int
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, T__8=9, 
 		T__9=10, T__10=11, T__11=12, T__12=13, T__13=14, T__14=15, T__15=16, T__16=17, 
-		T__17=18, NULL=19, ID=20, INT=21, FLOAT=22, STRING=23, BOOLEAN=24, WS=25;
+		T__17=18, NULL=19, INT=20, FLOAT=21, STRING=22, BOOLEAN=23, ID=24, WS=25;
 	public static final int
 		RULE_expr = 0, RULE_logicalExpr = 1, RULE_comparisonExpr = 2, RULE_valueList = 3, 
 		RULE_operator = 4, RULE_value = 5, RULE_identifier = 6;
@@ -41,8 +41,8 @@ public class ExpressionParser extends Parser {
 	private static String[] makeSymbolicNames() {
 		return new String[] {
 			null, null, null, null, null, null, null, null, null, null, null, null, 
-			null, null, null, null, null, null, null, "NULL", "ID", "INT", "FLOAT", 
-			"STRING", "BOOLEAN", "WS"
+			null, null, null, null, null, null, null, "NULL", "INT", "FLOAT", "STRING", 
+			"BOOLEAN", "ID", "WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -115,7 +115,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitExpr(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitExpr(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -174,7 +174,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitAndExpression(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitAndExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -194,7 +194,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitSingleComparison(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitSingleComparison(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -214,7 +214,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitNotExpression(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitNotExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -234,7 +234,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitGroupedExpression(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitGroupedExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -259,7 +259,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitOrExpression(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitOrExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -410,7 +410,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitComparison(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitComparison(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -437,7 +437,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitBetweenComparison(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitBetweenComparison(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -461,7 +461,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitInComparison(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitInComparison(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -485,7 +485,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitNotLikeComparison(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitNotLikeComparison(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -509,7 +509,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitNotInComparison(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitNotInComparison(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -533,7 +533,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitLikeComparison(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitLikeComparison(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -817,7 +817,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitListOfValues(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitListOfValues(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -877,7 +877,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitOperator(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitOperator(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -938,7 +938,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitNullValue(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitNullValue(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -956,7 +956,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitIntegerValue(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitIntegerValue(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -974,7 +974,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitBooleanValue(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitBooleanValue(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -994,7 +994,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitIdentifierValue(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitIdentifierValue(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1012,7 +1012,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitFloatValue(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitFloatValue(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1030,7 +1030,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitStringValue(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitStringValue(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1050,44 +1050,44 @@ public class ExpressionParser extends Parser {
 				match(NULL);
 				}
 				break;
-			case ID:
-				_localctx = new IdentifierValueContext(_localctx);
+			case INT:
+				_localctx = new IntegerValueContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(122);
-				identifier();
-				}
-				break;
-			case INT:
-				_localctx = new IntegerValueContext(_localctx);
-				enterOuterAlt(_localctx, 3);
-				{
-				setState(123);
 				match(INT);
 				}
 				break;
 			case FLOAT:
 				_localctx = new FloatValueContext(_localctx);
-				enterOuterAlt(_localctx, 4);
+				enterOuterAlt(_localctx, 3);
 				{
-				setState(124);
+				setState(123);
 				match(FLOAT);
 				}
 				break;
 			case STRING:
 				_localctx = new StringValueContext(_localctx);
-				enterOuterAlt(_localctx, 5);
+				enterOuterAlt(_localctx, 4);
 				{
-				setState(125);
+				setState(124);
 				match(STRING);
 				}
 				break;
 			case BOOLEAN:
 				_localctx = new BooleanValueContext(_localctx);
+				enterOuterAlt(_localctx, 5);
+				{
+				setState(125);
+				match(BOOLEAN);
+				}
+				break;
+			case ID:
+				_localctx = new IdentifierValueContext(_localctx);
 				enterOuterAlt(_localctx, 6);
 				{
 				setState(126);
-				match(BOOLEAN);
+				identifier();
 				}
 				break;
 			default:
@@ -1134,7 +1134,7 @@ public class ExpressionParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ExpressionVisitor ) return ((ExpressionVisitor<? extends T>)visitor).visitDotSeparatedIdentifier(this);
+			if ( visitor instanceof ExpressionVisitor) return ((ExpressionVisitor<? extends T>)visitor).visitDotSeparatedIdentifier(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1236,30 +1236,30 @@ public class ExpressionParser extends Parser {
 		" \u001a\u0001\u0000\u0000\u0000 \u001d\u0001\u0000\u0000\u0000!$\u0001"+
 		"\u0000\u0000\u0000\" \u0001\u0000\u0000\u0000\"#\u0001\u0000\u0000\u0000"+
 		"#\u0003\u0001\u0000\u0000\u0000$\"\u0001\u0000\u0000\u0000%(\u0005\u0004"+
-		"\u0000\u0000&)\u0003\f\u0006\u0000\')\u0005\u0017\u0000\u0000(&\u0001"+
+		"\u0000\u0000&)\u0003\f\u0006\u0000\')\u0005\u0016\u0000\u0000(&\u0001"+
 		"\u0000\u0000\u0000(\'\u0001\u0000\u0000\u0000)*\u0001\u0000\u0000\u0000"+
 		"*+\u0005\u0006\u0000\u0000+,\u0003\b\u0004\u0000,-\u0005\u0006\u0000\u0000"+
 		"-.\u0003\n\u0005\u0000./\u0005\u0005\u0000\u0000/n\u0001\u0000\u0000\u0000"+
-		"03\u0005\u0004\u0000\u000014\u0003\f\u0006\u000024\u0005\u0017\u0000\u0000"+
+		"03\u0005\u0004\u0000\u000014\u0003\f\u0006\u000024\u0005\u0016\u0000\u0000"+
 		"31\u0001\u0000\u0000\u000032\u0001\u0000\u0000\u000045\u0001\u0000\u0000"+
 		"\u000056\u0005\u0006\u0000\u000067\u0005\u0007\u0000\u000078\u0005\u0006"+
 		"\u0000\u000089\u0003\n\u0005\u00009:\u0005\u0006\u0000\u0000:;\u0003\n"+
 		"\u0005\u0000;<\u0005\u0005\u0000\u0000<n\u0001\u0000\u0000\u0000=@\u0005"+
-		"\u0004\u0000\u0000>A\u0003\f\u0006\u0000?A\u0005\u0017\u0000\u0000@>\u0001"+
+		"\u0004\u0000\u0000>A\u0003\f\u0006\u0000?A\u0005\u0016\u0000\u0000@>\u0001"+
 		"\u0000\u0000\u0000@?\u0001\u0000\u0000\u0000AB\u0001\u0000\u0000\u0000"+
 		"BC\u0005\u0006\u0000\u0000CD\u0005\b\u0000\u0000DE\u0005\u0006\u0000\u0000"+
 		"EF\u0005\u0004\u0000\u0000FG\u0003\u0006\u0003\u0000GH\u0005\u0005\u0000"+
 		"\u0000HI\u0005\u0005\u0000\u0000In\u0001\u0000\u0000\u0000JM\u0005\u0004"+
-		"\u0000\u0000KN\u0003\f\u0006\u0000LN\u0005\u0017\u0000\u0000MK\u0001\u0000"+
+		"\u0000\u0000KN\u0003\f\u0006\u0000LN\u0005\u0016\u0000\u0000MK\u0001\u0000"+
 		"\u0000\u0000ML\u0001\u0000\u0000\u0000NO\u0001\u0000\u0000\u0000OP\u0005"+
 		"\u0006\u0000\u0000PQ\u0005\t\u0000\u0000QR\u0005\u0006\u0000\u0000RS\u0005"+
 		"\u0004\u0000\u0000ST\u0003\u0006\u0003\u0000TU\u0005\u0005\u0000\u0000"+
 		"UV\u0005\u0005\u0000\u0000Vn\u0001\u0000\u0000\u0000WZ\u0005\u0004\u0000"+
-		"\u0000X[\u0003\f\u0006\u0000Y[\u0005\u0017\u0000\u0000ZX\u0001\u0000\u0000"+
+		"\u0000X[\u0003\f\u0006\u0000Y[\u0005\u0016\u0000\u0000ZX\u0001\u0000\u0000"+
 		"\u0000ZY\u0001\u0000\u0000\u0000[\\\u0001\u0000\u0000\u0000\\]\u0005\u0006"+
 		"\u0000\u0000]^\u0005\n\u0000\u0000^_\u0005\u0006\u0000\u0000_`\u0003\n"+
 		"\u0005\u0000`a\u0005\u0005\u0000\u0000an\u0001\u0000\u0000\u0000be\u0005"+
-		"\u0004\u0000\u0000cf\u0003\f\u0006\u0000df\u0005\u0017\u0000\u0000ec\u0001"+
+		"\u0004\u0000\u0000cf\u0003\f\u0006\u0000df\u0005\u0016\u0000\u0000ec\u0001"+
 		"\u0000\u0000\u0000ed\u0001\u0000\u0000\u0000fg\u0001\u0000\u0000\u0000"+
 		"gh\u0005\u0006\u0000\u0000hi\u0005\u000b\u0000\u0000ij\u0005\u0006\u0000"+
 		"\u0000jk\u0003\n\u0005\u0000kl\u0005\u0005\u0000\u0000ln\u0001\u0000\u0000"+
@@ -1270,13 +1270,13 @@ public class ExpressionParser extends Parser {
 		"sv\u0001\u0000\u0000\u0000tr\u0001\u0000\u0000\u0000tu\u0001\u0000\u0000"+
 		"\u0000u\u0007\u0001\u0000\u0000\u0000vt\u0001\u0000\u0000\u0000wx\u0007"+
 		"\u0000\u0000\u0000x\t\u0001\u0000\u0000\u0000y\u0080\u0005\u0013\u0000"+
-		"\u0000z\u0080\u0003\f\u0006\u0000{\u0080\u0005\u0015\u0000\u0000|\u0080"+
-		"\u0005\u0016\u0000\u0000}\u0080\u0005\u0017\u0000\u0000~\u0080\u0005\u0018"+
-		"\u0000\u0000\u007fy\u0001\u0000\u0000\u0000\u007fz\u0001\u0000\u0000\u0000"+
-		"\u007f{\u0001\u0000\u0000\u0000\u007f|\u0001\u0000\u0000\u0000\u007f}"+
-		"\u0001\u0000\u0000\u0000\u007f~\u0001\u0000\u0000\u0000\u0080\u000b\u0001"+
-		"\u0000\u0000\u0000\u0081\u0086\u0005\u0014\u0000\u0000\u0082\u0083\u0005"+
-		"\u0012\u0000\u0000\u0083\u0085\u0005\u0014\u0000\u0000\u0084\u0082\u0001"+
+		"\u0000z\u0080\u0005\u0014\u0000\u0000{\u0080\u0005\u0015\u0000\u0000|"+
+		"\u0080\u0005\u0016\u0000\u0000}\u0080\u0005\u0017\u0000\u0000~\u0080\u0003"+
+		"\f\u0006\u0000\u007fy\u0001\u0000\u0000\u0000\u007fz\u0001\u0000\u0000"+
+		"\u0000\u007f{\u0001\u0000\u0000\u0000\u007f|\u0001\u0000\u0000\u0000\u007f"+
+		"}\u0001\u0000\u0000\u0000\u007f~\u0001\u0000\u0000\u0000\u0080\u000b\u0001"+
+		"\u0000\u0000\u0000\u0081\u0086\u0005\u0018\u0000\u0000\u0082\u0083\u0005"+
+		"\u0012\u0000\u0000\u0083\u0085\u0005\u0018\u0000\u0000\u0084\u0082\u0001"+
 		"\u0000\u0000\u0000\u0085\u0088\u0001\u0000\u0000\u0000\u0086\u0084\u0001"+
 		"\u0000\u0000\u0000\u0086\u0087\u0001\u0000\u0000\u0000\u0087\r\u0001\u0000"+
 		"\u0000\u0000\u0088\u0086\u0001\u0000\u0000\u0000\r\u0018 \"(3@MZemt\u007f"+

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_email_message_action" name="邮件" action="email_message_action"/>
+    <menuitem id="menu_email_account_action" name="邮件账号" action="email_account_action"/>
+    <menuitem id="menu_email_server_action" name="邮件服务器" action="email_server_action"/>
+</avalon>

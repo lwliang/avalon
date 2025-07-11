@@ -4,15 +4,9 @@
  * @date 2025/05/13 9:28
  */
 
-import MyIcon from "../icon/my-icon.vue";
-import MyPopover from "../popover/my-popover.vue";
-import MyTable from "../table/my-table.vue";
-import FormField from "../../model/FormField.ts";
-import MyInput from "../input/my-input.vue";
-import {ref} from "vue";
-import MyFieldTree from "../tree/my-field-tree.vue";
+import { ref, computed } from "vue";
 import Field from "../../model/Field.ts";
-import {useGlobalFieldDataStore} from "../../global/store/fieldStore.ts";
+import { useFieldStore } from "../../global/store/fieldStore.ts";
 
 const props = defineProps({
   serviceName: String,
@@ -20,56 +14,76 @@ const props = defineProps({
 
 const emits = defineEmits(['selectField'])
 
-const formField = defineModel({
-  type: FormField,
-  required: true,
+const formField = defineModel<string>({
+  default: ''
 })
 
-const labelInput = ref<FormField>(new FormField(''))
-
-const popperShow = () => {
-
-}
-
 const fields = ref<Field[]>([])
-if (props.serviceName) {
-  useGlobalFieldDataStore().getFieldByServiceNameAsync(props.serviceName as string).then((data) => {
-    fields.value.push(...data)
-  })
-}
+const selectedField = ref<Field | null>(null)
 
-
-const leftFieldSelect = (field: any) => {
-  labelInput.value.value = field.label
-  formField.value.value = field
-
-  emits('selectField', field)
-  if (popperSelect.value) {
-    popperSelect.value.hide()
+// 加载字段数据
+const loadFields = async () => {
+  if (props.serviceName) {
+    const fieldStore = useFieldStore()
+    const data = await fieldStore.getFieldByServiceNameAsync(props.serviceName)
+    fields.value = data
   }
 }
 
-const popperSelect = ref()
+loadFields()
+
+// 将字段转换为树形结构
+const treeData = computed(() => {
+  return fields.value.map(field => ({
+    id: field.name,
+    label: field.label || field.name,
+    name: field.name,
+    type: field.type,
+    children: []
+  }))
+})
+
+// 处理字段选择
+const handleFieldSelect = (fieldName: string) => {
+  const field = fields.value.find(f => f.name === fieldName)
+  if (field) {
+    selectedField.value = field
+    formField.value = field.name
+    emits('selectField', field)
+  }
+}
+
+// 处理树节点点击
+const handleNodeClick = (data: any) => {
+  handleFieldSelect(data.name)
+}
 </script>
 
 <template>
-  <MyPopover placement="bottom" trigger="click" ref="popperSelect" @show="popperShow" :teleported="false"
-             popper-class="w-[200px] py-1">
-    <template v-slot:default>
-      <div class="inline-flex w-full relative">
-        <my-input v-model="labelInput" icon="caret-down"
-                  iconStyle="fas" icon-color="#FFF" icon-tag="icon"/>
+  <el-select
+    v-model="formField"
+    placeholder="请选择字段"
+    clearable
+    filterable
+    @change="handleFieldSelect"
+    style="width:240px"
+  >
+    <el-option
+      v-for="field in fields"
+      :key="field.name"
+      :label="field.label || field.name"
+      :value="field.name"
+    >
+      <div class="flex items-center h-full">
+        <span class="text-sm">{{ field.label}}</span>
+        <span class="ml-2 text-xs text-gray-500">({{ field.name }})</span>
       </div>
-
-    </template>
-    <template v-slot:content>
-      <div class="w-full">
-        <MyFieldTree :show-plus-button="false" :nodes="fields" @fieldSelect="leftFieldSelect"/>
-      </div>
-    </template>
-  </MyPopover>
+    </el-option>
+  </el-select>
 </template>
 
 <style scoped>
-
+.el-select {
+  width: 100%;
+}
 </style>

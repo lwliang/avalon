@@ -1,4 +1,4 @@
-package com.avalon.core.antlr4.condition;// Generated from ./Expression.g4 by ANTLR 4.13.2
+package com.avalon.core.antlr4.condition;// Generated from Expression.g4 by ANTLR 4.13.2
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -196,18 +196,6 @@ public class ExpressionBaseListener implements ExpressionListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterIdentifierValue(ExpressionParser.IdentifierValueContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIdentifierValue(ExpressionParser.IdentifierValueContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterIntegerValue(ExpressionParser.IntegerValueContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -251,6 +239,18 @@ public class ExpressionBaseListener implements ExpressionListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitBooleanValue(ExpressionParser.BooleanValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterIdentifierValue(ExpressionParser.IdentifierValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIdentifierValue(ExpressionParser.IdentifierValueContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

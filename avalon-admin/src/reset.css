@@ -5,6 +5,7 @@
     box-sizing: border-box;
     padding: 0;
     margin: 0;
+    font-size: 14px;
 }
 
 /* 字体与基础色，支持主题变量 */
@@ -18,6 +19,10 @@ html {
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
     -webkit-tap-highlight-color: transparent;
+}
+
+svg {
+    font-size: unset;
 }
 
 body {
