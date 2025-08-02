@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 部门辅助核算类型 -->
+    <record id="finance_auxiliary_type_department" service="finance.auxiliary.type">
+        <field name="code">DEPT</field>
+        <field name="name">部门核算</field>
+        <field name="description">按部门进行辅助核算，用于分析各部门的财务数据</field>
+    </record>
+
+    <!-- 员工辅助核算类型 -->
+    <record id="finance_auxiliary_type_employee" service="finance.auxiliary.type">
+        <field name="code">EMP</field>
+        <field name="name">员工核算</field>
+        <field name="description">按员工进行辅助核算，用于分析个人费用和收入</field>
+    </record>
+
+    <!-- 客户辅助核算类型 -->
+    <record id="finance_auxiliary_type_customer" service="finance.auxiliary.type">
+        <field name="code">CUST</field>
+        <field name="name">客户核算</field>
+        <field name="description">按客户进行辅助核算，用于分析客户相关的财务数据</field>
+    </record>
+
+    <!-- 供应商辅助核算类型 -->
+    <record id="finance_auxiliary_type_supplier" service="finance.auxiliary.type">
+        <field name="code">SUPP</field>
+        <field name="name">供应商核算</field>
+        <field name="description">按供应商进行辅助核算，用于分析采购相关的财务数据</field>
+    </record>
+
+    <!-- 项目辅助核算类型 -->
+    <record id="finance_auxiliary_type_project" service="finance.auxiliary.type">
+        <field name="code">PROJ</field>
+        <field name="name">项目核算</field>
+        <field name="description">按项目进行辅助核算，用于分析项目成本和收入</field>
+    </record>
+
+    <!-- 产品辅助核算类型 -->
+    <record id="finance_auxiliary_type_product" service="finance.auxiliary.type">
+        <field name="code">PROD</field>
+        <field name="name">产品核算</field>
+        <field name="description">按产品进行辅助核算，用于分析产品成本和收入</field>
+    </record>
+
+    <!-- 地区辅助核算类型 -->
+    <record id="finance_auxiliary_type_region" service="finance.auxiliary.type">
+        <field name="code">REGION</field>
+        <field name="name">地区核算</field>
+        <field name="description">按地区进行辅助核算，用于分析不同地区的财务数据</field>
+    </record>
+
+    <!-- 币种辅助核算类型 -->
+    <record id="finance_auxiliary_type_currency" service="finance.auxiliary.type">
+        <field name="code">CURR</field>
+        <field name="name">币种核算</field>
+        <field name="description">按币种进行辅助核算，用于多币种财务分析</field>
+    </record>
+</avalon> 

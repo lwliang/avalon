@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 库存现金期初余额 -->
+    <record id="finance_opening_balance_1001" service="finance.opening.balance">
+        <field name="name">库存现金期初余额</field>
+        <field refId="accountId">finance_account_1001</field>
+        <field refId="accountSetId">finance_account_set_default</field>
+        <field name="periodStartDate">2025-01-01</field>
+        <field name="debitAmount">10000.00</field>
+        <field name="creditAmount">0.00</field>
+        <field name="balanceAmount">10000.00</field>
+        <field name="isActive">true</field>
+        <field name="description">2025年1月库存现金期初余额</field>
+    </record>
+    
+    <!-- 银行存款期初余额 -->
+    <record id="finance_opening_balance_1002" service="finance.opening.balance">
+        <field name="name">银行存款期初余额</field>
+        <field refId="accountId">finance_account_1002</field>
+        <field refId="accountSetId">finance_account_set_default</field>
+        <field name="periodStartDate">2025-01-01</field>
+        <field name="debitAmount">500000.00</field>
+        <field name="creditAmount">0.00</field>
+        <field name="balanceAmount">500000.00</field>
+        <field name="isActive">true</field>
+        <field name="description">2025年1月银行存款期初余额</field>
+    </record>
+    
+    <!-- 短期借款期初余额 -->
+    <record id="finance_opening_balance_2001" service="finance.opening.balance">
+        <field name="name">短期借款期初余额</field>
+        <field refId="accountId">finance_account_2001</field>
+        <field refId="accountSetId">finance_account_set_default</field>
+        <field name="periodStartDate">2025-01-01</field>
+        <field name="debitAmount">0.00</field>
+        <field name="creditAmount">200000.00</field>
+        <field name="balanceAmount">200000.00</field>
+        <field name="isActive">true</field>
+        <field name="description">2025年1月短期借款期初余额</field>
+    </record>
+    
+    <!-- 应付账款期初余额 -->
+    <record id="finance_opening_balance_2201" service="finance.opening.balance">
+        <field name="name">应付账款期初余额</field>
+        <field refId="accountId">finance_account_2201</field>
+        <field refId="accountSetId">finance_account_set_default</field>
+        <field name="periodStartDate">2025-01-01</field>
+        <field name="debitAmount">0.00</field>
+        <field name="creditAmount">50000.00</field>
+        <field name="balanceAmount">50000.00</field>
+        <field name="isActive">true</field>
+        <field name="description">2025年1月应付账款期初余额</field>
+    </record>
+    
+    <!-- 实收资本期初余额 -->
+    <record id="finance_opening_balance_4001" service="finance.opening.balance">
+        <field name="name">实收资本期初余额</field>
+        <field refId="accountId">finance_account_4001</field>
+        <field refId="accountSetId">finance_account_set_default</field>
+        <field name="periodStartDate">2025-01-01</field>
+        <field name="debitAmount">0.00</field>
+        <field name="creditAmount">1000000.00</field>
+        <field name="balanceAmount">1000000.00</field>
+        <field name="isActive">true</field>
+        <field name="description">2025年1月实收资本期初余额</field>
+    </record>
+</avalon> 

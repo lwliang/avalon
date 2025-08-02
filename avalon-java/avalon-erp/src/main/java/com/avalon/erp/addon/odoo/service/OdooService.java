@@ -8,18 +8,15 @@ package com.avalon.erp.addon.odoo.service;
 import com.avalon.core.exception.AvalonException;
 import com.avalon.core.field.Field;
 import com.avalon.core.field.Fields;
-import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.JacksonUtil;
 import com.avalon.core.util.ObjectUtils;
-import com.avalon.core.util.RecordRowUtils;
 import com.avalon.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
@@ -31,14 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OdooService extends AbstractService {
     private final XmlRpcClient client = new XmlRpcClient();
-    @Value("${odoo.host:http://localhost:8069}")
-    private String host;
-    @Value("${odoo.db:electric}")
-    private String db;
-    @Value("${odoo.username:admin}")
-    private String username;
-    @Value("${odoo.password:123456}")
-    private String password;
+
     private Optional<Integer> uid = Optional.empty();
 
     @Override
@@ -51,6 +41,21 @@ public class OdooService extends AbstractService {
     public Field method = Fields.createString("方法");
     public Field params = Fields.createString("参数", 2000);
 
+    public String getHost() {
+        return (String) invokeMethod("base.config", "getConfig", "odoo.config.host");
+    }
+
+    public String getDb() {
+        return (String) invokeMethod("base.config", "getConfig", "odoo.config.db");
+    }
+
+    public String getUsername() {
+        return (String) invokeMethod("base.config", "getConfig", "odoo.config.username");
+    }
+
+    public String getPassword() {
+        return (String) invokeMethod("base.config", "getConfig", "odoo.config.password");
+    }
 
     /**
      * 获取Odoo版本
@@ -59,7 +64,7 @@ public class OdooService extends AbstractService {
      */
     public String getVersion() {
         try {
-            String url = String.format("%s/xmlrpc/2/common", host);
+            String url = String.format("%s/xmlrpc/2/common", getHost());
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
             config.setServerURL(new URL(url));
             HashMap<String, Object> version = (HashMap) client.execute(config, "version", Collections.emptyList());
@@ -78,9 +83,9 @@ public class OdooService extends AbstractService {
     public int authenticate() {
         try {
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-            config.setServerURL(new URL(String.format("%s/xmlrpc/2/common", host)));
+            config.setServerURL(new URL(String.format("%s/xmlrpc/2/common", getHost())));
             return (int) client.execute(config, "authenticate",
-                    Arrays.asList(db, username, password, Collections.emptyMap()));
+                    Arrays.asList(getDb(), getUsername(), getPassword(), Collections.emptyMap()));
         } catch (MalformedURLException | XmlRpcException e) {
             log.error("odoo登录认证失败", e);
             throw new AvalonException("odoo登录认证失败", e);
@@ -98,7 +103,8 @@ public class OdooService extends AbstractService {
      * 查询
      *
      * @param model  模型
-     * @param domain 条件 例如：Arrays.asList(Arrays.asList(Arrays.asList("name", "=", "test")))  三层列表
+     * @param domain 条件 例如：Arrays.asList(Arrays.asList(Arrays.asList("name", "=",
+     *               "test"))) 三层列表
      * @param offset 偏移
      * @param limit  限制个数
      * @return 查询结果 只返回主键列表
@@ -113,9 +119,9 @@ public class OdooService extends AbstractService {
                 pageMap.put("limit", limit);
             }
             List<Object> param = Arrays.asList(
-                    db,
+                    getDb(),
                     getUid(),
-                    password,
+                    getPassword(),
                     model,
                     "search",
                     domain,
@@ -131,7 +137,7 @@ public class OdooService extends AbstractService {
 
     public Object execute_kw(List param) throws MalformedURLException, XmlRpcException {
         XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-        config.setServerURL(new URL(String.format("%s/xmlrpc/2/object", host)));
+        config.setServerURL(new URL(String.format("%s/xmlrpc/2/object", getHost())));
         return client.execute(config, "execute_kw", param);
     }
 
@@ -156,9 +162,9 @@ public class OdooService extends AbstractService {
     public Integer searchCount(String model, List<Object> domain) {
         try {
             List<Object> param = Arrays.asList(
-                    db,
+                    getDb(),
                     getUid(),
-                    password,
+                    getPassword(),
                     model,
                     "search_count",
                     domain);
@@ -177,9 +183,9 @@ public class OdooService extends AbstractService {
                 hashMap.put("fields", fields);
             }
             List<Object> param = Arrays.asList(
-                    db,
+                    getDb(),
                     getUid(),
-                    password,
+                    getPassword(),
                     model,
                     "read",
                     Arrays.asList(ids),
@@ -197,7 +203,8 @@ public class OdooService extends AbstractService {
      * 读取模型的字段列表
      *
      * @param model      模型
-     * @param attributes 返回的属性列表 string, name,type 例如：Arrays.asList("string", "name", "type")
+     * @param attributes 返回的属性列表 string, name,type 例如：Arrays.asList("string",
+     *                   "name", "type")
      */
     public HashMap<String, HashMap<String, Object>> getModelFields(String model, List<String> attributes) {
         try {
@@ -206,14 +213,15 @@ public class OdooService extends AbstractService {
                 hashMap.put("attributes", attributes);
             }
             List<Object> param = Arrays.asList(
-                    db,
+                    getDb(),
                     getUid(),
-                    password,
+                    getPassword(),
                     model,
                     "fields_get",
                     Collections.emptyList(),
                     hashMap);
-            HashMap<String, HashMap<String, Object>> executeKw = (HashMap<String, HashMap<String, Object>>) execute_kw(param);
+            HashMap<String, HashMap<String, Object>> executeKw = (HashMap<String, HashMap<String, Object>>) execute_kw(
+                    param);
             return executeKw;
         } catch (Exception e) {
             String msg = "getModelFields" + model + "失败,查询属性字段:" + StringUtils.join(attributes);
@@ -233,11 +241,22 @@ public class OdooService extends AbstractService {
         return searchRead(model, List.of(List.of()), fields, null, null);
     }
 
+    /**
+     * 获取全部
+     *
+     * @param model  模型
+     * @param fields 字段
+     * @return 记录
+     */
+    public List<HashMap<String, Object>> searchReadAll(String model, List<Object> domain, List<String> fields) {
+        return searchRead(model, domain, fields, null, null);
+    }
+
     public List<HashMap<String, Object>> searchRead(String model,
-                                                    List<Object> domain,
-                                                    List<String> fields,
-                                                    Integer limit,
-                                                    String order) {
+            List<Object> domain,
+            List<String> fields,
+            Integer limit,
+            String order) {
         try {
             HashMap<String, Object> hashMap = new HashMap<String, Object>();
             if (ObjectUtils.isNotEmpty(fields)) {
@@ -250,9 +269,9 @@ public class OdooService extends AbstractService {
                 hashMap.put("order", order);
             }
             List<Object> param = Arrays.asList(
-                    db,
+                    getDb(),
                     getUid(),
-                    password,
+                    getPassword(),
                     model,
                     "search_read",
                     domain,
@@ -282,9 +301,9 @@ public class OdooService extends AbstractService {
             row.put(params, JacksonUtil.object2String(values));
             insert(row);
             List<Object> param = Arrays.asList(
-                    db,
+                    getDb(),
                     getUid(),
-                    password,
+                    getPassword(),
                     model,
                     "create",
                     Arrays.asList(values));
@@ -314,14 +333,13 @@ public class OdooService extends AbstractService {
             values.remove("id");
             insert(row);
             List<Object> param = Arrays.asList(
-                    db,
+                    getDb(),
                     getUid(),
-                    password,
+                    getPassword(),
                     model,
                     "write",
                     Arrays.asList(Arrays.asList(id),
-                            values)
-            );
+                            values));
             execute_kw(param);
         } catch (Exception e) {
             String msg = "write" + model + "失败,更新数据:" + values;
@@ -345,13 +363,12 @@ public class OdooService extends AbstractService {
             row.put(params, id);
             insert(row);
             List<Object> param = Arrays.asList(
-                    db,
+                    getDb(),
                     getUid(),
-                    password,
+                    getPassword(),
                     model,
                     "unlink",
-                    Arrays.asList(Arrays.asList(id))
-            );
+                    Arrays.asList(Arrays.asList(id)));
             execute_kw(param);
         } catch (Exception e) {
             String msg = "unlink" + model + "失败,删除数据:" + id;
@@ -360,13 +377,12 @@ public class OdooService extends AbstractService {
         }
     }
 
-
     public Object execute_kw_method(String model, String method, Integer id, Object... params) {
         try {
             List<Object> param = new ArrayList<>();
-            param.add(db);
+            param.add(getDb());
             param.add(getUid());
-            param.add(password);
+            param.add(getPassword());
             param.add(model);
             param.add(method);
             param.add(List.of(Arrays.asList(id), params));

@@ -84,7 +84,7 @@ public class ModuleService extends AbstractService implements IModuleSupport {
     }
 
     @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
-    public void refreshModuleFromDisk(RecordRow row) {
+    public RecordRow refreshModuleFromDisk(RecordRow row) {
         for (AbstractModule module : getContext().getModuleList()) {
             RecordRow recordRow = new RecordRow();
             recordRow.put("name", module.getModuleName());
@@ -103,6 +103,11 @@ public class ModuleService extends AbstractService implements IModuleSupport {
                 update(recordRow);
             }
         }
+
+        RecordRow resultRow = RecordRow.build();
+        resultRow.put("type", "ir.actions.client")
+                .put("tag", "reload");
+        return resultRow;
     }
 
     @SystemStateAnnotation(SystemStateEnum.installModule)

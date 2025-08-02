@@ -454,6 +454,21 @@ public class Context {
         return serviceName;
     }
 
+    public AbstractService getServiceBeanWithDb(String serviceName) {
+        try {
+            String serviceNameWithDB = getDbORM(getBaseName(), serviceName);
+
+            return (AbstractService) getAvalonApplicationContext().getBean(serviceNameWithDB);
+        } catch (Exception ex) {
+            try {
+                return getMany2manyService(serviceName);
+            } catch (Exception ex2) {
+                log.error(serviceName + "获取service bean失败", ex);
+                return null;
+            }
+        }
+    }
+
     public AbstractService getServiceBean(String serviceName) {
         try {
             String serviceNameWithDB = getORMServiceName(serviceName);

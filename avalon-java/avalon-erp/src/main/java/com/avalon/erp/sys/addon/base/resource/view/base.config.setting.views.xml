@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="base_config_setting_view_form" service="base.action.view">
+        <field name="name">base_config_setting_view_form</field>
+        <field name="label">设置视图</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">base.config.setting</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <notebook tabPosition="left">
+                        <page label="基础">
+                            <row>
+                                <col>
+                                    <field name="theme"/>
+                                </col>
+                            </row>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="base_config_setting_view_action" service="base.action.window">
+        <field name="name">base.config.setting.view</field>
+        <field name="label">配置视图</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">base.config.setting</field>
+    </record>
+</avalon>

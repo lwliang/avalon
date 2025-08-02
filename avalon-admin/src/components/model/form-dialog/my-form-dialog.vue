@@ -44,7 +44,8 @@ const props = defineProps<{
   title: string,
   service: string,
   oldRecordRow?: any,
-  rowId: Symbol | number | undefined
+  rowId: Symbol | number | undefined,
+  formModel?: any
 }>()
 
 const serviceFieldStore = useFieldStore()
@@ -82,7 +83,7 @@ const loadDataWithLayout = async () => {
   if (!(props.service && template_fields.value.length)) {
     return;
   }
-  
+
   if (props.rowId && !(typeof props.rowId == 'symbol')) {
     // 编辑模式：加载现有数据
     const data = await getModelDetailApi(props.rowId as number, template_fields.value.join(","), props.service)
@@ -107,7 +108,7 @@ const loadDataWithLayout = async () => {
 // 创建新记录行
 const createNewRecordRow = async () => {
   const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(props.service)
-  
+
   for (let key of template_fields.value) {
     if (hasJoin(key)) {
       const first = getJoinFirstField(key); // 只支持二级字段
@@ -133,7 +134,7 @@ const createNewRecordRow = async () => {
       }
     }
   }
-  
+
   // 保存原始数据
   originalRecordRow.value = cloneDeep(recordRow.value)
 }
@@ -143,7 +144,12 @@ const createFormTemplateVNode = () => {
     setup() {
       const vNode = compile(xmlTemplate.value)
       return () => {
-        return createVNode(vNode, {...recordRow.value, recordRow:recordRow.value,rules:{}})
+        return createVNode(vNode, {
+          formModel: props.formModel,
+          ...recordRow.value,
+          recordRow: recordRow.value,
+          rules: {}
+        })
       }
     }
   })
@@ -211,19 +217,19 @@ const closeClick = () => {
 
 const sureClick = async () => {
   const row: any = {}
-  
+
   // 获取所有已更改的字段
   for (let key in recordRow.value) {
     if (JSON.stringify(recordRow.value[key]) !== JSON.stringify(originalRecordRow.value[key])) {
       row[key] = recordRow.value[key]
     }
   }
-  
+
   // 添加主键（编辑模式）
   if (props.rowId && primaryService.value) {
     row[primaryService.value.keyField] = props.rowId
   }
-  
+
   emit('sure', row)
 }
 /**
@@ -270,13 +276,13 @@ watch(recordRow.value, async () => {
 
 <template>
   <my-dialog
-    :title="title"
-    v-model="show"
-    :close-on-click-modal="false"
-    :draggable="true"
-    @close="closeClick"
-    @sure="sureClick"
-    body-class="min-h-[400px] max-h-[900px]"
+      :title="title"
+      v-model="show"
+      :close-on-click-modal="false"
+      :draggable="true"
+      @close="closeClick"
+      @sure="sureClick"
+      body-class="min-h-[400px] max-h-[900px]"
   >
     <component :is="template_component"/>
   </my-dialog>

@@ -16,8 +16,10 @@ import com.avalon.core.model.ChangeRecordRow;
 import com.avalon.core.model.PageInfo;
 import com.avalon.core.model.Record;
 import com.avalon.core.model.RecordRow;
+import com.avalon.core.model.ServiceMethodResult;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.util.FieldUtils;
+import com.avalon.core.util.JacksonUtil;
 import com.avalon.core.util.ObjectUtils;
 import com.avalon.core.util.StringUtils;
 import com.avalon.erp.sys.addon.base.model.*;
@@ -281,10 +283,38 @@ public class ServiceV2Controller {
     }
 
     @PostMapping("invoke/{serviceName}/method")
-    public Object invokeService(@PathVariable("serviceName") String serviceName,
-                                @RequestBody ServiceInvokeParam param) throws AvalonException {
+    public void invokeService(@PathVariable("serviceName") String serviceName,
+                                @RequestBody ServiceInvokeParam param, HttpServletResponse response) throws AvalonException, IOException {
         AbstractService serviceBean = context.getServiceBean(serviceName);
-        return serviceBean.invokeMethod(param.getServiceName(), param.getMethod(), param.getParam());
+        Object result = serviceBean.invokeMethod(param.getServiceName(), param.getMethod(), param.getParam());
+        if(result instanceof ServiceMethodResult) {
+            ServiceMethodResult serviceMethodResult = (ServiceMethodResult) result;
+            byte[] bytes;
+            if (serviceMethodResult.getResult() instanceof byte[]) {
+                bytes = (byte[]) serviceMethodResult.getResult();
+            } else { // 如果是字符串，则转换为字节数组
+                bytes = serviceMethodResult.getResult().toString().getBytes(StandardCharsets.UTF_8);
+            }
+            // 设置 HTTP 响应头以触发文件下载
+            response.setContentType("application/octet-stream");
+            response.setHeader("Content-Disposition", "attachment; filename=" +
+                    URLEncoder.encode(serviceMethodResult.getFileName(), StandardCharsets.UTF_8));
+            response.setContentLength(bytes.length);
+
+            // 7. 将字节流写入响应输出流
+            response.getOutputStream().write(bytes);
+            response.getOutputStream().flush();
+        } else {
+                 String resultString = JacksonUtil.object2String(result);
+                 byte[] bytes = resultString.getBytes(StandardCharsets.UTF_8);
+                 // 设置 JSON 响应头
+                 response.setContentType("application/json; charset=UTF-8");
+                 response.setContentLength(bytes.length);
+     
+                 // 将 JSON 字符串写入响应输出流
+                 response.getOutputStream().write(bytes);
+                 response.getOutputStream().flush();
+        }
     }
 
     @PostMapping("get/{serviceName}/onchange/field")

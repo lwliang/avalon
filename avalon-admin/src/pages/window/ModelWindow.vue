@@ -5,7 +5,7 @@
  */
 import {useRoute} from "vue-router";
 import {ref, watch, provide, getCurrentInstance, ComponentInternalInstance} from "vue";
-import {goModelForm, goModelKanban, goModelTree, goModelXTree} from "../../util/routerUtils.ts";
+import {goModelForm, goModelKanban, goModelReport, goModelTree, goModelXTree} from "../../util/routerUtils.ts";
 
 import {onMounted} from "@vue/runtime-dom";
 import {getModelAllApi} from "../../api/modelApi.ts";
@@ -39,6 +39,8 @@ const navigateToView = (viewMode: string) => {
     goServiceForm(undefined);
   } else if (viewMode == 'xtree') {
     goServiceXTree();
+  } else if (viewMode == 'report') {
+    goServiceReport();
   }
 }
 
@@ -66,6 +68,11 @@ const goServiceKanban = () => {
   }
 }
 
+const goServiceReport = () => {
+  if (moduleName.value && serviceName.value) {
+    goModelReport(moduleName.value, serviceName.value)
+  }
+}
 
 watch(() => activeViewMode.value, (newValue) => {
   if (newValue) {

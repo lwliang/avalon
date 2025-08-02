@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 总经理办公室岗位 -->
+    <record id="hr_job_general_manager" service="hr.job">
+        <field name="name">总经理</field>
+        <field name="code">JOB_001</field>
+        <field refId="orgId">hr_org_dept_general_office</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责公司整体战略规划和重大决策</field>
+    </record>
+
+    <record id="hr_job_assistant_manager" service="hr.job">
+        <field name="name">总经理助理</field>
+        <field name="code">JOB_002</field>
+        <field refId="orgId">hr_org_dept_general_office</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">协助总经理处理日常事务</field>
+    </record>
+
+    <!-- 财务部岗位 -->
+    <record id="hr_job_finance_manager" service="hr.job">
+        <field name="name">财务经理</field>
+        <field name="code">JOB_003</field>
+        <field refId="orgId">hr_org_dept_finance</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责财务部门整体管理</field>
+    </record>
+
+    <record id="hr_job_accountant" service="hr.job">
+        <field name="name">会计</field>
+        <field name="code">JOB_004</field>
+        <field refId="orgId">hr_org_dept_finance</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责日常会计核算工作</field>
+    </record>
+
+    <record id="hr_job_cashier" service="hr.job">
+        <field name="name">出纳</field>
+        <field name="code">JOB_005</field>
+        <field refId="orgId">hr_org_dept_finance</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责现金收付和银行结算</field>
+    </record>
+
+    <!-- 人力资源部岗位 -->
+    <record id="hr_job_hr_manager" service="hr.job">
+        <field name="name">人力资源经理</field>
+        <field name="code">JOB_006</field>
+        <field refId="orgId">hr_org_dept_hr</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责人力资源部门整体管理</field>
+    </record>
+
+    <record id="hr_job_recruiter" service="hr.job">
+        <field name="name">招聘专员</field>
+        <field name="code">JOB_007</field>
+        <field refId="orgId">hr_org_dept_hr</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责员工招聘工作</field>
+    </record>
+
+    <record id="hr_job_training_specialist" service="hr.job">
+        <field name="name">培训专员</field>
+        <field name="code">JOB_008</field>
+        <field refId="orgId">hr_org_dept_hr</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责员工培训工作</field>
+    </record>
+
+    <record id="hr_job_hr_specialist" service="hr.job">
+        <field name="name">人事专员</field>
+        <field name="code">JOB_009</field>
+        <field refId="orgId">hr_org_dept_hr</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责人事档案和薪酬管理</field>
+    </record>
+
+    <!-- 技术部岗位 -->
+    <record id="hr_job_tech_manager" service="hr.job">
+        <field name="name">技术经理</field>
+        <field name="code">JOB_010</field>
+        <field refId="orgId">hr_org_dept_tech</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责技术部门整体管理</field>
+    </record>
+
+    <record id="hr_job_senior_developer" service="hr.job">
+        <field name="name">高级开发工程师</field>
+        <field name="code">JOB_011</field>
+        <field refId="orgId">hr_org_dept_tech_dev</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责核心功能开发和技术架构</field>
+    </record>
+
+    <record id="hr_job_developer" service="hr.job">
+        <field name="name">开发工程师</field>
+        <field name="code">JOB_012</field>
+        <field refId="orgId">hr_org_dept_tech_dev</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责产品功能开发</field>
+    </record>
+
+    <record id="hr_job_junior_developer" service="hr.job">
+        <field name="name">初级开发工程师</field>
+        <field name="code">JOB_013</field>
+        <field refId="orgId">hr_org_dept_tech_dev</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">协助高级工程师进行开发工作</field>
+    </record>
+
+    <record id="hr_job_test_engineer" service="hr.job">
+        <field name="name">测试工程师</field>
+        <field name="code">JOB_014</field>
+        <field refId="orgId">hr_org_dept_tech_test</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责产品质量测试</field>
+    </record>
+
+    <record id="hr_job_qa_engineer" service="hr.job">
+        <field name="name">质量保证工程师</field>
+        <field name="code">JOB_015</field>
+        <field refId="orgId">hr_org_dept_tech_test</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责质量保证和缺陷管理</field>
+    </record>
+
+    <!-- 销售部岗位 -->
+    <record id="hr_job_sales_manager" service="hr.job">
+        <field name="name">销售经理</field>
+        <field name="code">JOB_016</field>
+        <field refId="orgId">hr_org_dept_sales</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责销售部门整体管理</field>
+    </record>
+
+    <record id="hr_job_domestic_sales" service="hr.job">
+        <field name="name">国内销售代表</field>
+        <field name="code">JOB_017</field>
+        <field refId="orgId">hr_org_dept_sales_domestic</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责国内市场销售业务</field>
+    </record>
+
+    <record id="hr_job_overseas_sales" service="hr.job">
+        <field name="name">海外销售代表</field>
+        <field name="code">JOB_018</field>
+        <field refId="orgId">hr_org_dept_sales_overseas</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责海外市场销售业务</field>
+    </record>
+
+    <record id="hr_job_sales_assistant" service="hr.job">
+        <field name="name">销售助理</field>
+        <field name="code">JOB_019</field>
+        <field refId="orgId">hr_org_dept_sales</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">协助销售经理处理销售事务</field>
+    </record>
+
+    <!-- 通用岗位 -->
+    <record id="hr_job_intern" service="hr.job">
+        <field name="name">实习生</field>
+        <field name="code">JOB_020</field>
+        <field refId="orgId">hr_org_company_default</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">公司实习生岗位</field>
+    </record>
+
+    <record id="hr_job_part_time" service="hr.job">
+        <field name="name">兼职人员</field>
+        <field name="code">JOB_021</field>
+        <field refId="orgId">hr_org_company_default</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">公司兼职人员岗位</field>
+    </record>
+</avalon> 

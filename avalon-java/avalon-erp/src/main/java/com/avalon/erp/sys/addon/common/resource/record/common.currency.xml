@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <record id="currency_cny" service="common.currency">
+        <field name="name">人民币</field>
+        <field name="code">CNY</field>
+        <field name="symbol">¥</field>
+        <field name="precision">2</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">true</field>
+        <field name="remark">中华人民共和国法定货币</field>
+    </record>
+    
+    <record id="currency_usd" service="common.currency">
+        <field name="name">美元</field>
+        <field name="code">USD</field>
+        <field name="symbol">$</field>
+        <field name="precision">2</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">美利坚合众国法定货币</field>
+    </record>
+    
+    <record id="currency_eur" service="common.currency">
+        <field name="name">欧元</field>
+        <field name="code">EUR</field>
+        <field name="symbol">€</field>
+        <field name="precision">2</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">欧盟成员国法定货币</field>
+    </record>
+    
+    <record id="currency_jpy" service="common.currency">
+        <field name="name">日元</field>
+        <field name="code">JPY</field>
+        <field name="symbol">¥</field>
+        <field name="precision">0</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">日本法定货币</field>
+    </record>
+    
+    <record id="currency_gbp" service="common.currency">
+        <field name="name">英镑</field>
+        <field name="code">GBP</field>
+        <field name="symbol">£</field>
+        <field name="precision">2</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">英国法定货币</field>
+    </record>
+    
+    <record id="currency_hkd" service="common.currency">
+        <field name="name">港币</field>
+        <field name="code">HKD</field>
+        <field name="symbol">HK$</field>
+        <field name="precision">2</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">香港特别行政区法定货币</field>
+    </record>
+    
+    <record id="currency_krw" service="common.currency">
+        <field name="name">韩元</field>
+        <field name="code">KRW</field>
+        <field name="symbol">₩</field>
+        <field name="precision">0</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">韩国法定货币</field>
+    </record>
+    
+    <record id="currency_aud" service="common.currency">
+        <field name="name">澳元</field>
+        <field name="code">AUD</field>
+        <field name="symbol">A$</field>
+        <field name="precision">2</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">澳大利亚法定货币</field>
+    </record>
+    
+    <record id="currency_cad" service="common.currency">
+        <field name="name">加拿大元</field>
+        <field name="code">CAD</field>
+        <field name="symbol">C$</field>
+        <field name="precision">2</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">加拿大法定货币</field>
+    </record>
+    
+    <record id="currency_chf" service="common.currency">
+        <field name="name">瑞士法郎</field>
+        <field name="code">CHF</field>
+        <field name="symbol">CHF</field>
+        <field name="precision">2</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="remark">瑞士法定货币</field>
+    </record>
+</avalon>

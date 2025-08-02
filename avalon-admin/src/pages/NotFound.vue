@@ -19,7 +19,7 @@ const countdownTimer = () => {
       clearInterval(timer);
       goModelParent();
     }
-  }, 1000);
+  }, 10000);
 };
 
 // 手动返回首页

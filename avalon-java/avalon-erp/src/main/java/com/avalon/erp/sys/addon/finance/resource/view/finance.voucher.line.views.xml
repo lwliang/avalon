@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 记账凭证明细列表视图 -->
+    <record id="finance_voucher_line_tree_view" service="base.action.view">
+        <field name="name">记账凭证明细列表</field>
+        <field name="ref_serviceId">finance.voucher.line</field>
+        <field name="viewMode">tree</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="voucherId"/>
+                <field name="accountId"/>
+                <field name="summary"/>
+                <field name="debitAmount"/>
+                <field name="creditAmount"/>
+                <field name="auxiliaryItemId"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- 记账凭证明细表单视图 -->
+    <record id="finance_voucher_line_form_view" service="base.action.view">
+        <field name="name">记账凭证明细表单</field>
+        <field name="ref_serviceId">finance.voucher.line</field>
+        <field name="viewMode">form</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="voucherId"/>
+                            <field name="accountId"/>
+                            <field name="summary"/>
+                        </col>
+                        <col>
+                            <field name="debitAmount"/>
+                            <field name="creditAmount"/>
+                            <field name="auxiliaryItemId"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="备注">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 记账凭证明细搜索视图 -->
+    <record id="finance_voucher_line_search_view" service="base.action.view">
+        <field name="name">记账凭证明细搜索</field>
+        <field name="ref_serviceId">finance.voucher.line</field>
+        <field name="viewMode">search</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="voucherId"/>
+                <field name="accountId"/>
+                <field name="summary"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="finance_voucher_line_window_action" service="base.action.window">
+        <field name="name">记账凭证明细窗口</field>
+        <field name="label">记账凭证明细窗口</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">finance.voucher.line</field>
+    </record>
+</avalon> 

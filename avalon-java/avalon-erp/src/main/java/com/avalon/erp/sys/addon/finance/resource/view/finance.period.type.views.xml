@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="finance_period_type_view_form" service="base.action.view">
+        <field name="name">finance_period_type_view_form</field>
+        <field name="label">会计期间类型表单</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">finance.period.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="periodTypeName"/>
+                            <field name="periodTypeCode"/>
+                            <field name="startDate"/>
+                        </col>
+                        <col>
+                            <field name="isActive"/>
+                            <field name="isDefault"/>
+                        </col>
+                    </row>
+
+                    <notebook>
+                        <page label="备注">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="finance_period_type_view_tree" service="base.action.view">
+        <field name="name">finance_period_type_view_tree</field>
+        <field name="label">会计期间类型列表</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">finance.period.type</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="periodTypeName"/>
+                <field name="periodTypeCode"/>
+                <field name="startDate"/>
+                <field name="isActive"/>
+                <field name="isDefault"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="finance_period_type_action" service="base.action.window">
+        <field name="name">finance_period_type</field>
+        <field name="label">会计期间类型</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">finance.period.type</field>
+    </record>
+</avalon> 

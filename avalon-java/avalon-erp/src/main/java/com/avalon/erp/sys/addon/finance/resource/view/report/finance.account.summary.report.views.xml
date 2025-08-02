@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <record id="finance_account_summary_report_view" service="base.action.view">
+        <field name="name">科目汇总表</field>
+        <field name="ref_serviceId">finance.account.summary.report</field>
+        <field name="viewMode">report</field>
+        <field name="arch" type="xml">
+            <report>
+                <filter>
+                    <field name="startPeriod"/>
+                    <field name="endPeriod"/>
+                    <field name="accountSetId"/>
+                </filter>
+                <template>
+                    <row>
+                        <col>
+                            <report-table>
+                                
+                            </report-table>
+                        </col>
+                    </row>
+                </template>
+            </report>
+        </field>
+    </record>
+
+    <record id="finance_account_summary_report_window_action" service="base.action.window">
+        <field name="name">科目汇总表</field>
+        <field name="label">科目汇总表</field>
+        <field name="viewMode">report</field>
+        <field name="ref_serviceId">finance.account.summary.report</field>
+    </record>
+</avalon> 

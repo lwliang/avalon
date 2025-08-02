@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 默认公司 -->
+    <record id="hr_org_company_default" service="hr.org">
+        <field name="name">我的公司</field>
+        <field name="code">COMPANY_001</field>
+        <field name="type">company</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">true</field>
+        <field name="description">系统默认公司</field>
+    </record>
+
+    <!-- 总经理办公室 -->
+    <record id="hr_org_dept_general_office" service="hr.org">
+        <field name="name">总经理办公室</field>
+        <field name="code">DEPT_001</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_company_default</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责公司整体战略规划和重大决策</field>
+    </record>
+
+    <!-- 财务部 -->
+    <record id="hr_org_dept_finance" service="hr.org">
+        <field name="name">财务部</field>
+        <field name="code">DEPT_002</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_company_default</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责公司财务管理、会计核算、资金管理</field>
+    </record>
+
+    <!-- 人力资源部 -->
+    <record id="hr_org_dept_hr" service="hr.org">
+        <field name="name">人力资源部</field>
+        <field name="code">DEPT_003</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_company_default</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责员工招聘、培训、绩效考核、薪酬管理</field>
+    </record>
+
+    <!-- 技术部 -->
+    <record id="hr_org_dept_tech" service="hr.org">
+        <field name="name">技术部</field>
+        <field name="code">DEPT_004</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_company_default</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责产品研发、技术架构、系统维护</field>
+    </record>
+
+    <!-- 销售部 -->
+    <record id="hr_org_dept_sales" service="hr.org">
+        <field name="name">销售部</field>
+        <field name="code">DEPT_005</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_company_default</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责市场拓展、客户开发、销售管理</field>
+    </record>
+
+    <!-- 技术部-开发组 -->
+    <record id="hr_org_dept_tech_dev" service="hr.org">
+        <field name="name">开发组</field>
+        <field name="code">DEPT_004_001</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_dept_tech</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责产品功能开发、代码实现</field>
+    </record>
+
+    <!-- 技术部-测试组 -->
+    <record id="hr_org_dept_tech_test" service="hr.org">
+        <field name="name">测试组</field>
+        <field name="code">DEPT_004_002</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_dept_tech</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责产品质量测试、缺陷管理</field>
+    </record>
+
+    <!-- 销售部-国内销售组 -->
+    <record id="hr_org_dept_sales_domestic" service="hr.org">
+        <field name="name">国内销售组</field>
+        <field name="code">DEPT_005_001</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_dept_sales</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责国内市场销售业务</field>
+    </record>
+
+    <!-- 销售部-海外销售组 -->
+    <record id="hr_org_dept_sales_overseas" service="hr.org">
+        <field name="name">海外销售组</field>
+        <field name="code">DEPT_005_002</field>
+        <field name="type">department</field>
+        <field refId="parentId">hr_org_dept_sales</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">负责海外市场销售业务</field>
+    </record>
+</avalon> 

@@ -62,7 +62,8 @@ const props = defineProps<{
   field: string,// 关系字段
   title: string,
   relativeForeignKeyName?: string,
-  fieldType?: FieldTypeEnum
+  fieldType?: FieldTypeEnum,
+  formModel?: any
 }>()
 
 const getServiceName = computed(() => {
@@ -366,7 +367,7 @@ function filterArray<T>(
                @row-add-click="addRow">
       </MyTable>
     </div>
-    <MyFormDialog v-if="subShow" v-model="subShow"
+    <MyFormDialog v-if="subShow" v-model="subShow" :formModel="formModel"
                  :title="title"
                  :service="getServiceName"
                  :row-id="subRowId"

@@ -11,6 +11,7 @@ import com.avalon.core.exception.AvalonException;
 import com.avalon.core.model.PrimaryKey;
 import com.avalon.core.model.RecordRow;
 import com.avalon.core.model.xml.Record;
+import com.avalon.core.service.AbstractReportService;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.AbstractServiceList;
 import com.avalon.core.service.IServiceDataService;
@@ -200,7 +201,8 @@ public abstract class AbstractModule {
         if (ObjectUtils.isNull(getServiceList())) return;
         PrimaryKey key = upgradeModuleInfo();
         for (AbstractService service : getServiceList()) {
-            if (service instanceof TransientService) { // 即时模型 只生成模型数据
+            if (service instanceof TransientService || 
+                    service instanceof AbstractReportService) { // 即时模型 只生成模型数据 报表模型不生成表 只生成字段
                 PrimaryKey serviceId = service.insertTableInfo(key);
                 service.insertFieldInfo(serviceId);
                 continue;
@@ -241,10 +243,11 @@ public abstract class AbstractModule {
     // 加载资源文件，增加基本数据，无新增，有更新
     protected void loadResource() {
         try {
-            ArrayList<InputStream> files = XmlDom4jUtils.loadModuleResourceFile(this);
+            Map<String, InputStream> stringInputStreamMap = XmlDom4jUtils.loadModuleResourceFile(this);
 
-            for (InputStream inputStream : files) {
-                Element rootElement = XmlDom4jUtils.getRootElement(inputStream);
+            for (Map.Entry<String, InputStream> stringInputStreamEntry : stringInputStreamMap.entrySet()) {
+                log.info("load resource file {}", stringInputStreamEntry.getKey());
+                Element rootElement = XmlDom4jUtils.getRootElement(stringInputStreamEntry.getValue());
 
                 NodeList childNodes = rootElement.getChildNodes(); // 获取子元素
 
@@ -330,7 +333,13 @@ public abstract class AbstractModule {
             } else if (nodeName.equals("action")) { // 替换actionId
                 if (row.containsKey("type")) {
                     if (row.getString("type").equals("action")) {
-                        nodeValue = getModelDataSourceId(this.getModuleName(), nodeValue.toString());
+                        String moduleName = this.getModuleName();
+                        String menuId = nodeValue.toString();
+                        if (nodeValue.toString().trim().contains(".")) {
+                            moduleName = FieldUtils.getJoinFirstTableString(nodeValue.toString().trim());
+                            menuId = FieldUtils.getJoinFirstTableString(nodeValue.toString().trim());
+                        }
+                        nodeValue = getModelDataSourceId(moduleName, menuId);
                     } else {
                         nodeName = "objectAction";
                     }
@@ -338,7 +347,13 @@ public abstract class AbstractModule {
             } else if (nodeName.equals("type")) {
                 if (nodeValue.equals("action")) {
                     if (row.containsKey("action")) {
-                        row.put("action", getModelDataSourceId(this.getModuleName(), row.getString("action")));
+                        String moduleName = this.getModuleName();
+                        String menuId = row.getString("action");
+                        if (row.getString("action").trim().contains(".")) {
+                            moduleName = FieldUtils.getJoinFirstTableString(row.getString("action").trim());
+                            menuId = FieldUtils.getJoinFirstTableString(row.getString("action").trim());
+                        }
+                        row.put("action", getModelDataSourceId(moduleName, menuId));
                     }
                 } else {
                     if (row.containsKey("action")) {
@@ -419,9 +434,9 @@ public abstract class AbstractModule {
     }
 
     public boolean getModuleInstall(String moduleName) {
-        AbstractService moduleService = context.getServiceBean("base.module");
+        AbstractService moduleService = context.getServiceBeanWithDb("base.module");
         com.avalon.core.model.Record select = moduleService
-                .select(Condition.equalCondition("name", getModuleName()), "id", "isInstall");
+                .select(Condition.equalCondition("name", moduleName), "id", "isInstall");
         if (select.isEmpty()) {
             return false;
         }
@@ -454,7 +469,8 @@ public abstract class AbstractModule {
         if (ObjectUtils.isNull(getServiceList())) return;
         uninstallResource(); // 删除表 之前 删除资源记录
         for (AbstractService service : getServiceList()) {
-            if (service instanceof TransientService) {
+            if (service instanceof TransientService || 
+                    service instanceof AbstractReportService) {
                 Integer serviceId = getServiceId(service.getServiceName());
                 clearServiceField(serviceId);
                 deleteBaseServiceData(serviceId);
@@ -498,7 +514,7 @@ public abstract class AbstractModule {
                     Integer moduleId = getModuleId(dependModule);
                     context.invokeServiceMethod("base.module", "install",
                             RecordRow.build().put("name", dependModule).put("id", moduleId));
-                } else {
+                } else { // 同步升级 可以考虑删除
                     Integer moduleId = getModuleId(dependModule);
                     if (ObjectUtils.isNull(moduleId)) {
                         throw new AvalonException("模块:" + dependModule + "不存在");
@@ -513,7 +529,8 @@ public abstract class AbstractModule {
         if (ObjectUtils.isNull(getServiceList())) return;
         AbstractService serviceBean = context.getServiceBean("base.service");
         for (AbstractService service : getServiceList()) {
-            if (service instanceof TransientService) {
+            if (service instanceof TransientService || 
+                    service instanceof AbstractReportService) {
                 PrimaryKey serviceId = service.insertTableInfo(moduleId);
                 service.insertFieldInfo(serviceId);
                 continue;
@@ -571,7 +588,16 @@ public abstract class AbstractModule {
             Object content = item.getTextContent(); // base.user
 
             switch (nodeName) {
-                case "refId" -> value = getResourceId(getModuleName(), content.toString());
+                case "refId" -> {
+                    nameKey = nodeValue;
+                    String moduleName = getModuleName();
+                    String id = content.toString();
+                    if (id.contains(".")) {
+                        moduleName = FieldUtils.getJoinFirstTableString(id);
+                        id = FieldUtils.getJoinFirstFieldString(id);
+                    }
+                    value = getResourceId(moduleName, id);
+                }
                 case "ref" -> {
                     value = computeInheritId(nodeValue, getModuleName());
                 }

@@ -16,7 +16,7 @@ start(){
    fi
    #进入命令所在目录
    cd $HOME
-   nohup java -jar $HOME/$APP_NAME  --server.port=$PORT  --spring.profiles.active=$ACTIVE  > /dev/null 2>&1 &   #启动命令 最后一段是去掉nohup日志
+   nohup java --add-opens java.base/java.lang=ALL-UNNAMED -jar $HOME/$APP_NAME  --server.port=$PORT  --spring.profiles.active=$ACTIVE  > /dev/null 2>&1 &   #启动命令 最后一段是去掉nohup日志
    echo "start at port:$PORT"
 }
 

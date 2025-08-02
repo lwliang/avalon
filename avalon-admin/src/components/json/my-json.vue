@@ -4,10 +4,9 @@
  * @date 2025/07/02 10:26
  */
 import {Vue3JsonEditor} from 'vue3-json-editor'
-import FormField from "../../model/FormField.ts";
 import {ref, watch} from "vue";
 
-const formField = defineModel<FormField>({required: true})
+const modelValue = defineModel<any>({required: true})
 const emit = defineEmits<{
   (e: 'clear'): void
   (e: 'change', value: any): void
@@ -18,29 +17,34 @@ const emit = defineEmits<{
 }>()
 
 const onJsonChange = (value: any) => {
+  modelValue.value = JSON.stringify(value)
   emit('change', value)
 }
 
 const value = ref()
 
-watch(() => formField.value.value, (newValue) => {
+watch(() => modelValue.value, (newValue) => {
   if (newValue) {
-    value.value = JSON.parse(newValue)
+    try {
+      value.value = typeof newValue === 'string' ? JSON.parse(newValue) : newValue
+    } catch (e) {
+      value.value = newValue
+    }
+  } else {
+    value.value = null
   }
 }, {immediate: true})
+
 watch(() => value.value, (newValue) => {
   if (newValue) {
-    formField.value.value = JSON.stringify(newValue)
+    modelValue.value = JSON.stringify(newValue)
   } else {
-    formField.value.value = ""
+    modelValue.value = ""
   }
 })
 
 /** 校验逻辑 */
 function validate(): boolean {
-  if (!formField.value) return true
-
-  formField.value.isValidate = true
   return true
 }
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <record id="odoo.config.host" service="base.config">
+        <field name="name">odoo.config.host</field>
+        <field name="label">odoo接口</field>
+        <field name="value">http://localhost:8069</field>
+    </record>
+    <record id="odoo.config.db" service="base.config">
+        <field name="name">odoo.config.db</field>
+        <field name="label">odoo数据库</field>
+        <field name="value">demo</field>
+    </record>
+    <record id="odoo.config.username" service="base.config">
+        <field name="name">odoo.config.username</field>
+        <field name="label">odoo用户名</field>
+        <field name="value">admin</field>
+    </record>
+    <record id="odoo.config.password" service="base.config">
+        <field name="name">odoo.config.password</field>
+        <field name="label">odoo密码</field>
+        <field name="value">123456</field>
+    </record>
+</avalon>

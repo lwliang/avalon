@@ -67,10 +67,20 @@ const menuClick = (menu: MenuModel) => {
       param: {}
     }
     invokeMethod(menu.serviceId.name, param).then(data => {
-      proxy?.$notify.success({
-        title: "提示",
-        message: "操作成功",
-      });
+      const result = data as any;
+      if (!result) { // 没有返回值
+        proxy?.$notify.success({
+          title: "提示",
+          message: "操作成功",
+        });
+      } else {
+        if (result.type && result.type == 'ir.actions.client') { // 判断前端动作
+          const service = proxy?.$registry.getAll('actions').get(result.tag) as any
+          if (service) {
+            service.execute(result.param);
+          }
+        }
+      }
     })
   }
 }

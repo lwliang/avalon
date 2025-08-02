@@ -9,6 +9,11 @@ import {arrayToTree} from "../util/treeUtils.ts";
 import {getErpHttp, postDownloadFileHttp, postErpHttp, postUploadFileHttp} from "./http.ts";
 import {getBaseActionView} from "./viewApi.ts";
 
+export async function getServiceAllMenuView(serviceName: string) {
+    return getModelAllApi("id,name,viewMode",
+        `('serviceId.name',=,'${serviceName}')&('viewMode',in,'form','tree','xtree','kanban')`,
+        'base.action.view')
+}
 
 export async function getModuleMenu(module: string) {
     return postErpHttp("/module/get/permission/menu", {
@@ -77,6 +82,11 @@ export function getActionKanbanView(serviceName: string) {
 export function getActionSearchView(serviceName: string) {
     return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
         `('serviceId.name',=,'${serviceName}')&('viewMode',=,'search')`);
+}
+
+export function getActionReportView(serviceName: string) {
+    return getBaseActionView("id,name,viewMode,label,priority,arch,inheritId,moduleId.id,moduleId.name",
+        `('serviceId.name',=,'${serviceName}')&('viewMode',=,'report')`);
 }
 
 export async function exportExcel(serviceName: string, fields: string, condition: string, order: string) {

@@ -97,7 +97,7 @@ public class DatabaseController {
 
     @GetMapping("create/database/{database}")
     @TemporaryElevate({ElevatePermissionEnum.permission, ElevatePermissionEnum.recordRule})
-    public void createDatabase(@PathVariable("database") String database) throws AvalonException {
+    public Object createDatabase(@PathVariable("database") String database) throws AvalonException {
         context.getJdbcTemplate().execute(String.format("CREATE DATABASE %s", database));
         while (true) {
             boolean b = context.getJdbcTemplate().waitForDatabase(database);
@@ -110,7 +110,7 @@ public class DatabaseController {
             context.addSystemState(SystemStateEnum.createDB);
             context.init(database);
             dbService.createDataBase();
-            context.invokeServiceMethod("base.module", "refreshModuleFromDisk", RecordRow.build());
+            return context.invokeServiceMethod("base.module", "refreshModuleFromDisk", RecordRow.build());
         } catch (Exception e) {
             log.error("createDatabase:" + e.getMessage(), e);
             doDropDatabase(database);

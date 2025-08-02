@@ -71,13 +71,17 @@ export const getChangeFieldRecordRow = async (newRecordRow: any, oldRecordRow: a
             }
          } 
         }  else if(field.type == FieldTypeEnum.Many2oneField) {
-            if(oldRecordRow && oldRecordRow[key] && JSON.stringify(newRecordRow[key]) !== JSON.stringify(oldRecordRow[key])) {
-                if (isObject(newRecordRow[key])) {
-                    changedData[key] = newRecordRow[key].id
-                } else {
-                    changedData[key] = newRecordRow[key]
+            if(oldRecordRow && oldRecordRow[key] && newRecordRow[key]) { // 都有值的情况
+                if( JSON.stringify(newRecordRow[key]) !== JSON.stringify(oldRecordRow[key])) { // 修改
+                    if (isObject(newRecordRow[key])) {
+                        changedData[key] = newRecordRow[key].id
+                    } else {
+                        changedData[key] = newRecordRow[key]
+                    }
                 }
-            } else {
+            } else if(oldRecordRow && oldRecordRow[key] && !newRecordRow[key]) { // 旧有值，新无值的情况
+                changedData[key] = null
+            } else if (newRecordRow && newRecordRow[key] && !oldRecordRow[key]) { // 旧无值，新有值的情况
                 if (isObject(newRecordRow[key])) {
                     changedData[key] = newRecordRow[key].id
                 } else {

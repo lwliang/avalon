@@ -5,6 +5,8 @@
 import XTreeXml from "./XTreeXml.ts";
 import DownXml from "./DownXml.ts";
 import TreeXml from "./TreeXml.ts";
+import ReportXml from "./ReportXml.ts";
+import HeaderXML from "./HeaderXML.ts";
 
 export interface XMLParserResult {
     viewMode: string;
@@ -16,8 +18,9 @@ export interface XMLParserResult {
     form: any,
     search: any,
     xtree: XTreeXml,
-    down: DownXml
-    header: any,
+    header: HeaderXML,
+    down: DownXml,
+    report: ReportXml
 }
 
 export function getTemplate(parseResult: XMLParserResult) {
@@ -38,7 +41,9 @@ export function getTemplate(parseResult: XMLParserResult) {
     }
     if (parseResult.viewMode === 'tree') {
         return parseResult.tree.template
-    } else {
-        return ""
     }
+    if (parseResult.viewMode === 'report') {
+        return parseResult.report.template
+    }
+    return ""
 }

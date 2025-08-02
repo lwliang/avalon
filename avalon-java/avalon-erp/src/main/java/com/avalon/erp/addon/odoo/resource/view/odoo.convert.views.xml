@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <record id="odoo_convert_view_form" service="base.action.view">
+        <field name="name">odoo_convert_view_form</field>
+        <field name="label">Odoo 转换</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">odoo.convert</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <line label="模块名称">
+                                <field name="moduleName"/>
+                                <my-button type="primary" action="getModuleModels" action-type="object">加载模型</my-button>
+                                
+                                <my-button type="success" action="generateAvalonModuleCode" action-type="object">生成模块代码</my-button>
+                            </line>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="模型">
+                            <field name="models"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="odoo_convert_view_action" service="base.action.window">
+        <field name="name">odoo_convert_view_action</field>
+        <field name="label">Odoo 转换</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">odoo.convert</field>
+    </record>
+</avalon>

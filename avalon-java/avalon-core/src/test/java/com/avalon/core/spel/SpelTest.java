@@ -6,6 +6,7 @@
 package com.avalon.core.spel;
 
 import com.avalon.core.CoreApplication;
+import com.avalon.core.TestCustomContextLoader;
 import com.avalon.core.context.Context;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -15,13 +16,15 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = CoreApplication.class, properties = "spring.profiles.active=dev")
+@SpringBootTest(classes = CoreApplication.class, properties = "spring.profiles.active=dev", webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ContextConfiguration(loader = TestCustomContextLoader.class)
 @Slf4j
 public class SpelTest {
     @Autowired

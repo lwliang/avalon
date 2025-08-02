@@ -18,4 +18,5 @@
         <menuitem id="menu_base_action_view_action" name="视图" action="base_action_view_action"/>
         <menuitem id="menu_base_action_window_view_action" name="窗口默认视图" action="base_action_window_view_action"/>
     </menuitem>
+    <menuitem id="menu_base_config_setting_view_action" name="设置" action="base_config_setting_view_action"/>
 </avalon>

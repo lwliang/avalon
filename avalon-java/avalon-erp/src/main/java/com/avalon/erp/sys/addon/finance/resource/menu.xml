@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <menuitem id="menu_finance_account_set_window_action" name="账套" action="finance_account_set_window_action"/>
+    <menuitem id="menu_finance_period_type_action" name="会计期间类型" action="finance_period_type_action"/>
+    <menuitem id="menu_finance_account_action" name="会计科目" action="finance_account_action"/>
+    
+    <menuitem id="menu_finance_opening_balance_action" name="期初余额" action="finance_opening_balance_action"/>
+    <menuitem id="menu_finance_auxiliary_action" name="辅助核算">
+        <menuitem id="menu_finance_auxiliary_type_action" name="辅助核算类型" action="finance_auxiliary_type_window_action"/>
+        <menuitem id="menu_finance_auxiliary_item_action" name="辅助核算项目" action="finance_auxiliary_item_window_action"/>
+    </menuitem>
+    
+    <menuitem id="menu_common_currency_window_action" name="币别设置">
+        <menuitem id="menu_common_currency_action" name="币别" action="common.common_currency_action"/>
+        <menuitem id="menu_common_exchange_rate_action" name="汇率" action="common.common_exchange_rate_action"/>
+    </menuitem>
+    <menuitem id="menu_finance_voucher_action" name="记账凭证" action="finance_voucher_window_action"/>
+    <menuitem id="menu_finance_voucher_line_action" name="记账凭证明细" action="finance_voucher_line_window_action"/>
+    
+    <menuitem id="menu_finance_report_action" name="报表">
+        <menuitem id="menu_finance_report_asset_balance_action" name="资产负债表" action="finance_asset_balance_report_window_action"/>
+        <menuitem id="menu_finance_report_account_summary_action" name="科目汇总表" action="finance_account_summary_report_window_action"/>
+        <menuitem id="menu_finance_report_profit_action" name="利润表" action="finance_profit_report_window_action"/>
+        <menuitem id="menu_finance_report_cash_flow_action" name="现金流量表" action="finance_cash_flow_report_window_action"/>
+        <menuitem id="menu_finance_report_expense_detail_action" name="费用明细表" action="finance_expense_detail_report_window_action"/>
+    </menuitem>
+</avalon>

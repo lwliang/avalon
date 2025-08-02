@@ -22,8 +22,8 @@ const menuClickHandler = (menu: MenuModel) => {
 </script>
 
 <template>
-  <el-scrollbar>
-    <div class="flex">
+  <el-scrollbar class="menu-scrollbar">
+    <div class="flex menu-container">
       <myMenuItem v-for="menu in menuStore" :key="menu.id" :menu="menu"
                 @menuClick="menuClickHandler"/>
     </div>
@@ -31,5 +31,11 @@ const menuClickHandler = (menu: MenuModel) => {
 </template>
 
 <style scoped>
+.menu-container {
+  min-width: max-content;
+}
 
+.menu-scrollbar {
+  max-height: 100%;
+}
 </style>

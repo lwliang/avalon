@@ -1359,11 +1359,14 @@ public abstract class AbstractService implements IAvalonService, IAliasRequire, 
      * @return
      */
     public Object getPrimaryKeyValue(RecordRow row) {
-        if (getPrimaryKeyField() instanceof BigIntegerField) {
-            return row.get(getPrimaryKeyName()).getLong();
+        if(row.isNotNull(getPrimaryKeyName())) {
+            if (getPrimaryKeyField() instanceof BigIntegerField) {
+                return row.get(getPrimaryKeyName()).getLong();
+            }
+            return row.get(getPrimaryKeyName()).getInteger();
         }
 
-        return row.get(getPrimaryKeyName()).getInteger();
+        return null;
     }
 
     public Object getPrimaryKeyValue(PrimaryKey primaryKey) {

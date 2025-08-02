@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="finance_expense_detail_report_view" service="base.action.view">
+        <field name="name">finance_expense_detail_report_view</field>
+        <field name="label">费用明细表</field>
+        <field name="viewMode">report</field>
+        <field name="ref_serviceId">finance.expense.detail.report</field>
+        <field name="arch" type="xml">
+            <report>
+                <filter>
+                    <field name="startPeriod"/>
+                    <field name="endPeriod"/>
+                    <field name="accountSetId"/>
+                    <field name="expenseAccountId"/>
+                </filter>
+                <template>
+                    <row>
+                        <col>
+                            <report-table>
+                                
+                            </report-table>
+                        </col>
+                    </row>
+                </template>
+            </report>
+        </field>
+    </record>
+
+    <record id="finance_expense_detail_report_window_action" service="base.action.window">
+        <field name="name">费用明细表</field>
+        <field name="label">费用明细表</field>
+        <field name="viewMode">report</field>
+        <field name="ref_serviceId">finance.expense.detail.report</field>
+    </record>
+</avalon> 

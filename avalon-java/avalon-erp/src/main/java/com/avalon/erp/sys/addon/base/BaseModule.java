@@ -8,6 +8,7 @@ package com.avalon.erp.sys.addon.base;
 import com.avalon.core.condition.Condition;
 import com.avalon.core.model.PrimaryKey;
 import com.avalon.core.module.AbstractModule;
+import com.avalon.core.service.AbstractReportService;
 import com.avalon.core.service.AbstractService;
 import com.avalon.core.service.TransientService;
 import com.avalon.core.util.FieldValue;
@@ -52,6 +53,7 @@ public class BaseModule extends AbstractModule {
                 "resource/record/base.user.xml",
                 "resource/record/base.service.access.xml",
                 "resource/record/base.rule.xml",
+                "resource/record/base.config.xml",
                 "resource/view/base.field.views.xml",
                 "resource/view/base.service.views.xml",
                 "resource/view/module.views.xml",
@@ -68,6 +70,7 @@ public class BaseModule extends AbstractModule {
                 "resource/view/base.action.view.views.xml",
                 "resource/view/base.cron.views.xml",
                 "resource/view/base.menus.views.xml",
+                "resource/view/base.config.setting.views.xml",
                 "resource/view/menus.xml"
         };
     }
@@ -90,7 +93,8 @@ public class BaseModule extends AbstractModule {
                 service.insertFieldInfo(serviceId);
                 continue;
             }
-            if (service instanceof TransientService) {
+            if (service instanceof TransientService || 
+                    service instanceof AbstractReportService) {
                 continue;
             }
             service.createTable();
@@ -118,7 +122,8 @@ public class BaseModule extends AbstractModule {
                 service.upgradeTable();
                 service.upgradeTableInfo(moduleKeyId);
             } else {
-                if (service instanceof TransientService) {
+                if (service instanceof TransientService || 
+                        service instanceof AbstractReportService) {
                     continue;
                 }
                 serviceBean.upgradeTableInfo(moduleKeyId);

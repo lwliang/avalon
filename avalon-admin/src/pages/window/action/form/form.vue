@@ -9,7 +9,8 @@ import {
   computed,
   createVNode,
   defineComponent,
-  getCurrentInstance, provide,
+  getCurrentInstance, 
+  provide,
   ref,
   shallowRef,
   watch
@@ -53,6 +54,9 @@ serviceStore.getServiceByNameAsync(serviceName.value).then(data => {
 })
 
 const view = ref<ActionView | undefined>(undefined)
+const formModel = ref<any>({
+  state: 'init',
+})
 defineOptions({
   name: 'Form',
 })
@@ -161,17 +165,21 @@ const loadDataWithLayout = async () => {
   if (row_id.value) {
     const data = await loadDetailData(row_id.value);
     if (data) {
+      formModel.value.state = 'init'
       Object.assign(recordRow.value, data)
       originalRecordRow.value = objectCloneDeep(data)
       template_component.value = createFormTemplateVNode();
       createHeaderTemplateVNode();
+      formModel.value.state = 'edit'
     }
   } else {
+    formModel.value.state = 'init'
     await createNewRecordRow(serviceFields);
     const defaultValue = await createModelApi({}, serviceName.value)
     await createModelRecordRow(defaultValue, serviceFields)
     template_component.value = createFormTemplateVNode();
     createHeaderTemplateVNode();
+    formModel.value.state = 'create'
   }
 }
 
@@ -222,10 +230,11 @@ const createFormTemplateVNode = () => {
       const vNode = compile(xmlTemplate.value)
       return () => {
         return createVNode(vNode, {
+          formModel:formModel.value,
           ...recordRow.value,
           recordRow: recordRow.value,
           rules: {
-            'a':[{required: true, message: 'a', trigger: 'blur'}]
+            'a': [{required: true, message: 'a', trigger: 'blur'}]
           }
         })
       }
@@ -273,7 +282,7 @@ const createHeaderTemplateVNode = () => {
   header_component.value = () => {
     return createVNode(vNode, {
       ...recordRow.value,
-      recordRow: recordRow.value, 
+      recordRow: recordRow.value,
       btnClickHandler,
     })
   }
@@ -284,7 +293,7 @@ const createClick = async () => {
   row_id.value = undefined;
   recordRow.value = {}
   originalRecordRow.value = {}
-  
+
   const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
   await createNewRecordRow(serviceFields);
   const defaultValue = await createModelApi({}, serviceName.value)
@@ -298,9 +307,14 @@ const backClick = () => {
 const saveClick = async () => {
   if (row_id.value) { // 保存
     update().then(() => {
+      
       loadDetailData(row_id.value as number).then(data => {
+        formModel.value.state = 'init'
         Object.assign(recordRow.value, data)
-        Object.assign(originalRecordRow.value, data) // 更新原始数据
+        originalRecordRow.value = objectCloneDeep(data)
+        setTimeout(() => {
+          formModel.value.state = 'edit'
+        }, 100)
       })
     })
   } else {
@@ -325,11 +339,10 @@ const insert = async () => {
 }
 
 
-
 const update = async () => {
   const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
   const changedData = await getChangeFieldRecordRow(recordRow.value, originalRecordRow.value, serviceFields)
-  
+
   if (Object.keys(changedData).length === 0) {
     proxy?.$notify.success({
       title: "修改",
@@ -366,7 +379,7 @@ loadOnChangeField(serviceName.value).then(data => {
   onChangeFields.value.push(...data)
 })
 
-watch(recordRow.value, async () => {
+watch(() => recordRow.value, async () => {
   let changeFields: any = {}
   for (let fieldKey in recordRow.value) {
     if (JSON.stringify(recordRow.value[fieldKey]) !== JSON.stringify(originalRecordRow.value[fieldKey])) {
@@ -401,27 +414,27 @@ watch(recordRow.value, async () => {
     <div class="h-[50px] flex items-start border-b border-t-0 border-l-0 border-r-0 border-border border-solid ">
       <div class="h-[50px] flex items-center">
         <el-button-group>
-          <el-button type="success"  @click="backClick" icon="Back"  
-          size="small" circle/>
+          <el-button type="success" @click="backClick" icon="Back"
+                     size="small" circle/>
           <el-button type="primary" round @click="createClick" v-if="form.create" size="small">新增</el-button>
           <el-button type="success" round @click="saveClick" class="ml-2" size="small"
-                    v-if="recordRowIsChange && (form.edit || form.create)">
+                     v-if="recordRowIsChange && (form.edit || form.create)">
             保存
           </el-button>
           <component :is="header_component"/>
         </el-button-group>
       </div>
     </div>
-    
-      <div class="w-full flex flex-1 h-full box-border overflow-hidden">
-          <el-scrollbar class="h-full flex-1">
-            <div class="w-full box-border" style="flex: 2"
-                @scroll="onScrollClick">
-              <component :is="template_component"/>
-            </div>
-          </el-scrollbar>
-      </div>
-  
+
+    <div class="w-full flex flex-1 h-full box-border overflow-hidden">
+      <el-scrollbar class="h-full flex-1">
+        <div class="w-full box-border" style="flex: 2"
+             @scroll="onScrollClick">
+          <component :is="template_component"/>
+        </div>
+      </el-scrollbar>
+    </div>
+
   </div>
 </template>
 

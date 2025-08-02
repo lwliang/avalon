@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 资产类科目 -->
+    <record id="finance_account_1001" service="finance.account">
+        <field name="code">1001</field>
+        <field name="name">库存现金</field>
+        <field name="type">asset</field>
+        <field name="direction">debit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">true</field>
+        <field name="description">企业库存现金</field>
+    </record>
+    
+    <record id="finance_account_1002" service="finance.account">
+        <field name="code">1002</field>
+        <field name="name">银行存款</field>
+        <field name="type">asset</field>
+        <field name="direction">debit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">false</field>
+        <field name="description">企业银行存款</field>
+    </record>
+    
+    <record id="finance_account_100201" service="finance.account">
+        <field name="code">100201</field>
+        <field name="name">基本户</field>
+        <field name="type">asset</field>
+        <field name="direction">debit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">true</field>
+        <field name="description">基本存款账户</field>
+        <field refId="parentId">finance_account_1002</field>
+    </record>
+    
+    <record id="finance_account_100202" service="finance.account">
+        <field name="code">100202</field>
+        <field name="name">一般户</field>
+        <field name="type">asset</field>
+        <field name="direction">debit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">true</field>
+        <field name="description">一般存款账户</field>
+        <field refId="parentId">finance_account_1002</field>
+    </record>
+    
+    <!-- 负债类科目 -->
+    <record id="finance_account_2001" service="finance.account">
+        <field name="code">2001</field>
+        <field name="name">短期借款</field>
+        <field name="type">liability</field>
+        <field name="direction">credit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">false</field>
+        <field name="description">企业短期借款</field>
+    </record>
+    
+    <record id="finance_account_2201" service="finance.account">
+        <field name="code">2201</field>
+        <field name="name">应付账款</field>
+        <field name="type">liability</field>
+        <field name="direction">credit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">false</field>
+        <field name="description">企业应付账款</field>
+    </record>
+    
+    <!-- 所有者权益类科目 -->
+    <record id="finance_account_4001" service="finance.account">
+        <field name="code">4001</field>
+        <field name="name">实收资本</field>
+        <field name="type">equity</field>
+        <field name="direction">credit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">true</field>
+        <field name="description">企业实收资本</field>
+    </record>
+    
+    <!-- 收入类科目 -->
+    <record id="finance_account_6001" service="finance.account">
+        <field name="code">6001</field>
+        <field name="name">主营业务收入</field>
+        <field name="type">revenue</field>
+        <field name="direction">credit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">false</field>
+        <field name="description">企业主营业务收入</field>
+    </record>
+    
+    <!-- 费用类科目 -->
+    <record id="finance_account_6401" service="finance.account">
+        <field name="code">6401</field>
+        <field name="name">主营业务成本</field>
+        <field name="type">expense</field>
+        <field name="direction">debit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">false</field>
+        <field name="description">企业主营业务成本</field>
+    </record>
+    
+    <record id="finance_account_6601" service="finance.account">
+        <field name="code">6601</field>
+        <field name="name">销售费用</field>
+        <field name="type">expense</field>
+        <field name="direction">debit</field>
+        <field name="isActive">true</field>
+        <field name="isDetail">false</field>
+        <field name="description">企业销售费用</field>
+    </record>
+</avalon> 

@@ -68,6 +68,8 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import myJson from './components/json/my-json.vue'
 import MyHtml from './components/html/my-html.vue'
+import ReportTable from './components/table/report-table.vue'
+import ReportEchart from './components/report/report-echart.vue'
 
 
 // 注册插件
@@ -129,6 +131,8 @@ app.component('MyProgress', MyProgress)
 app.component('MyPopover', MyPopover)
 app.component('MyJson', myJson)
 app.component('MyHtml', MyHtml)
+app.component('ReportTable', ReportTable)
+app.component('ReportEchart', ReportEchart)
 
 // 使用注册表插件
 app.use(RegistryPlugin);

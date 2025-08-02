@@ -16,11 +16,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = CoreApplication.class, properties = "spring.profiles.active=dev")
+@SpringBootTest(classes = CoreApplication.class, properties = "spring.profiles.active=dev", webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ContextConfiguration(loader = TestCustomContextLoader.class)
 @Slf4j
 public class CoreApplicationTest {
     @Autowired

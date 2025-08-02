@@ -36,8 +36,9 @@ const menuClickHandler = (menu: MenuModel) => {
       width="auto"
     >
       <template #reference>
-        <div class="cursor-pointer my-menu text-nowrap menu-item">
-          {{ menu.name }}
+        <div class="cursor-pointer my-menu text-nowrap menu-item flex justify-between items-center">
+          <span>{{ menu.name }}</span>
+          <span class="pl-1 text-xs opacity-60">▼</span>
         </div>
       </template>
       
@@ -54,7 +55,7 @@ const menuClickHandler = (menu: MenuModel) => {
 /* 自定义popover样式 */
 :global(.menu-popover) {
   padding: 4px 0 !important;
-  min-width: 120px;
+  min-width: 140px;
 }
 
 .dropdown-item {

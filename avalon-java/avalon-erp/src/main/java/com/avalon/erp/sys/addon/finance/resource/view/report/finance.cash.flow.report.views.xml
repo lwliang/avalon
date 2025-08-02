@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="finance_cash_flow_report_view" service="base.action.view">
+        <field name="name">finance_cash_flow_report_view</field>
+        <field name="label">现金流量表</field>
+        <field name="viewMode">report</field>
+        <field name="ref_serviceId">finance.cash.flow.report</field>
+        <field name="arch" type="xml">
+            <report>
+                <filter>
+                    <field name="startPeriod"/>
+                    <field name="endPeriod"/>
+                    <field name="accountSetId"/>
+                </filter>
+                <template>
+                    <row>
+                        <col>
+                            <report-table>
+                                
+                            </report-table>
+                        </col>
+                    </row>
+                </template>
+            </report>
+        </field>
+    </record>
+
+    <record id="finance_cash_flow_report_window_action" service="base.action.window">
+        <field name="name">现金流量表</field>
+        <field name="label">现金流量表</field>
+        <field name="viewMode">report</field>
+        <field name="ref_serviceId">finance.cash.flow.report</field>
+    </record>
+</avalon> 

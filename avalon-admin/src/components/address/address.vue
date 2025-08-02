@@ -20,6 +20,10 @@ const props = defineProps({
     type: borderStyleType,
     default: 'round'
   },
+  formModel: {
+    type: Object,
+    default: () => ({})
+  }
 })
 
 const serviceName = "base.area.2023"
@@ -40,11 +44,17 @@ const district = defineModel<{id: number, name: string} | null>('district', {
 })
 
 watch(() => province.value, () => {
+  if(props.formModel.state === 'init'){ // 初始化时，不触发
+    return
+  }
   if (city.value && province.value) {
     city.value = null
   }
 })
 watch(() => city.value, () => {
+  if(props.formModel.state === 'init'){ // 初始化时，不触发
+    return
+  }
   if (district.value && city.value) {
     district.value = null
   }

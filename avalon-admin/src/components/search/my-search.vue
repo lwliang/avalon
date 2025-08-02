@@ -75,11 +75,16 @@ const handleKeydown = (event: KeyboardEvent) => {
       break;
     case 'Enter':
       event.preventDefault();
-      if (selectedIndex.value >= 0 && selectedIndex.value < fields.value.length) {
-        const selectedField = fields.value[selectedIndex.value];
+      let targetIndex = selectedIndex.value;
+      // 如果没有选中任何选项，默认选择第一个
+      if (targetIndex < 0 && fields.value.length > 0) {
+        targetIndex = 0;
+      }
+      if (targetIndex >= 0 && targetIndex < fields.value.length) {
+        const selectedField = fields.value[targetIndex];
         searchChange(selectedField.name, selectedField.fieldMeta, searchValue.value);
+        searchPopperRef.value.hide()
         // 选择后清空输入内容，自动隐藏popover
-        searchValue.value = '';
         selectedIndex.value = -1;
       }
       break;
@@ -99,6 +104,12 @@ const handleMouseEnter = (index: number) => {
 const handleMouseLeave = () => {
   selectedIndex.value = -1;
 };
+
+const handleClick = (field: any) => {
+  searchChange(field.name, field.fieldMeta, searchValue.value);
+  selectedIndex.value = -1;
+  searchPopperRef.value.hide()
+}
 
 const fields = ref<{ name: string, label: string, fieldMeta: Field }[]>([])
 const loadField = async (fieldArr: any[]) => {
@@ -177,7 +188,7 @@ const clearSearchConditionClick = () => {
     <el-popover 
       ref="searchPopperRef" 
       placement="bottom" 
-      trigger="manual"
+      trigger="click"
       :show-arrow="false"
       popper-class="search-popover"
       :visible="!!searchValue && fields.length > 0"
@@ -222,11 +233,7 @@ const clearSearchConditionClick = () => {
                    'flex items-center px-6 gap-2 py-0.5 cursor-pointer transition-colors',
                    selectedIndex === index ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'
                  ]"
-                 @click="() => {
-                   searchChange(field.name, field.fieldMeta, searchValue);
-                   searchValue = '';
-                   selectedIndex = -1;
-                 }"
+                 @click="handleClick(field)"
                  @mouseenter="handleMouseEnter(index)"
                  @mouseleave="handleMouseLeave">
               <div>搜索</div>

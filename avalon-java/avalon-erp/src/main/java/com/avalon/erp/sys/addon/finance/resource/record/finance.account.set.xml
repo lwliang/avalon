@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 默认公司账套 -->
+    <record id="finance_account_set_default" service="finance.account.set">
+        <field name="code">DEFAULT</field>
+        <field name="name">默认公司账套</field>
+        <field name="type">COMPANY</field>
+        <field refId="companyId">hr.hr_org_company_default</field>
+        <field name="startPeriod">2025-01-01</field>
+        <field refId="currencyId">common.currency_cny</field>
+        <field refId="periodTypeId">finance_period_type_monthly</field>
+        <field name="taxRate">13.00</field>
+        <field name="isEnabled">true</field>
+        <field name="isDefault">true</field>
+        <field name="description">系统默认公司账套，用于日常财务管理</field>
+    </record>
+</avalon> 

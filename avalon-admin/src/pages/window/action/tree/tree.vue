@@ -9,9 +9,11 @@ import {
   createVNode,
   getCurrentInstance,
   inject,
+  nextTick,
   provide,
   ref,
   shallowRef,
+  triggerRef,
   watch
 } from "vue";
 import {useRoute} from "vue-router";
@@ -170,7 +172,7 @@ const createHeaderTemplateVNode = () => {
 
 const emit = defineEmits(['rowClick'])
 
-const record = ref<any>([])
+const record = shallowRef<any>([])
 const recordOrigin = ref<any>([])
 const recordChange = ref<any>([])
 const pageNum = ref<number>(1)
@@ -360,13 +362,18 @@ const sureClick = () => {
     });
     deleteShow.value = false
 
-    for (let deleteIdsKey of rowSelectIds.value) {
-      const index = record.value.findIndex((x: any) => x.id == deleteIdsKey)
-      if (index >= 0) {
-        record.value.splice(index, 1)
-      }
-    }
-
+    // 使用 triggerRef 强制触发 shallowRef 的响应式更新
+    // for (let deleteIdsKey of rowSelectIds.value) {
+    //   const index = record.value.findIndex((x: any) => x.id == deleteIdsKey)
+    //   if (index >= 0) {
+    //     record.value.splice(index, 1)
+    //     const temp = record.value
+    //     record.value = []
+    //     record.value = temp
+    //   }
+    // }
+    // triggerRef(record)
+    loadData()
   })
 }
 
@@ -451,7 +458,7 @@ const cellFieldHandler = async (key: any, fieldName: string, value: any) => {
                  @cellChange="cellFieldHandler"/>
     </div>
   </div>
-  <MyDialog :show="deleteShow" @close="hideClick" @sure="sureClick" title="提示">
+  <MyDialog width="300px" v-model="deleteShow" @close="hideClick" @sure="sureClick" title="提示">
     确认删除吗?
   </MyDialog>
   <MyExportDialog v-model="exportShow" :service="serviceName" @close="exportClose" @sure="exportSure"></MyExportDialog>

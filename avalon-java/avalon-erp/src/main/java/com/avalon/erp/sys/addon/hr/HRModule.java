@@ -45,6 +45,8 @@ public class HRModule extends AbstractModule {
     @Override
     public String[] getResource() {
         return new String[]{
+                "resource/record/hr.org.xml",
+                "resource/record/hr.job.xml",
                 "resource/view/job.views.xml",
                 "resource/view/org.views.xml",
                 "resource/view/staff.views.xml",

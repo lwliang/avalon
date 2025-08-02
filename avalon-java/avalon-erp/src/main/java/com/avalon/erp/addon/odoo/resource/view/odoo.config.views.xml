@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <record id="odoo_config_view_form" service="base.action.view">
+        <field name="name">odoo_config_view_form</field>
+        <field name="label">Odoo 配置</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">base.config.setting</field>
+        <field name="inheritId" ref="base.base_config_setting_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page label="Odoo 配置">
+                    <row>
+                        <col>
+                            <field name="host"/>
+                        </col>
+                        <col>
+                            <field name="db"/>
+                        </col>
+                    </row>
+                    <row>
+                        <col>
+                            <field name="username"/>
+                        </col>
+                        <col>
+                            <field name="password"/>
+                        </col>
+                    </row>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</avalon>

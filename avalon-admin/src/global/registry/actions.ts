@@ -27,6 +27,12 @@ const uploadDocument = {
     },
 }
 
+const reload= {
+    execute: (param: any) => {
+        window.location.reload();
+    },
+}
+
 const notifyAction = {
     execute: (param: any) => {
         ElNotification.success({
@@ -43,4 +49,5 @@ export function registerActions(registry: Registry) {
     registry.register('actions', 'alter', alertAction);
     registry.register('actions', 'uploadDocument', uploadDocument);
     registry.register('actions', 'notifyAction', notifyAction);
+    registry.register('actions', 'reload', reload);
 }

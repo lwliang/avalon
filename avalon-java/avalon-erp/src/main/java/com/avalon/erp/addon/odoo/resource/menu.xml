@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <menuitem id="odoo_convert_menu" name="Odoo 转换" action="odoo_convert_view_action"/>
+</avalon>

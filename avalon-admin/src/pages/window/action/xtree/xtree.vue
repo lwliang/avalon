@@ -367,7 +367,9 @@ const loadDetailData = async (id: number) => {
 }
 const detailRecordRow = ref<any>({}) // 原始信息
 const recordRowWithField = ref<Record<string, any>>({}) // 用户修改信息
-
+const formModel = ref<any>({
+  state: 'init',
+})
 
 const loadDataWithLayout = async () => {
     if (!(serviceName.value && moduleName.value && self_service_fields.value.length)) {
@@ -377,6 +379,7 @@ const loadDataWithLayout = async () => {
     if (row_id.value) {
         const data = await loadDetailData(row_id.value);
         if (data) {
+          formModel.value.state = 'init'
             Object.assign(detailRecordRow.value, data)
             const serviceInstance = await serviceStore.getServiceByNameAsync(serviceName.value);
             for (let key in detailRecordRow.value) {
@@ -412,13 +415,16 @@ const loadDataWithLayout = async () => {
                 detailRecordRow.value = objectCloneDeep(recordRowWithField.value)
             }
             template_component.value = createFormTemplateVNode();
+          formModel.value.state = 'edit'
         }
     } else {
+        formModel.value.state = 'init'
         const defaultValue = await createNewRecordRow()
         await createNewRecordRowDefault(defaultValue,serviceFields)
         await createModelRecordRow(defaultValue)
         detailRecordRow.value = objectCloneDeep(recordRowWithField.value)
         template_component.value = createFormTemplateVNode();
+        formModel.value.state = 'add'
     }
 }
 
@@ -455,7 +461,11 @@ const createFormTemplateVNode = () => {
         setup() {
             const vNode = compile(xmlFormTemplate.value)
             return () => {
-                return createVNode(vNode, {...recordRowWithField.value,recordRow:recordRowWithField.value, rules:{}})
+                return createVNode(vNode, {
+                  formModel:formModel.value,
+                  ...recordRowWithField.value,
+                  recordRow:recordRowWithField.value,
+                  rules:{}})
             }
         }
     })
@@ -476,8 +486,12 @@ const recordRowIsChange = computed(() => { // 字段是否有变量
 
 const saveClick = async () => {
     if (row_id.value) { // 保存
+      formModel.value.state = 'init'
         update().then(() => {
             detailRecordRow.value = objectCloneDeep(recordRowWithField.value)
+            setTimeout(() => {
+              formModel.value.state = 'edit'
+            }, 100)
         })
     } else {
         await insert()
@@ -509,7 +523,7 @@ const insert = async () => {
 const update = async () => {
     const serviceFields = await serviceFieldStore.getFieldByServiceNameAsync(serviceName.value)
     const recordRow = await getChangeFieldRecordRow(recordRowWithField.value, detailRecordRow.value, serviceFields)
-    
+
     if (Object.keys(recordRow).length === 0) {
         proxy?.$notify.success({
             title: "修改",
@@ -564,7 +578,7 @@ const loadChildrenData = async (data: any) => {
                     <my-button  v-if="nodeSelects.length" type="danger" rounded @click="deleteServiceClick">删除
                     </my-button>
                 </my-button-group>
-                
+
             </div>
             <div class="flex-1 px-4">
                 <MySearch @conditionChange="conditionChange" :full-width="true" class="w-full"

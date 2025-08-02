@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <record id="base.config.theme" service="base.config">
+        <field name="name">base.config.theme</field>
+        <field name="label">主题</field>
+        <field name="value">white</field>
+    </record>
+</avalon>

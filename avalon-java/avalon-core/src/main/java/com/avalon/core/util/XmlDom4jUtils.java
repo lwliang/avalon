@@ -26,13 +26,16 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 @Slf4j
 public class XmlDom4jUtils {
-    public static ArrayList<InputStream> loadModuleResourceFile(AbstractModule module) throws AvalonException {
+    public static Map<String,InputStream> loadModuleResourceFile(AbstractModule module) throws AvalonException {
         try {
-            ArrayList<InputStream> files = new ArrayList<>();
+            Map<String, InputStream> files = new LinkedHashMap<>();
             for (String s : module.getResource()) {
                 String path = ClassUtils.getModulePackagePath(module);
                 if (s.startsWith("/")) {
@@ -46,7 +49,7 @@ public class XmlDom4jUtils {
                 }
                 log.info("loadModuleResourceFile,{}", resource.toURI());
                 InputStream inputStream = resource.openStream();
-                files.add(inputStream);
+                files.put(s,inputStream);
             }
 
             return files;

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 辅助核算类型列表视图 -->
+    <record id="finance_auxiliary_type_tree_view" service="base.action.view">
+        <field name="name">辅助核算类型列表</field>
+        <field name="ref_serviceId">finance.auxiliary.type</field>
+        <field name="viewMode">tree</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- 辅助核算类型表单视图 -->
+    <record id="finance_auxiliary_type_form_view" service="base.action.view">
+        <field name="name">辅助核算类型表单</field>
+        <field name="ref_serviceId">finance.auxiliary.type</field>
+        <field name="viewMode">form</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="code"/>
+                        </col>
+                        <col>
+                            <field name="name"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="描述">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 辅助核算类型搜索视图 -->
+    <record id="finance_auxiliary_type_search_view" service="base.action.view">
+        <field name="name">辅助核算类型搜索</field>
+        <field name="ref_serviceId">finance.auxiliary.type</field>
+        <field name="viewMode">search</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="name"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="finance_auxiliary_type_window_action" service="base.action.window">
+        <field name="name">辅助核算类型窗口</field>
+        <field name="label">辅助核算类型窗口</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">finance.auxiliary.type</field>
+    </record>
+</avalon> 

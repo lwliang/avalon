@@ -3,7 +3,7 @@
  * @date 2024/11/22
  */
 
-import router from '../router'
+import router, { addModelRouter } from '../router'
 
 export function goRouterBack() {
     router.back()
@@ -46,7 +46,8 @@ export function goModelParent() {
     })
 }
 
-export function goModelWindow(module: string, service: string, actionWindow: any) {
+export async function goModelWindow(module: string, service: string, actionWindow: any) {
+    await addModelRouter(module, service)
     router.push({
         path: `/model/${module}/${service}/window`,
         query: actionWindow
@@ -60,36 +61,49 @@ export function goModelImport(module: string, service: string, actionWindow: any
     })
 }
 
-export function goModelForm(module: string, service: string, id: any) {
+export async function goModelForm(module: string, service: string, id: any) {
+    await addModelRouter(module, service)
     router.push({
         path: `/model/${module}/${service}/window/form`,
         query: {id}
     })
 }
-export function replaceModelForm(module: string, service: string, id: any) {
+export async function replaceModelForm(module: string, service: string, id: any) {
+    await addModelRouter(module, service)
     router.replace({
         path: `/model/${module}/${service}/window/form`,
         query: {id}
     })
 }
 
-export function goModelTree(module: string, service: string, query?: any) {
+export async function goModelTree(module: string, service: string, query?: any) {
+    await addModelRouter(module, service)
     router.push({
         path: `/model/${module}/${service}/window/tree`,
         query: query
     })
 }
 
-export function goModelXTree(module: string, service: string, query?: any) {
+export async function goModelXTree(module: string, service: string, query?: any) {
+    await addModelRouter(module, service)
     router.push({
         path: `/model/${module}/${service}/window/xtree`,
         query: query
     })
 }
 
-export function goModelKanban(module: string, service: string, query?: any) {
+export async function goModelKanban(module: string, service: string, query?: any) {
+    await addModelRouter(module, service)
     router.push({
         path: `/model/${module}/${service}/window/kanban`,
+        query: query
+    })
+}
+
+export async function goModelReport(module: string, service: string, query?: any) {
+    await addModelRouter(module, service)
+    router.push({
+        path: `/model/${module}/${service}/window/report`,
         query: query
     })
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <record id="finance_period_type_monthly" service="finance.period.type">
+        <field name="periodTypeName">月度会计期间</field>
+        <field name="periodTypeCode">MONTHLY</field>
+        <field name="startDate">2025-01-01</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">true</field>
+        <field name="description">按月划分的会计期间，每月1日开始</field>
+    </record>
+    
+    <record id="finance_period_type_quarterly" service="finance.period.type">
+        <field name="periodTypeName">季度会计期间</field>
+        <field name="periodTypeCode">QUARTERLY</field>
+        <field name="startDate">2025-01-01</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">按季度划分的会计期间，每季度第一个月1日开始</field>
+    </record>
+    
+    <record id="finance_period_type_yearly" service="finance.period.type">
+        <field name="periodTypeName">年度会计期间</field>
+        <field name="periodTypeCode">YEARLY</field>
+        <field name="startDate">2025-01-01</field>
+        <field name="isActive">true</field>
+        <field name="isDefault">false</field>
+        <field name="description">按年度划分的会计期间，每年1月1日开始</field>
+    </record>
+</avalon> 

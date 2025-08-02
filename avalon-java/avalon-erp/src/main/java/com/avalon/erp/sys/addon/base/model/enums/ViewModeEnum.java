@@ -13,6 +13,7 @@ public enum ViewModeEnum implements ISelectFieldEnum {
     form("表单"),
     search("搜索"),
     down("下拉"),
+    report("报表"),
     tree("列表");
     private final String name;
 

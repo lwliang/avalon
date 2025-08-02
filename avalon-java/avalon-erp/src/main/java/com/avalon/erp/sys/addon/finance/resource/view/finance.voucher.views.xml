@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 记账凭证列表视图 -->
+    <record id="finance_voucher_tree_view" service="base.action.view">
+        <field name="name">记账凭证列表</field>
+        <field name="ref_serviceId">finance.voucher</field>
+        <field name="viewMode">tree</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code"/>
+                <field name="date"/>
+                <field name="summary"/>
+                <field name="accountSetId"/>
+                <field name="creatorId"/>
+                <field name="status"/>
+                <field name="totalDebitAmount" readonly="1"/>
+                <field name="totalCreditAmount" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- 记账凭证表单视图 -->
+    <record id="finance_voucher_form_view" service="base.action.view">
+        <field name="name">记账凭证表单</field>
+        <field name="ref_serviceId">finance.voucher</field>
+        <field name="viewMode">form</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="code"/>
+                            <field name="date"/>
+                            <field name="summary"/>
+                        </col>
+                        <col>
+                            <field name="status"/>
+                            <field name="creatorId"/>
+                            <field name="auditorId"/>
+                        </col>
+                        <col>
+                            <field name="accountSetId"/>
+                            <field name="totalDebitAmount" readonly="1"/>
+                            <field name="totalCreditAmount" readonly="1"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="凭证明细">
+                            <field name="lines"/>
+                        </page>
+                        <page label="备注">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 记账凭证搜索视图 -->
+    <record id="finance_voucher_search_view" service="base.action.view">
+        <field name="name">记账凭证搜索</field>
+        <field name="ref_serviceId">finance.voucher</field>
+        <field name="viewMode">search</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="date"/>
+                <field name="summary"/>
+                <field name="accountSetId"/>
+                <field name="status"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="finance_voucher_window_action" service="base.action.window">
+        <field name="name">记账凭证窗口</field>
+        <field name="label">记账凭证窗口</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">finance.voucher</field>
+    </record>
+</avalon> 

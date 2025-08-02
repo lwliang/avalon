@@ -39,7 +39,10 @@ public class CommonModule extends AbstractModule {
     @Override
     public String[] getResource() {
         return new String[]{
-                "resource/view/partner.views.xml"
+                "resource/record/common.currency.xml",
+                "resource/view/partner.views.xml",
+                "resource/view/currency.views.xml",
+                "resource/view/exchange.rate.views.xml"
         };
     }
 }

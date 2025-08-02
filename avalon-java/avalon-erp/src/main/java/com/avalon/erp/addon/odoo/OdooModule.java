@@ -32,4 +32,19 @@ public class OdooModule extends AbstractModule {
         return true;
     }
 
+    @Override
+    public String getIcon() {
+        return "resource/odoo.png";
+    }
+
+    @Override
+    public String[] getResource() {
+        return new String[] { 
+            "resource/record/odoo.config.xml",
+            "resource/view/odoo.convert.views.xml",
+            "resource/view/odoo.model.views.xml",
+            "resource/view/odoo.config.views.xml",
+            "resource/menu.xml"
+         };
+    }
 }

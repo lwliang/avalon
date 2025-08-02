@@ -27,21 +27,19 @@ public class BaseConfigService extends AbstractService {
     }
 
     public Field value = Fields.createString("值");
-    public Field moduleId = Fields.createMany2one("模块", "base.module");
+    public Field label = Fields.createString("标签");
 
-    public Object getConfig(String module, String key) {
+    public Object getConfig(String key) {
         Condition condition = Condition.equalCondition("name", key);
-        condition = condition.andEqualCondition("moduleId.name", module);
         Record select = select(condition, "id", "value");
-        if (ObjectUtils.isNull(select)) {
+        if (!select.isEmpty()) {
             return select.get(0).getRawValue("value");
         }
         return null;
     }
 
-    public void setConfig(String module, String key, String type, Object value) {
+    public void setConfig(String key, String value) {
         Condition condition = Condition.equalCondition("name", key);
-        condition = condition.andEqualCondition("moduleId.name", module);
         Record select = select(condition, "id", "value");
         if (!select.isEmpty()) {
             RecordRow row = select.get(0);
@@ -50,25 +48,8 @@ public class BaseConfigService extends AbstractService {
         } else {
             RecordRow row = RecordRow.build();
             row.put("key", key);
-            row.put("type", type);
             row.put("value", value);
             insert(row);
         }
-    }
-
-    public void setStringConfig(String module, String key, Object value) {
-        setConfig(module, key, StringField.class.getSimpleName(), value);
-    }
-
-    public void setIntConfig(String module, String key, Object value) {
-        setConfig(module, key, IntegerField.class.getSimpleName(), value);
-    }
-
-    public void setBooleanConfig(String module, String key, Object value) {
-        setConfig(module, key, BooleanField.class.getSimpleName(), value);
-    }
-
-    public void setDoubleConfig(String module, String key, Object value) {
-        setConfig(module, key, DoubleField.class.getSimpleName(), value);
     }
 }

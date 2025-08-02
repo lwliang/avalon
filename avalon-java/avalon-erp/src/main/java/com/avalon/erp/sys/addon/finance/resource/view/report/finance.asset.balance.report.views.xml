@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <record id="finance_asset_balance_report_view" service="base.action.view">
+        <field name="name">资产负债表</field>
+        <field name="ref_serviceId">finance.asset.balance.report</field>
+        <field name="viewMode">report</field>
+        <field name="arch" type="xml">
+            <report>
+                <filter>
+                    <field name="startPeriod"/>
+                    <field name="endPeriod"/>
+                    <field name="accountSetId"/>
+                </filter>
+                <template>
+                    <row>
+                        <col>
+                            <report-table>
+                                
+                            </report-table>
+                        </col>
+                    </row>
+                </template>
+            </report>
+        </field>
+    </record>
+
+    <record id="finance_asset_balance_report_window_action" service="base.action.window">
+        <field name="name">资产负债表窗口</field>
+        <field name="label">资产负债表窗口</field>
+        <field name="viewMode">report</field>
+        <field name="ref_serviceId">finance.asset.balance.report</field>
+    </record>
+</avalon>

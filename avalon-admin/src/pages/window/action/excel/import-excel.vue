@@ -16,6 +16,7 @@ const route = useRoute();
 
 const moduleName = ref<string>(route.params.module as string)
 const serviceName = ref<string>(route.params.service as string)
+const loading = ref<boolean>(false)
 const uploadExcelFile = () => {
   if (file.value) {
     file.value.click();
@@ -29,21 +30,28 @@ const fileBlob = ref<File>()
 
 const fileChange = (event: any) => {
   fileBlob.value = event.target.files[0]
-
+  loading.value = true
   readExcelContent(serviceName.value, fileBlob.value as File).then(data => {
     excelData.value = data
+    loading.value = false
+  }).catch(() => {
+    loading.value = false
   })
 }
 
 const excelData = ref<any>(undefined)
 
 const importExcelFile = () => {
+  loading.value = true
   importExcel(serviceName.value, excelData.value).then(data => {
     proxy?.$notify.success({
       title: "提示",
       message: "导入成功",
     });
+    loading.value = false
     goModelWindow(moduleName.value, serviceName.value, {})
+  }).catch(()=>{
+    loading.value = false
   })
 }
 </script>
@@ -66,13 +74,14 @@ const importExcelFile = () => {
 
     </div>
     <div class="flex-1 overflow-y-auto relative">
-      <div v-if="!excelData"
+      <div v-loading.fullscreen.lock="loading" v-if="!excelData"
            class="absolute top-[40%] left-[50%] translate-x-[-50%] translate-y-[-50%] flex flex-col flex-1 items-center">
         <img src="/smiling_face.svg" alt="" width="120px">
         <div>上传要导入的 Excel 文件</div>
       </div>
       <div v-else class="h-full">
-        <el-table stripe style="width: 100%" :data="excelData.data">
+        <el-table v-loading="loading" stripe style="width: 100%" :data="excelData.data">
+          <el-table-column type="index" width="50" />
           <el-table-column v-for="(field,index) in excelData.headers" :key="index" :prop="field" :label="field+'('+excelData.fields[index]+')'">
             <template #default="scope">
               {{ scope.row[field] }}

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<avalon>
+    <!-- 账套列表视图 -->
+    <record id="finance_account_set_tree_view" service="base.action.view">
+        <field name="name">账套列表</field>
+        <field name="ref_serviceId">finance.account.set</field>
+        <field name="viewMode">tree</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="type"/>
+                <field name="companyId"/>
+                <field name="startPeriod"/>
+                <field name="endPeriod"/>
+                <field name="currencyId"/>
+                <field name="periodTypeId"/>
+                <field name="taxRate"/>
+                <field name="isEnabled"/>
+                <field name="isDefault"/>
+                <field name="createTime"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- 账套表单视图 -->
+    <record id="finance_account_set_form_view" service="base.action.view">
+        <field name="name">账套表单</field>
+        <field name="ref_serviceId">finance.account.set</field>
+        <field name="viewMode">form</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="type"/>
+                            <field name="companyId"/>
+                            <field name="isEnabled"/>
+                            <field name="isDefault"/>
+                        </col>
+                        <col>
+                            <field name="startPeriod"/>
+                            <field name="endPeriod"/>
+                            <field name="currencyId"/>
+                            <field name="periodTypeId"/>
+                            <field name="taxRate"/>
+                        </col>
+                    </row>
+                    <notebook>
+                        <page label="备注">
+                            <field name="description" />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 账套搜索视图 -->
+    <record id="finance_account_set_search_view" service="base.action.view">
+        <field name="name">账套搜索</field>
+        <field name="ref_serviceId">finance.account.set</field>
+        <field name="viewMode">search</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="type"/>
+                <field name="companyId"/>
+                <field name="startPeriod"/>
+                <field name="periodTypeId"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="finance_account_set_window_action" service="base.action.window">
+        <field name="name">账套窗口</field>
+        <field name="label">账套窗口</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">finance.account.set</field>
+    </record>
+</avalon> 

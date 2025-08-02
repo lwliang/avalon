@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<avalon>
+    <record id="finance_account_view_form" service="base.action.view">
+        <field name="name">finance_account_view_form</field>
+        <field name="label">会计科目表单</field>
+        <field name="viewMode">form</field>
+        <field name="ref_serviceId">finance.account</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <row>
+                        <col>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="parentId"/>
+                        </col>
+                        <col>
+                            <field name="type"/>
+                            <field name="direction"/>
+                            <field name="isActive"/>
+                            <field name="isDetail"/>
+                        </col>
+                    </row>
+
+                    <notebook>
+                        <page label="备注">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="finance_account_view_xtree" service="base.action.view">
+        <field name="name">finance_account_view_xtree</field>
+        <field name="label">会计科目树形列表</field>
+        <field name="viewMode">xtree</field>
+        <field name="ref_serviceId">finance.account</field>
+        <field name="arch" type="xml">
+            <xtree>
+                <parentField name="parentId"/>
+                <nameField name="name"/>
+                <childrenField name="childIds"/>
+            </xtree>
+        </field>
+    </record>
+
+    <record id="finance_account_view_tree" service="base.action.view">
+        <field name="name">finance_account_view_tree</field>
+        <field name="label">会计科目列表</field>
+        <field name="viewMode">tree</field>
+        <field name="ref_serviceId">finance.account</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="type"/>
+                <field name="direction"/>
+                <field name="isActive"/>
+                <field name="isDetail"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="finance_account_action" service="base.action.window">
+        <field name="name">finance_account</field>
+        <field name="label">会计科目</field>
+        <field name="viewMode">xtree</field>
+        <field name="ref_serviceId">finance.account</field>
+    </record>
+</avalon> 

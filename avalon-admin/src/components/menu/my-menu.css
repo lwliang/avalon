@@ -4,6 +4,27 @@
  */
 
 .menu-item {
-    @apply px-3 py-1 rounded-sm hover:bg-background-component;
+    @apply px-3 py-1 rounded-sm hover:bg-background-component transition-colors duration-200;
+}
+
+.my-menu {
+    @apply px-3 py-1 rounded-sm hover:bg-background-component transition-colors duration-200;
+}
+
+/* 菜单项悬停效果 */
+.menu-item:hover,
+.my-menu:hover {
+    @apply bg-background-component;
+}
+
+/* 子菜单样式 */
+.menu-sub-item .menu-item {
+    @apply px-3 py-1.5;
+}
+
+/* 确保菜单项有足够的点击区域 */
+.menu-item,
+.my-menu {
+    @apply select-none;
 }
 
